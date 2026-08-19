@@ -227,17 +227,38 @@ export default function NetworkGraph() {
                   </span>
                 </p>
               </div>
-              <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Risk Level</span>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className={`h-2 flex-1 rounded-full ${selectedNode.group === 'suspect' ? 'bg-red-500' : selectedNode.group === 'wallet' ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
-                  <span className="text-sm font-bold">High</span>
+              {selectedNode.risk_level && (
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Risk Level</span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className={`h-2 flex-1 rounded-full ${
+                      selectedNode.risk_level === 'Critical' ? 'bg-red-700' :
+                      selectedNode.risk_level === 'High' ? 'bg-red-500' :
+                      selectedNode.risk_level === 'Medium' ? 'bg-yellow-500' :
+                      'bg-blue-500'
+                    }`}></div>
+                    <span className="text-sm font-bold">{selectedNode.risk_level}</span>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Notes</span>
-                <p className="text-sm mt-1 leading-relaxed">Monitored entity is part of an active investigation. Historical correlations suggest frequent interactions with tracked networks.</p>
-              </div>
+              )}
+              {selectedNode.last_active && (
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Last Active</span>
+                  <p className="text-sm mt-1">{selectedNode.last_active}</p>
+                </div>
+              )}
+              {selectedNode.balance && (
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Estimated Balance</span>
+                  <p className="font-mono mt-1 text-sm font-semibold">{selectedNode.balance}</p>
+                </div>
+              )}
+              {selectedNode.notes && (
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Notes</span>
+                  <p className="text-sm mt-1 leading-relaxed text-muted-foreground">{selectedNode.notes}</p>
+                </div>
+              )}
             </div>
             <Button className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={() => setSelectedNode(null)}>Close Panel</Button>
           </div>

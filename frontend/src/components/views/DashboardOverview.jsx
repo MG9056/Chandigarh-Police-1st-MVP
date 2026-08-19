@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Activity, ShieldAlert, Network } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export default function DashboardOverview() {
+export default function DashboardOverview({ setActiveView }) {
   const { t } = useTranslation();
   const [summary, setSummary] = useState(null);
 
@@ -17,35 +17,44 @@ export default function DashboardOverview() {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-3xl font-bold mb-8 tracking-tight">{t('Welcome to DarKnight')}</h2>
+      <h2 className="text-4xl font-black mb-10 tracking-widest uppercase text-foreground">{t('Welcome to DarKnight')}</h2>
       
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="p-5 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow hover:border-blue-500/50">
-          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-500" /> {t('Active Investigations')}
+      <div className="grid grid-cols-3 gap-6 mb-10">
+        <div 
+          onClick={() => setActiveView && setActiveView('search')}
+          className="p-6 bracket-border bg-transparent flex flex-col gap-2 hover:bg-primary/5 transition-colors cursor-pointer group"
+        >
+          <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
+            <Activity className="w-4 h-4 text-primary" /> {t('Active Investigations')}
           </span>
-          <span className="text-4xl font-bold text-blue-500">{summary.active_investigations}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.active_investigations}</span>
         </div>
-        <div className="p-5 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow hover:border-red-500/50">
-          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-red-500" /> {t('Critical Alerts')}
+        <div 
+          onClick={() => setActiveView && setActiveView('alerts')}
+          className="p-6 bracket-border bg-transparent flex flex-col gap-2 hover:bg-primary/5 transition-colors cursor-pointer group"
+        >
+          <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
+            <ShieldAlert className="w-4 h-4 text-primary" /> {t('Critical Alerts')}
           </span>
-          <span className="text-4xl font-bold text-red-500">{summary.critical_alerts}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.critical_alerts}</span>
         </div>
-        <div className="p-5 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col gap-2 hover:shadow-md transition-shadow hover:border-green-500/50">
-          <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Network className="w-4 h-4 text-green-500" /> {t('Sources Monitored')}
+        <div 
+          onClick={() => setActiveView && setActiveView('data')}
+          className="p-6 bracket-border bg-transparent flex flex-col gap-2 hover:bg-primary/5 transition-colors cursor-pointer group"
+        >
+          <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
+            <Network className="w-4 h-4 text-primary" /> {t('Sources Monitored')}
           </span>
-          <span className="text-4xl font-bold text-green-500">{summary.sources_monitored}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.sources_monitored}</span>
         </div>
       </div>
       
-      <div className="p-6 rounded-xl border border-border/50 bg-muted/10 backdrop-blur-sm shadow-inner">
-        <h3 className="text-xl font-semibold mb-3 tracking-tight">{t('Details')}</h3>
-        <p className="text-muted-foreground leading-relaxed">
-          Select an item from the General Info panel to view detailed metrics, suspect relationships, or actionable intelligence here. The dashboard automatically aggregates signals across multiple encrypted channels.
+      <div className="p-8 bracket-border bg-transparent relative">
+        <h3 className="text-sm font-mono tracking-widest uppercase text-primary mb-4">{t('Details')}</h3>
+        <p className="text-muted-foreground leading-relaxed text-lg font-light max-w-2xl">
+          Select an item from the Navigation panel to view detailed metrics, suspect relationships, or actionable intelligence here. The dashboard automatically aggregates signals across multiple encrypted channels.
         </p>
-        <p className="text-xs text-muted-foreground mt-4 text-right">
+        <p className="text-xs font-mono tracking-wider text-muted-foreground mt-8 text-right opacity-50 uppercase">
           Last Synced: {new Date(summary.last_update).toLocaleString()}
         </p>
       </div>
