@@ -24,7 +24,10 @@ const resources = {
       "Entity Correlation & Network Visualization": "Entity Correlation & Network Visualization",
       "Automated Alert Generation": "Automated Alert Generation",
       "Suspicious Activity Detection": "Suspicious Activity Detection",
-      "Search & Investigation Support": "Search & Investigation Support"
+      "Search & Investigation Support": "Search & Investigation Support",
+      "dashboard": {
+        "detailsDescription": "Select an item from the General Info panel to view detailed metrics, suspect relationships, or actionable intelligence here. The dashboard automatically aggregates signals across multiple encrypted channels."
+      }
     }
   },
   hi: {
@@ -48,7 +51,10 @@ const resources = {
       "Entity Correlation & Network Visualization": "एंटिटी सहसंबंध और नेटवर्क विज़ुअलाइज़ेशन",
       "Automated Alert Generation": "स्वचालित अलर्ट जेनरेशन",
       "Suspicious Activity Detection": "संदिग्ध गतिविधि का पता लगाना",
-      "Search & Investigation Support": "खोज और जांच सहायता"
+      "Search & Investigation Support": "खोज और जांच सहायता",
+      "dashboard": {
+      "detailsDescription": "विस्तृत मेट्रिक्स, संदिग्ध संबंधों या कार्रवाई योग्य जानकारी देखने के लिए सामान्य जानकारी पैनल से किसी आइटम का चयन करें। डैशबोर्ड स्वचालित रूप से कई एन्क्रिप्टेड चैनलों से संकेतों को एकत्र करता है।"
+      }
     }
   },
   pa: {
@@ -72,7 +78,10 @@ const resources = {
       "Entity Correlation & Network Visualization": "ਇਕਾਈ ਸਹਿਸੰਬੰਧ ਅਤੇ ਨੈੱਟਵਰਕ ਵਿਜ਼ੂਅਲਾਈਜ਼ੇਸ਼ਨ",
       "Automated Alert Generation": "ਸਵੈਚਲਿਤ ਚੇਤਾਵਨੀ ਉਤਪਤੀ",
       "Suspicious Activity Detection": "ਸ਼ੱਕੀ ਗਤੀਵਿਧੀ ਦੀ ਪਛਾਣ",
-      "Search & Investigation Support": "ਖੋਜ ਅਤੇ ਪੜਤਾਲ ਸਹਾਇਤਾ"
+      "Search & Investigation Support": "ਖੋਜ ਅਤੇ ਪੜਤਾਲ ਸਹਾਇਤਾ",
+      "dashboard": {
+      "detailsDescription": "ਵਿਸਤ੍ਰਿਤ ਮੈਟ੍ਰਿਕਸ, ਸ਼ੱਕੀ ਸੰਬੰਧਾਂ ਜਾਂ ਕਾਰਵਾਈਯੋਗ ਜਾਣਕਾਰੀ ਨੂੰ ਦੇਖਣ ਲਈ ਆਮ ਜਾਣਕਾਰੀ ਪੈਨਲ ਵਿੱਚੋਂ ਇੱਕ ਆਈਟਮ ਚੁਣੋ। ਡੈਸ਼ਬੋਰਡ ਆਪਣੇ ਆਪ ਕਈ ਐਨਕ੍ਰਿਪਟ ਕੀਤੇ ਚੈਨਲਾਂ ਤੋਂ ਸੰਕੇਤ ਇਕੱਠੇ ਕਰਦਾ ਹੈ।"
+      }
     }
   }
 };

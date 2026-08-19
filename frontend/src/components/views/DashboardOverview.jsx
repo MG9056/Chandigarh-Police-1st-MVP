@@ -43,7 +43,7 @@ export default function DashboardOverview() {
       <div className="p-6 rounded-xl border border-border/50 bg-muted/10 backdrop-blur-sm shadow-inner">
         <h3 className="text-xl font-semibold mb-3 tracking-tight">{t('Details')}</h3>
         <p className="text-muted-foreground leading-relaxed">
-          Select an item from the General Info panel to view detailed metrics, suspect relationships, or actionable intelligence here. The dashboard automatically aggregates signals across multiple encrypted channels.
+          {t('dashboard.detailsDescription')}
         </p>
         <p className="text-xs text-muted-foreground mt-4 text-right">
           Last Synced: {new Date(summary.last_update).toLocaleString()}
