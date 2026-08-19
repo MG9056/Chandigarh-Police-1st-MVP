@@ -1,0 +1,82 @@
+{
+  "dashboard_summary": {
+    "active_investigations": 58,
+    "critical_alerts": 14,
+    "sources_monitored": 35,
+    "last_update": "2023-11-01T08:00:00Z"
+  },
+  "alerts": [
+    {"id": 1, "severity": "red", "message": "High-risk listing detected on Alpha Market", "timestamp": "2023-11-01T10:00:00Z"},
+    {"id": 2, "severity": "yellow", "message": "Unusual crypto transaction linked to Alias 'Ghost'", "timestamp": "2023-11-01T09:45:00Z"},
+    {"id": 3, "severity": "green", "message": "Routine scrape of Forum Z completed", "timestamp": "2023-11-01T09:30:00Z"},
+    {"id": 4, "severity": "red", "message": "Multiple Tor nodes relaying suspicious traffic to known suspect", "timestamp": "2023-11-01T08:15:00Z"},
+    {"id": 5, "severity": "yellow", "message": "New alias 'ShadowBroker' matching 85% of 'Ghost' patterns", "timestamp": "2023-11-01T10:15:00Z"},
+    {"id": 6, "severity": "red", "message": "Large bulk order of restricted chemicals detected on Market X", "timestamp": "2023-11-01T11:00:00Z"},
+    {"id": 7, "severity": "green", "message": "New blockchain node synced successfully", "timestamp": "2023-11-01T11:30:00Z"},
+    {"id": 8, "severity": "yellow", "message": "Encrypted chat traffic spike from IP block 192.168.x.x", "timestamp": "2023-11-01T12:00:00Z"}
+  ],
+  "suspicious_activity": [
+    {"id": "evt1", "type": "keyword_match", "description": "Keyword 'Ice' found in sudden burst of messages", "confidence": 0.88, "date": "2023-11-01"},
+    {"id": "evt2", "type": "pattern_anomaly", "description": "15 micro-transactions to same wallet within 1 hour", "confidence": 0.95, "date": "2023-10-31"},
+    {"id": "evt3", "type": "network_anomaly", "description": "Suspicious login attempts from multiple exit nodes", "confidence": 0.72, "date": "2023-10-31"},
+    {"id": "evt4", "type": "keyword_match", "description": "Keywords 'Snow', 'Delivery' co-occurring frequently", "confidence": 0.91, "date": "2023-11-01"},
+    {"id": "evt5", "type": "pattern_anomaly", "description": "Wallet clustering indicates possible mixing service", "confidence": 0.85, "date": "2023-10-30"}
+  ],
+  "network_data": {
+    "nodes": [
+      {"id": "user1", "label": "Suspect A", "group": "suspect"},
+      {"id": "wallet1", "label": "BTC Wallet X", "group": "wallet"},
+      {"id": "market1", "label": "Marketplace Alpha", "group": "market"},
+      {"id": "user2", "label": "Alias 'Ghost'", "group": "suspect"},
+      {"id": "forum1", "label": "Encrypted Forum Z", "group": "market"},
+      {"id": "wallet2", "label": "Monero Wallet Y", "group": "wallet"},
+      {"id": "user3", "label": "Vendor 'Shadow'", "group": "suspect"},
+      {"id": "wallet3", "label": "ETH Wallet Z", "group": "wallet"},
+      {"id": "user4", "label": "Buyer 'Neo'", "group": "suspect"},
+      {"id": "market2", "label": "Marketplace Beta", "group": "market"},
+      {"id": "user5", "label": "Alias 'Phantom'", "group": "suspect"},
+      {"id": "wallet4", "label": "BTC Wallet W", "group": "wallet"},
+      {"id": "user6", "label": "Suspect B", "group": "suspect"},
+      {"id": "forum2", "label": "Forum Y", "group": "market"},
+      {"id": "wallet5", "label": "Monero Wallet A", "group": "wallet"},
+      {"id": "user7", "label": "Vendor 'Ice'", "group": "suspect"}
+    ],
+    "links": [
+      {"source": "user1", "target": "wallet1", "value": 1},
+      {"source": "wallet1", "target": "market1", "value": 1},
+      {"source": "user2", "target": "forum1", "value": 1},
+      {"source": "user2", "target": "wallet1", "value": 1},
+      {"source": "user3", "target": "forum1", "value": 1},
+      {"source": "user3", "target": "wallet2", "value": 1},
+      {"source": "wallet2", "target": "user1", "value": 1},
+      {"source": "user4", "target": "wallet3", "value": 1},
+      {"source": "wallet3", "target": "market1", "value": 1},
+      {"source": "user4", "target": "market2", "value": 1},
+      {"source": "user5", "target": "wallet4", "value": 1},
+      {"source": "wallet4", "target": "market2", "value": 1},
+      {"source": "user5", "target": "user2", "value": 1},
+      {"source": "user6", "target": "wallet5", "value": 1},
+      {"source": "wallet5", "target": "forum2", "value": 1},
+      {"source": "user7", "target": "forum2", "value": 1},
+      {"source": "user7", "target": "wallet2", "value": 1},
+      {"source": "wallet1", "target": "wallet4", "value": 1},
+      {"source": "user1", "target": "user6", "value": 1}
+    ]
+  },
+  "search_entities": [
+    {"type": "wallet", "identifier": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", "risk_score": 85, "last_seen": "2023-10-26"},
+    {"type": "alias", "identifier": "DarkVendor99", "risk_score": 92, "last_seen": "2023-10-27"},
+    {"type": "listing", "identifier": "Bulk Order XYZ", "risk_score": 78, "last_seen": "2023-10-25"},
+    {"type": "alias", "identifier": "Ghost", "risk_score": 95, "last_seen": "2023-11-01"},
+    {"type": "wallet", "identifier": "44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33nQGWzNpR3C", "risk_score": 88, "last_seen": "2023-10-30"},
+    {"type": "alias", "identifier": "ShadowBroker", "risk_score": 89, "last_seen": "2023-11-01"},
+    {"type": "wallet", "identifier": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F", "risk_score": 75, "last_seen": "2023-10-31"},
+    {"type": "listing", "identifier": "Ice delivery - Sector 17", "risk_score": 98, "last_seen": "2023-11-01"}
+  ],
+  "reports": [
+    {"id": "rep001", "title": "Operation Nightfall Summary", "status": "Finalized", "date": "2023-10-20", "author": "Agent K"},
+    {"id": "rep002", "title": "Weekly Market Aggregation", "status": "Draft", "date": "2023-10-27", "author": "Auto-System"},
+    {"id": "rep003", "title": "Alias 'Ghost' Investigation", "status": "Draft", "date": "2023-11-01", "author": "Agent J"},
+    {"id": "rep004", "title": "Crypto Tumbler Analysis", "status": "Draft", "date": "2023-11-02", "author": "Agent R"}
+  ]
+}
