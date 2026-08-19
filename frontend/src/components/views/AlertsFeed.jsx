@@ -27,7 +27,7 @@ export default function AlertsFeed() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto space-y-8">
       <div>
         <h2 className="text-2xl font-bold tracking-tight mb-2">{t('Automated Alert Generation')}</h2>
-        <p className="text-muted-foreground mb-4">Real-time notifications for predefined risk indicators across monitored sources.</p>
+        <p className="text-muted-foreground mb-4">{t('Real-time notifications for predefined risk indicators across monitored sources.')}</p>
         
         <div className="space-y-3">
           {alerts.map(alert => (
@@ -43,8 +43,8 @@ export default function AlertsFeed() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-2">{t('Suspicious Activity Detection')}</h2>
-        <p className="text-muted-foreground mb-4">AI-driven detection of abnormal behavioral trends and recurring keywords.</p>
+        <h2 className="text-2xl font-bold tracking-tight mb-2 mt-8">{t('Suspicious Activity Detection')}</h2>
+        <p className="text-muted-foreground mb-4">{t('AI-driven detection of abnormal behavioral trends and recurring keywords.')}</p>
         
         <div className="grid gap-4">
           {suspicious.map(act => (

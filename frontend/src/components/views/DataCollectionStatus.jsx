@@ -5,19 +5,21 @@ export default function DataCollectionStatus() {
   const sources = [
     { name: "Darknet Market Alpha", type: "Onion Service", status: "Active", lastSync: "2 mins ago", icon: <Globe className="w-5 h-5 text-purple-500" /> },
     { name: "Encrypted Forum Z", type: "P2P Forum", status: "Syncing", lastSync: "In Progress", icon: <Database className="w-5 h-5 text-blue-500 animate-pulse" /> },
-    { name: "BTC Blockchain Node", type: "Ledger", status: "Active", lastSync: "Just now", icon: <Server className="w-5 h-5 text-yellow-500" /> },
-    { name: "Public Telegram Group A", type: "Social", status: "Offline", lastSync: "2 days ago", icon: <Globe className="w-5 h-5 text-red-500" /> },
+    { name: t("Darknet Market Alpha"), type: t("Onion Service"), status: t("Active"), lastSync: t("2 mins ago"), icon: <Globe className="w-5 h-5 text-purple-500" /> },
+    { name: t("Encrypted Forum Z"), type: t("P2P Forum"), status: t("Syncing"), lastSync: t("In Progress"), icon: <Database className="w-5 h-5 text-blue-500 animate-pulse" /> },
+    { name: t("BTC Blockchain Node"), type: t("Ledger"), status: t("Active"), lastSync: t("Just now"), icon: <Server className="w-5 h-5 text-yellow-500" /> },
+    { name: t("Public Telegram Group A"), type: t("Social"), status: t("Offline"), lastSync: t("2 days ago"), icon: <Globe className="w-5 h-5 text-red-500" /> },
   ];
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full">
-      <div className="flex justify-between items-end mb-8">
+      <div className="mb-4 flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">Multi-Source Data Collection</h2>
-          <p className="text-muted-foreground">Monitor the aggregation of intelligence from legally accessible digital platforms.</p>
+          <h2 className="text-2xl font-bold tracking-tight mb-2">{t('Multi-Source Data Collection')}</h2>
+          <p className="text-muted-foreground">{t('Monitor the aggregation of intelligence from legally accessible digital platforms.')}</p>
         </div>
         <Button variant="outline" className="gap-2">
-          <RefreshCcw className="w-4 h-4" /> Restart All Nodes
+          <RefreshCcw className="w-4 h-4" /> {t('Restart All Nodes')}
         </Button>
       </div>
 
