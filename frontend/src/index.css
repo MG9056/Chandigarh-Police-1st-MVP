@@ -11,26 +11,29 @@
     --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
+    --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    --primary: 84 80% 44%;
+    --primary: 120 80% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 90%;
     --secondary-foreground: 0 0% 0%;
 
     --muted: 0 0% 96%;
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 84 80% 44%;
+    --accent: 120 80% 40%;
     --accent-foreground: 0 0% 100%;
 
+    --destructive: 0 84.2% 60.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 0 0% 85%;
     --input: 0 0% 85%;
-    --ring: 84 80% 44%;
+    --ring: 120 80% 40%;
 
     --radius: 0rem;
   }
@@ -92,6 +95,19 @@
   }
   .text-glow {
     text-shadow: 0 0 15px hsl(var(--primary) / 0.5);
+  }
+  
+  .slow-pulse {
+    animation: slow-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes slow-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.5); }
+  }
+  
+  .leaflet-container {
+    background: transparent !important;
   }
 }
 

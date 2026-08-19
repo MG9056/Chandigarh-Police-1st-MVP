@@ -25,14 +25,14 @@ export default function NetworkGraph() {
 
   useEffect(() => {
     if (fgRef.current) {
-      fgRef.current.d3Force('charge').strength(-800);
-      fgRef.current.d3Force('link').distance(120);
+      fgRef.current.d3Force('charge').strength(-2500);
+      fgRef.current.d3Force('link').distance(250);
       
       // Zoom to fit on initial data load
       if (data.nodes.length > 0) {
         setTimeout(() => {
-          fgRef.current.zoomToFit(400, 50);
-        }, 500);
+          fgRef.current.zoomToFit(800, 50);
+        }, 800);
       }
     }
   }, [data]);
@@ -82,14 +82,14 @@ export default function NetworkGraph() {
 
   return (
     <div className={containerClass}>
-      <div className="mb-4 flex justify-between items-start">
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">{t('Entity Correlation & Network Visualization')}</h2>
-          <p className="text-muted-foreground">Interactive map identifying relationships between suspects, wallets, and marketplaces.</p>
+          <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
+          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">Interactive map identifying relationships between suspects, wallets, and marketplaces.</p>
         </div>
       </div>
-      <div className="flex-1 flex gap-4 overflow-hidden relative min-h-[500px]">
-        <div ref={containerRef} className="flex-1 rounded-xl border bg-card overflow-hidden shadow-inner relative h-full">
+      <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
+        <div ref={containerRef} className="flex-1 bracket-border bg-background/20 backdrop-blur-sm overflow-hidden relative h-full">
           <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
             <Button variant="secondary" size="icon" className="w-8 h-8 opacity-80 hover:opacity-100" onClick={() => fgRef.current && fgRef.current.zoom(fgRef.current.zoom() * 1.5, 400)}>
               <ZoomIn className="w-4 h-4" />
@@ -209,9 +209,9 @@ export default function NetworkGraph() {
         
         {/* Detail Panel */}
         {selectedNode && (
-          <div className="w-[300px] flex-shrink-0 bg-card border rounded-xl shadow-lg p-5 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
-            <h3 className="font-bold text-lg mb-4 border-b pb-2">Intelligence Details</h3>
-            <div className="space-y-4">
+          <div className="w-[350px] flex-shrink-0 bg-background/80 backdrop-blur-md bracket-border p-6 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
+            <h3 className="font-bold text-lg mb-6 border-b border-border/50 pb-3 text-primary tracking-widest uppercase">Intelligence Details</h3>
+            <div className="space-y-6">
               <div>
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Identifier</span>
                 <p className="font-mono mt-1 text-sm">{selectedNode.label}</p>

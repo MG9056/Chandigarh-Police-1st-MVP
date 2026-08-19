@@ -12,6 +12,8 @@ import SearchInvestigation from './components/views/SearchInvestigation';
 import DataCollectionStatus from './components/views/DataCollectionStatus';
 import ReportingEvidence from './components/views/ReportingEvidence';
 import AccessControl from './components/views/AccessControl';
+import TrafficHotspots from './components/views/TrafficHotspots';
+import SuspectProfiles from './components/views/SuspectProfiles';
 
 function Dashboard() {
   const { t, i18n } = useTranslation();
@@ -22,31 +24,35 @@ function Dashboard() {
     i18n.changeLanguage(lang);
   };
 
-  const renderActiveView = () => {
-    switch (activeView) {
-      case 'dashboard': return <DashboardOverview setActiveView={setActiveView} />;
-      case 'data': return <DataCollectionStatus />;
-      case 'alerts': return <AlertsFeed />;
-      case 'network': return <NetworkGraph />;
-      case 'search': return <SearchInvestigation />;
-      case 'reports': return <ReportingEvidence />;
-      case 'security': return <AccessControl />;
-      default: return <DashboardOverview />;
-    }
-  };
+    const renderActiveView = () => {
+      switch (activeView) {
+        case 'dashboard': return <DashboardOverview setActiveView={setActiveView} />;
+        case 'data': return <DataCollectionStatus />;
+        case 'alerts': return <AlertsFeed />;
+        case 'network': return <NetworkGraph />;
+        case 'search': return <SearchInvestigation />;
+        case 'reports': return <ReportingEvidence />;
+        case 'security': return <AccessControl />;
+        case 'hotspots': return <TrafficHotspots />;
+        case 'profiles': return <SuspectProfiles />;
+        default: return <DashboardOverview />;
+      }
+    };
 
   const navItems = [
-    { id: 'dashboard', icon: <Activity className="w-5 h-5 text-blue-500" />, label: 'Dashboard' },
-    { id: 'data', icon: <Database className="w-5 h-5 text-indigo-500" />, label: 'Data Collection Status' },
-    { id: 'alerts', icon: <Bell className="w-5 h-5 text-yellow-500" />, label: 'Alerts & Suspicious Activity' },
-    { id: 'network', icon: <Network className="w-5 h-5 text-purple-500" />, label: 'Network Visualization' },
-    { id: 'search', icon: <Search className="w-5 h-5 text-orange-500" />, label: 'Search & Investigation' },
-    { id: 'reports', icon: <FileText className="w-5 h-5 text-green-500" />, label: 'Reports & Evidence' },
-    { id: 'security', icon: <Shield className="w-5 h-5 text-red-500" />, label: 'Security & Access Control' },
+    { id: 'dashboard', icon: null, label: 'Dashboard' },
+    { id: 'hotspots', icon: null, label: 'Traffic Hotspots' },
+    { id: 'profiles', icon: null, label: 'Target Profiles' },
+    { id: 'data', icon: null, label: 'Data Collection Status' },
+    { id: 'alerts', icon: null, label: 'Alerts & Suspicious Activity' },
+    { id: 'network', icon: null, label: 'Network Visualization' },
+    { id: 'search', icon: null, label: 'Search & Investigation' },
+    { id: 'reports', icon: null, label: 'Reports & Evidence' },
+    { id: 'security', icon: null, label: 'Security & Access Control' },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative z-0">
+    <div className="h-screen bg-background text-foreground flex flex-col font-sans relative z-0 overflow-hidden">
       {/* Flammini Style Background Effects */}
       <div className="absolute inset-0 pointer-events-none z-[-1] overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/20 rounded-full blur-[150px]" />
@@ -54,7 +60,7 @@ function Dashboard() {
       </div>
       <div className="absolute inset-0 bg-noise z-[-1]" />
 
-      <div className="flex flex-col flex-1 z-10 relative">
+      <div className="flex flex-col w-full h-full z-10 relative overflow-hidden">
         {/* Header / Top Nav */}
         <header className="h-16 border-b border-border/50 bg-background/50 backdrop-blur-md flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
