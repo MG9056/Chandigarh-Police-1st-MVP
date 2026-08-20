@@ -119,9 +119,6 @@ export default function DashboardOverview({ setActiveView }) {
                  />
                </PieChart>
              </ResponsiveContainer>
-             <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                <span className="text-2xl font-black text-foreground">100%</span>
-             </div>
            </div>
            
            <div className="w-full mt-4 flex flex-col gap-2 text-xs font-mono tracking-wider uppercase">
