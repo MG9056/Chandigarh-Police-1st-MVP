@@ -1,7 +1,9 @@
 import { Server, Database, Globe, RefreshCcw } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function DataCollectionStatus() {
+  const { t } = useTranslation();
   const sources = [
     { name: "Darknet Market Alpha", type: "Onion Service", status: "Active", lastSync: "2 mins ago", icon: <Globe className="w-5 h-5 text-purple-500" /> },
     { name: "Encrypted Forum Z", type: "P2P Forum", status: "Syncing", lastSync: "In Progress", icon: <Database className="w-5 h-5 text-blue-500 animate-pulse" /> },
