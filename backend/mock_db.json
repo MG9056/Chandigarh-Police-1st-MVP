@@ -5,6 +5,50 @@
     "sources_monitored": 35,
     "last_update": "2023-11-01T08:00:00Z"
   },
+  "data_sources": [
+    {
+      "id": 1,
+      "name": "Darknet Market Alpha",
+      "type": "Onion Service",
+      "status": "Active",
+      "lastSync": "2 mins ago"
+    },
+    {
+      "id": 2,
+      "name": "Encrypted Forum Z",
+      "type": "P2P Forum",
+      "status": "Syncing",
+      "lastSync": "In Progress"
+    },
+    {
+      "id": 3,
+      "name": "BTC Blockchain Node",
+      "type": "Ledger",
+      "status": "Active",
+      "lastSync": "Just now"
+    },
+    {
+      "id": 4,
+      "name": "Public Telegram Group A",
+      "type": "Social",
+      "status": "Offline",
+      "lastSync": "2 days ago"
+    },
+    {
+      "id": 5,
+      "name": "Monero Network Crawler",
+      "type": "P2P Crawler",
+      "status": "Active",
+      "lastSync": "5 mins ago"
+    },
+    {
+      "id": 6,
+      "name": "Signal Channel Aggregator",
+      "type": "Messaging",
+      "status": "Active",
+      "lastSync": "10 mins ago"
+    }
+  ],
   "alerts": [
     {
       "id": 1,

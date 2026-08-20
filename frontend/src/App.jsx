@@ -67,7 +67,7 @@ function Dashboard() {
             <div className="relative w-8 h-8 flex items-center justify-center bracket-border">
               <div className="w-3 h-3 bg-primary rotate-45 text-glow" />
             </div>
-            <h1 className="text-xl font-bold tracking-[0.2em] uppercase text-primary text-glow">DarKnight</h1>
+            <h1 className="text-xl font-bold tracking-[0.2em] text-primary text-glow">DarKnight</h1>
           </div>
         <div className="flex items-center gap-4">
           <div className="flex bg-muted/50 p-1 rounded-md border border-border/50">
