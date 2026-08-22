@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Server, Database, Globe, RefreshCcw, MessageSquare, Radio } from 'lucide-react';
 import { Button } from '../ui/button';
-import { useTranslation } from 'react-i18next';
 
 const defaultSources = [
   { id: 1, name: "Darknet Market Alpha", type: "Onion Service", status: "Active", lastSync: "2 mins ago" },
