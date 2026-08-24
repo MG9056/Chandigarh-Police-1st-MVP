@@ -52,3 +52,36 @@
    - Added an Expand button to make the graph fill the screen (leaving the sidebar intact).
    - Added automatic `zoomToFit` on initial data load for optimal at-a-glance viewing.
    - Implemented highlighting: hovering or clicking a node dims all unrelated nodes and highlights direct connections and paths in red.
+
+## Phase 5: Name Standardization & Data Collection Status Fix (Completed)
+
+**Features Built & Bugs Fixed:**
+1. **Name Standardization**: Verified and updated all instances of application naming to strictly use "DarKnight" across HTML document titles (`index.html`), headers, translation dictionaries (`i18n.js`), and backend titles (`main.py`).
+2. **Data Collection Status Endpoint & View Repair**:
+   - Added `/api/data-sources` and `/api/data-collection/status` endpoints in `backend/main.py`.
+   - Populated `data_sources` in `backend/mock_db.json` with multi-source monitoring data (Onion Services, P2P Forums, Crypto Ledgers, Messaging Channels, Social Platforms).
+   - Fixed `frontend/src/components/views/DataCollectionStatus.jsx` by properly importing `useTranslation`, adding missing `const { t } = useTranslation();`, and implementing dynamic API fetching with fallbacks and dynamic node icons (`Globe`, `Database`, `Server`, `MessageSquare`, `Radio`).
+
+## Phase 6: Comprehensive Localization & Brand Casing Fix (Completed)
+
+**Features Built & Bugs Fixed:**
+1. **Preserved Mixed-case Branding ("DarKnight")**: Removed `uppercase` CSS class transformations from `App.jsx` and `DashboardOverview.jsx` so "DarKnight" strictly displays as mixed-case "DarKnight" (capital D and K) in the upper left header and main dashboard.
+2. **Complete i18n Translation Coverage across All Sections**:
+   - **Network Graph**: Wrapped subtitles, controls, intelligence details panel, legend items, and classification badges with `t(...)`.
+   - **Search & Investigation**: Wrapped search subtitles, input placeholders, filter/search buttons, intelligence results, risk scores, and empty state messages with `t(...)`.
+   - **Security & Access Control**: Added `useTranslation` hook and wrapped all cards, session info, clearance levels, logout button, and audit log controls with `t(...)`.
+   - **Reporting & Evidence**: Added `useTranslation` hook and wrapped all headers, action buttons, table columns, report titles, and status tags with `t(...)`.
+   - **Alerts & Suspicious Activity**: Wrapped all alert messages, confidence scores, trigger types, and date fields with `t(...)`.
+   - **Dictionary Update**: Expanded `i18n.js` to provide full English (`en`), Hindi (`hi`), and Punjabi (`pa`) translations for all newly wrapped UI strings.
+
+## Phase 7: Official Indian Boundary Compliance (Completed)
+
+**Features Built:**
+1. **Survey of India (SOI) GeoJSON Overlay**: Added `frontend/src/assets/indiaBoundary.json` containing official Indian border geometries (including full Jammu & Kashmir, Ladakh, Aksai Chin, and Arunachal Pradesh).
+2. **React-Leaflet Boundary Rendering**: Integrated `<GeoJSON />` overlay into `TrafficHotspots.jsx` to visually highlight official legal Indian boundaries with styled stroke accents regardless of base map tile vendor. Added compliance status badge in map view.
+
+## Phase 8: Native MapmyIndia (Mappl) Web SDK Integration (Completed)
+
+**Features Built:**
+1. **Mappl SDK Script Integration**: Loaded official MapmyIndia Mappl Web SDK (`layer=vector`) in `index.html` head using key `hmlomcyvgllvxpnfwcietumtdpzfdhogkmhy`.
+2. **Native Mappl Map Engine**: Updated `TrafficHotspots.jsx` to initialize native `window.mappls.Map` with interactive hotspot markers for Chandigarh, Ludhiana, Amritsar, Delhi NCR, and Sector nodes. Native vector tiles display official Survey of India aligned boundaries, city names, and Indian geography seamlessly.

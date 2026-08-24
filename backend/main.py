@@ -33,6 +33,12 @@ def get_dashboard_summary():
     summary["last_update"] = datetime.now().isoformat()
     return summary
 
+@app.get("/api/data-sources")
+@app.get("/api/data-collection/status")
+def get_data_sources():
+    db = load_db()
+    return db.get("data_sources", [])
+
 @app.get("/api/alerts")
 def get_alerts():
     db = load_db()

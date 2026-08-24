@@ -85,7 +85,7 @@ export default function NetworkGraph() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
-          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">Interactive map identifying relationships between suspects, wallets, and marketplaces.</p>
+          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
         </div>
       </div>
       <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
@@ -100,7 +100,7 @@ export default function NetworkGraph() {
             <Button variant="secondary" size="icon" className="w-8 h-8 opacity-80 hover:opacity-100" onClick={() => fgRef.current && fgRef.current.zoomToFit(400, 50)}>
               <Expand className="w-4 h-4" />
             </Button>
-            <Button variant="secondary" size="icon" className="w-8 h-8 opacity-80 hover:opacity-100" onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? "Exit Full Screen" : "Full Screen"}>
+            <Button variant="secondary" size="icon" className="w-8 h-8 opacity-80 hover:opacity-100" onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? t("Exit Full Screen") : t("Full Screen")}>
               {isExpanded ? <Minimize className="w-4 h-4 text-red-500" /> : <Maximize className="w-4 h-4" />}
             </Button>
           </div>
@@ -212,7 +212,7 @@ export default function NetworkGraph() {
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground animate-pulse">
-              Loading intelligence network...
+              {t('Loading intelligence network...')}
             </div>
           )}
         </div>
@@ -220,26 +220,26 @@ export default function NetworkGraph() {
         {/* Detail Panel */}
         {selectedNode && (
           <div className="w-[350px] flex-shrink-0 bg-background/80 backdrop-blur-md bracket-border p-6 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
-            <h3 className="font-bold text-lg mb-6 border-b border-border/50 pb-3 text-primary tracking-widest uppercase">Intelligence Details</h3>
+            <h3 className="font-bold text-lg mb-6 border-b border-border/50 pb-3 text-primary tracking-widest uppercase">{t('Intelligence Details')}</h3>
             <div className="space-y-6">
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Identifier</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Identifier')}</span>
                 <p className="font-mono mt-1 text-sm">{selectedNode.label}</p>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Classification</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Classification')}</span>
                 <p className="mt-1 capitalize">
                   <span className={`px-2 py-1 rounded text-xs font-bold 
                     ${selectedNode.group === 'suspect' ? 'bg-red-500/20 text-red-500' : 
                       selectedNode.group === 'wallet' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 
                       'bg-blue-500/20 text-blue-500'}`}>
-                    {selectedNode.group}
+                    {t(selectedNode.group) || selectedNode.group}
                   </span>
                 </p>
               </div>
               {selectedNode.risk_level && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Risk Level</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Risk Level')}</span>
                   <div className="mt-1 flex items-center gap-2">
                     <div className={`h-2 flex-1 rounded-full ${
                       selectedNode.risk_level === 'Critical' ? 'bg-red-700' :
@@ -247,30 +247,30 @@ export default function NetworkGraph() {
                       selectedNode.risk_level === 'Medium' ? 'bg-yellow-500' :
                       'bg-blue-500'
                     }`}></div>
-                    <span className="text-sm font-bold">{selectedNode.risk_level}</span>
+                    <span className="text-sm font-bold">{t(selectedNode.risk_level) || selectedNode.risk_level}</span>
                   </div>
                 </div>
               )}
               {selectedNode.last_active && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Last Active</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Last Active')}</span>
                   <p className="text-sm mt-1">{selectedNode.last_active}</p>
                 </div>
               )}
               {selectedNode.balance && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Estimated Balance</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Estimated Balance')}</span>
                   <p className="font-mono mt-1 text-sm font-semibold">{selectedNode.balance}</p>
                 </div>
               )}
               {selectedNode.notes && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Notes</span>
-                  <p className="text-sm mt-1 leading-relaxed text-muted-foreground">{selectedNode.notes}</p>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Notes')}</span>
+                  <p className="text-sm mt-1 leading-relaxed text-muted-foreground">{t(selectedNode.notes) || selectedNode.notes}</p>
                 </div>
               )}
             </div>
-            <Button className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={() => setSelectedNode(null)}>Close Panel</Button>
+            <Button className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={() => setSelectedNode(null)}>{t('Close Panel')}</Button>
           </div>
         )}
       </div>

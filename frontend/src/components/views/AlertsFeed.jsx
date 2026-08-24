@@ -34,7 +34,7 @@ export default function AlertsFeed() {
             <div key={alert.id} className={`p-4 rounded-xl border flex items-start gap-4 ${getSeverityColor(alert.severity)}`}>
               <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">{alert.message}</p>
+                <p className="font-semibold">{t(alert.message) || alert.message}</p>
                 <p className="text-xs opacity-80 mt-1">{new Date(alert.timestamp).toLocaleString()}</p>
               </div>
             </div>
@@ -52,11 +52,11 @@ export default function AlertsFeed() {
               {act.type === 'keyword_match' ? <Key className="w-5 h-5 text-orange-500 mt-0.5" /> : <TrendingUp className="w-5 h-5 text-purple-500 mt-0.5" />}
               <div className="flex-1">
                 <div className="flex justify-between items-start">
-                  <p className="font-semibold">{act.description}</p>
-                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">Confidence: {(act.confidence * 100).toFixed(0)}%</span>
+                  <p className="font-semibold">{t(act.description) || act.description}</p>
+                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded">{t('Confidence')}: {(act.confidence * 100).toFixed(0)}%</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 capitalize">Trigger Type: {act.type.replace('_', ' ')}</p>
-                <p className="text-xs text-muted-foreground mt-1">Detected on: {act.date}</p>
+                <p className="text-sm text-muted-foreground mt-1 capitalize">{t('Trigger Type')}: {t(act.type.replace('_', ' ')) || act.type.replace('_', ' ')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('Detected on')}: {act.date}</p>
               </div>
             </div>
           ))}

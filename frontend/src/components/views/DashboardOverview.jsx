@@ -38,7 +38,7 @@ export default function DashboardOverview({ setActiveView }) {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-4xl font-black mb-10 tracking-widest uppercase text-foreground">{t('Welcome to DarKnight')}</h2>
+      <h2 className="text-4xl font-black mb-10 tracking-widest text-foreground">{t('Welcome to DarKnight')}</h2>
       
       <div className="grid grid-cols-3 gap-6 mb-10">
         <div 

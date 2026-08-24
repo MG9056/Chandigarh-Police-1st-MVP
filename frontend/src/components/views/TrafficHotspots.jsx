@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
 import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import indiaOsmData from '../../assets/india-osm.json';
 
 const regionalHotspots = [
   { id: 1, name: 'Chandigarh', pos: [30.7333, 76.7794], intensity: 'critical' },
@@ -68,8 +69,8 @@ export default function TrafficHotspots() {
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 flex justify-between items-start">
         <div>
-          <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Traffic Hotspots')}</h2>
-          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Live tracking of encrypted traffic relays across regional nodes.')}</p>
+          <h2 className="text-3xl font-black tracking-widest mb-2 uppercase text-foreground">{t('Traffic Hotspots')}</h2>
+          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs mb-2">{t('Live tracking of encrypted traffic relays across regional nodes.')}</p>
         </div>
         <div className="text-right">
           <p className="font-mono text-xs text-primary uppercase tracking-widest">{t('Zoom Level')}: {zoomLevel}</p>
@@ -90,6 +91,17 @@ export default function TrafficHotspots() {
               attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
               url={tileUrl}
             />
+
+            {/* User-Provided Indian Boundaries Layer */}
+            <GeoJSON 
+              data={indiaOsmData} 
+              style={{
+                color: theme === 'dark' ? '#0ea5e9' : '#0284c7', // Professional blue accent
+                weight: 1.5,
+                fillOpacity: 0 // Removes the polygon overlay completely, leaving only the crisp boundary line
+              }} 
+            />
+
             {currentHotspots.map((spot) => (
               <Marker 
                 key={spot.id} 
