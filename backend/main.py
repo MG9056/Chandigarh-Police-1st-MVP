@@ -66,3 +66,8 @@ def get_suspicious_activity():
 def get_reports():
     db = load_db()
     return db.get("reports", [])
+
+@app.get("/api/network/synthetic")
+def get_synthetic_network_data():
+    from graph_adapter import build_network_data
+    return build_network_data()

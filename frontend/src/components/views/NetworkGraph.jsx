@@ -17,7 +17,7 @@ export default function NetworkGraph() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/network/data')
+    fetch('http://localhost:8000/api/network/synthetic')
       .then(res => res.json())
       .then(graphData => setData(graphData))
       .catch(err => console.error("Error fetching network data:", err));
@@ -111,8 +111,13 @@ export default function NetworkGraph() {
               height={dimensions.height}
               graphData={data}
               nodeRelSize={6}
-              linkColor={link => highlightLinks.has(link) ? '#ef4444' : (theme === 'dark' ? '#334155' : '#cbd5e1')}
-              linkWidth={link => highlightLinks.has(link) ? 2 : 1}
+              linkColor={link => {
+                if (highlightLinks.has(link)) return '#ef4444';
+                if (link.type === 'inferred') return theme === 'dark' ? '#c084fc' : '#a855f7';
+                return theme === 'dark' ? '#334155' : '#cbd5e1';
+              }}
+              linkWidth={link => highlightLinks.has(link) ? 2 : (link.type === 'inferred' ? 1 : 1.5)}
+              linkLineDash={link => link.type === 'inferred' ? [3, 2] : null}
               backgroundColor={theme === 'dark' ? 'transparent' : '#f8fafc'}
               onNodeHover={setHoverNode}
               onNodeClick={node => {
@@ -144,7 +149,11 @@ export default function NetworkGraph() {
                 } else if (node.group === 'market') {
                   symbol = '🛒'; 
                   bgColor = '#3b82f6'; 
-                } else {
+                }  else if (node.group === 'account') {
+                  symbol = '🧾';
+                  bgColor = '#a855f7';
+                }
+                else {
                   symbol = '❓';
                   bgColor = '#94a3b8';
                 }
@@ -184,6 +193,7 @@ export default function NetworkGraph() {
                 let symbol = '👤';
                 if (node.group === 'wallet') symbol = '💳';
                 if (node.group === 'market') symbol = '🛒';
+                if (node.group === 'account') symbol = '🧾';
                 
                 const fullText = `${symbol} ${node.label}`;
                 const textWidth = ctx.measureText(fullText).width;
@@ -265,10 +275,13 @@ export default function NetworkGraph() {
         )}
       </div>
       
-      <div className="mt-4 flex gap-4 text-sm">
+      <div className="mt-4 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500"></div> {t('Suspect / Alias')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500"></div> {t('Crypto Wallet')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500"></div> {t('Digital Marketplace')}</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500"></div> {t('Account / Handle')}</div>
+        <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-slate-400"></div> {t('Observed Link')}</div>
+        <div className="flex items-center gap-2"><div className="w-6 h-0.5 border-t-2 border-dashed border-slate-400"></div> {t('Inferred Link')}</div>
       </div>
     </div>
   );
