@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic
+
+# Entity resolution (existing synthetic-data pipeline)
+rapidfuzz
+
+# Real-data pipeline (backend/real_data/)
+pandas
+pyarrow
+networkx

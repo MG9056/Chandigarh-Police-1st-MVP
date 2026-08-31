@@ -8,7 +8,9 @@ import { Button } from '../ui/button';
 export default function NetworkGraph() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const [source, setSource] = useState('real'); // 'real' | 'synthetic'
   const [data, setData] = useState({ nodes: [], links: [] });
+  const [loadError, setLoadError] = useState(null);
   const containerRef = useRef();
   const fgRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
@@ -17,11 +19,22 @@ export default function NetworkGraph() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/network/synthetic')
+    setData({ nodes: [], links: [] });
+    setLoadError(null);
+    const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
+    fetch(`http://localhost:8000${endpoint}`)
       .then(res => res.json())
-      .then(graphData => setData(graphData))
-      .catch(err => console.error("Error fetching network data:", err));
-  }, []);
+      .then(graphData => {
+        if (graphData.error) {
+          setLoadError(graphData.error);
+        }
+        setData(graphData);
+      })
+      .catch(err => {
+        console.error("Error fetching network data:", err);
+        setLoadError(err.message);
+      });
+  }, [source]);
 
   useEffect(() => {
     if (fgRef.current) {
@@ -86,6 +99,31 @@ export default function NetworkGraph() {
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <Button
+              variant={source === 'real' ? 'default' : 'secondary'}
+              size="sm"
+              className="text-xs font-mono uppercase tracking-wider"
+              onClick={() => setSource('real')}
+            >
+              {t('Real Intelligence')}
+            </Button>
+            <Button
+              variant={source === 'synthetic' ? 'default' : 'secondary'}
+              size="sm"
+              className="text-xs font-mono uppercase tracking-wider"
+              onClick={() => setSource('synthetic')}
+            >
+              {t('Synthetic Demo')}
+            </Button>
+          </div>
+          {source === 'real' && (
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider max-w-[280px] text-right">
+              {t('Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).')}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
@@ -211,8 +249,12 @@ export default function NetworkGraph() {
               }}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground animate-pulse">
-              {t('Loading intelligence network...')}
+            <div className="absolute inset-0 flex items-center justify-center text-center px-8 text-muted-foreground animate-pulse">
+              {loadError ? (
+                <span className="text-red-500 font-mono text-xs normal-case animate-none">{loadError}</span>
+              ) : (
+                t('Loading intelligence network...')
+              )}
             </div>
           )}
         </div>

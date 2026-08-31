@@ -1,17 +1,28 @@
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import indiaOsmData from '../../assets/india-osm.json';
 
+// Coordinates are real city locations. "intensity" below is a fallback
+// used only until real activity data loads (see fetchGeoActivity) —
+// once loaded, intensity is derived from real Dread-archive mention
+// counts, not hardcoded.
 const regionalHotspots = [
-  { id: 1, name: 'Chandigarh', pos: [30.7333, 76.7794], intensity: 'critical' },
-  { id: 2, name: 'Ludhiana', pos: [30.9010, 75.8573], intensity: 'high' },
-  { id: 3, name: 'Amritsar', pos: [31.6340, 74.8723], intensity: 'medium' },
-  { id: 4, name: 'Delhi NCR', pos: [28.7041, 77.1025], intensity: 'critical' },
+  { id: 1, name: 'Chandigarh', regionKey: 'chandigarh', pos: [30.7333, 76.7794], intensity: 'medium' },
+  { id: 2, name: 'Ludhiana', regionKey: 'ludhiana', pos: [30.9010, 75.8573], intensity: 'medium' },
+  { id: 3, name: 'Amritsar', regionKey: 'amritsar', pos: [31.6340, 74.8723], intensity: 'medium' },
+  { id: 4, name: 'Delhi NCR', regionKey: 'delhi_ncr', pos: [28.7041, 77.1025], intensity: 'medium' },
 ];
+
+function intensityFromShare(share) {
+  if (share >= 0.5) return 'critical';
+  if (share >= 0.2) return 'high';
+  if (share > 0) return 'medium';
+  return 'low';
+}
 
 const detailedHotspots = [
   // Chandigarh Sub-nodes
@@ -30,8 +41,15 @@ const detailedHotspots = [
   { id: 403, name: 'Noida Border, NCR', pos: [28.5700, 77.3200], intensity: 'high' },
 ];
 
+const INTENSITY_COLORS = {
+  critical: '#ef4444',
+  high: '#f97316',
+  medium: null, // resolved from theme below
+  low: '#64748b',
+};
+
 const createPulseIcon = (intensity, theme) => {
-  const color = intensity === 'critical' ? '#ef4444' : (theme === 'dark' ? '#84cc16' : '#22c55e');
+  const color = INTENSITY_COLORS[intensity] ?? (theme === 'dark' ? '#84cc16' : '#22c55e');
   return L.divIcon({
     className: 'custom-leaflet-marker',
     html: `
@@ -58,12 +76,30 @@ export default function TrafficHotspots() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const [zoomLevel, setZoomLevel] = useState(7);
+  const [geoActivity, setGeoActivity] = useState(null);
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/geo/activity')
+      .then(res => res.json())
+      .then(setGeoActivity)
+      .catch(err => console.error("Error fetching geo activity:", err));
+  }, []);
 
   const tileUrl = theme === 'dark' 
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
     : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
-  const currentHotspots = zoomLevel > 8 ? detailedHotspots : regionalHotspots;
+  // Regional markers get their intensity from real Dread-archive mention
+  // counts once loaded; detailed sub-city markers stay illustrative
+  // (neither dataset has sub-city precision).
+  const regionalWithRealData = regionalHotspots.map(spot => {
+    if (!geoActivity) return spot;
+    const share = geoActivity.share[spot.regionKey] ?? 0;
+    const count = geoActivity.counts[spot.regionKey] ?? 0;
+    return { ...spot, intensity: intensityFromShare(share), realCount: count, realShare: share };
+  });
+
+  const currentHotspots = zoomLevel > 8 ? detailedHotspots : regionalWithRealData;
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -71,6 +107,11 @@ export default function TrafficHotspots() {
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-2 uppercase text-foreground">{t('Traffic Hotspots')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs mb-2">{t('Live tracking of encrypted traffic relays across regional nodes.')}</p>
+          {geoActivity && (
+            <p className="text-muted-foreground/70 font-mono tracking-wider text-[10px] max-w-md">
+              {t('Marker intensity reflects real city-name/board-activity mention counts from the Dread archive — a volume proxy, not precise geolocation.')}
+            </p>
+          )}
         </div>
         <div className="text-right">
           <p className="font-mono text-xs text-primary uppercase tracking-widest">{t('Zoom Level')}: {zoomLevel}</p>
@@ -111,6 +152,11 @@ export default function TrafficHotspots() {
                 <Popup className="custom-popup">
                   <div className="font-mono text-xs uppercase tracking-widest text-primary mb-1">{t(spot.name) || spot.name}</div>
                   <div className="font-mono text-[10px] text-muted-foreground">{t('Activity')}: <span className="text-foreground">{t(spot.intensity) || spot.intensity}</span></div>
+                  {spot.realCount !== undefined && (
+                    <div className="font-mono text-[10px] text-muted-foreground mt-1">
+                      {t('Real mentions')}: <span className="text-foreground">{spot.realCount}</span> ({Math.round(spot.realShare * 100)}%)
+                    </div>
+                  )}
                 </Popup>
               </Marker>
             ))}
