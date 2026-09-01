@@ -1,9 +1,23 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { forceCollide, forceX, forceY } from 'd3-force';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
 import { ZoomIn, ZoomOut, Maximize, Minimize, Expand } from 'lucide-react';
 import { Button } from '../ui/button';
+
+// Loose "home" direction per entity type so the layout settles into
+// readable quadrants (suspects / wallets / accounts / markets) instead
+// of clumping wherever the highest-degree node happens to pull
+// everything. Kept weak (see forceX/forceY strength below) so real
+// relationships still dominate local layout — this only nudges the
+// overall shape.
+const GROUP_ANGLE = {
+  suspect: 0,
+  wallet: Math.PI / 2,
+  account: Math.PI,
+  market: (3 * Math.PI) / 2,
+};
 
 export default function NetworkGraph() {
   const { t } = useTranslation();
@@ -36,19 +50,63 @@ export default function NetworkGraph() {
       });
   }, [source]);
 
-  useEffect(() => {
-    if (fgRef.current) {
-      fgRef.current.d3Force('charge').strength(-2500);
-      fgRef.current.d3Force('link').distance(250);
-      
-      // Zoom to fit on initial data load
-      if (data.nodes.length > 0) {
-        setTimeout(() => {
-          fgRef.current.zoomToFit(800, 50);
-        }, 800);
-      }
+  // Degree (connection count) per node, so forces below can treat a
+  // 12-link hub differently from a 1-link leaf instead of applying the
+  // exact same push/pull to every node regardless of how connected it is.
+  const degreeById = useMemo(() => {
+    const m = new Map();
+    for (const l of data.links) {
+      const s = typeof l.source === 'object' ? l.source.id : l.source;
+      const t = typeof l.target === 'object' ? l.target.id : l.target;
+      m.set(s, (m.get(s) || 0) + 1);
+      m.set(t, (m.get(t) || 0) + 1);
     }
+    return m;
   }, [data]);
+
+  useEffect(() => {
+    if (!fgRef.current || data.nodes.length === 0) return;
+    const fg = fgRef.current;
+    const degree = (node) => degreeById.get(node.id) || 0;
+
+    // Degree-scaled repulsion: previously every node pushed with the
+    // same -2500 strength, so the two highest-degree nodes (which also
+    // attract the most links) ended up as gravity wells that dragged
+    // everything else into two identical blobs. Capping the scaling
+    // keeps a 12-link hub from becoming 10x stronger than a leaf node.
+    fg.d3Force('charge').strength((node) => -60 - 20 * Math.min(degree(node), 10));
+
+    // Link distance/strength now depends on the relationship itself:
+    // an observed link backed by many transactions pulls its two nodes
+    // close together; a single low-confidence inferred link stays
+    // loose. Before, every link used the same fixed distance (250)
+    // regardless of type or weight, so "strongly related" and "barely
+    // related" looked identical — that's what collapsed everything
+    // into two clusters instead of a legible structure.
+    fg.d3Force('link')
+      .distance((link) => {
+        const base = link.type === 'inferred' ? 130 : 80;
+        const weight = Math.min(link.value || 1, 5);
+        return Math.max(30, base - weight * 10);
+      })
+      .strength((link) => (link.type === 'inferred' ? 0.25 : 0.55));
+
+    // Collision force (previously missing entirely): stops nodes from
+    // overlapping. Without this, dense areas render as a smeared,
+    // overlapping ring rather than distinguishable nodes — which is
+    // exactly what read as a "donut."
+    fg.d3Force('collide', forceCollide((node) => 16 + 3 * Math.min(degree(node), 8)));
+
+    // Gentle pull toward a quadrant per entity type (suspect/wallet/
+    // account/market), weak enough that link forces still dominate
+    // local layout, but enough to break the "2 arbitrary hub clusters"
+    // look into groups that actually mean something at a glance.
+    fg.d3Force('x', forceX((node) => 220 * Math.cos(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
+    fg.d3Force('y', forceY((node) => 220 * Math.sin(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
+
+    fg.d3ReheatSimulation();
+    setTimeout(() => fg.zoomToFit(800, 60), 900);
+  }, [data, degreeById]);
 
   const highlightNodes = useMemo(() => new Set(), []);
   const highlightLinks = useMemo(() => new Set(), []);

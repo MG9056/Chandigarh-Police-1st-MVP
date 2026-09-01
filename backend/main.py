@@ -101,4 +101,4 @@ def get_geo_activity(refresh: bool = False):
     try:
         return get_cached_or_build_geo(force=refresh)
     except FileNotFoundError as e:
-        return {"counts": {}, "share": {}, "india_board_posts": 0, "error": f"Real data not found: {e}"}
+        return {"places": [], "total_mentions": 0, "distinct_places_mentioned": 0, "india_board_posts": 0, "error": f"Real data not found: {e}"}
