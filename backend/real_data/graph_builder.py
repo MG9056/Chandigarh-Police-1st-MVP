@@ -23,6 +23,12 @@ from . import config, dread_loader, elliptic_loader, intelligence
 CACHE_PATH = os.path.join(config.CACHE_DIR, "network_real.json")
 CACHE_TTL_SECONDS = 6 * 60 * 60  # rebuild at most every 6h; data only changes when you drop in new files
 
+_T0 = time.time()
+
+
+def _log(msg: str) -> None:
+    print(f"[graph_builder +{time.time() - _T0:.1f}s] {msg}", flush=True)
+
 
 def _wallet_node(address: str, cls: int, degree: int) -> dict:
     risk = {
@@ -71,10 +77,12 @@ def build_real_network_data(
     dread_dir: str = config.DREAD_DATA_DIR,
 ) -> dict:
     # ---- Elliptic++ side ----
+    _log("=== starting Elliptic++ side ===")
     ell = elliptic_loader.build_illicit_focused_subgraph(
         max_nodes=config.MAX_ELLIPTIC_NODES, data_dir=elliptic_dir
     )
     wallet_addrs = {n["address"] for n in ell["nodes"]}
+    _log(f"=== Elliptic++ side done: {len(ell['nodes'])} wallet nodes ===")
 
     nodes = [_wallet_node(n["address"], n["class"], n["degree"]) for n in ell["nodes"]]
     links = [
@@ -83,14 +91,21 @@ def build_real_network_data(
     ]
 
     # ---- Dread side ----
+    _log("=== starting Dread side: loading parquet files ===")
     users = dread_loader.load_users(dread_dir)
     posts = dread_loader.load_posts(dread_dir)
     comments = dread_loader.load_comments(dread_dir)
+    _log(f"loaded {len(users)} users, {len(posts)} posts, {len(comments)} comments.")
 
+    _log("finding PGP/email alias clusters...")
     clusters = intelligence.find_pgp_alias_clusters(users)
+    _log(f"found {len(clusters)} alias clusters. Building reply graph...")
     replies = intelligence.build_reply_graph(comments, top_n=config.MAX_DREAD_ACCOUNT_NODES)
+    _log(f"found {len(replies)} reply pairs. Building market edges...")
     markets = intelligence.build_market_edges(posts, top_authors=config.MAX_DREAD_ACCOUNT_NODES)
+    _log(f"found {len(markets)} account-market edges. Extracting wallet mentions from text...")
     mentions = intelligence.extract_wallet_mentions(posts, comments)
+    _log(f"extracted {len(mentions)} wallet-address mentions. Assembling combined graph...")
 
     # Pick which Dread accounts make the node budget: alias-cluster
     # members always included (they're the strongest signal), then fill
@@ -176,13 +191,16 @@ def get_cached_or_build(force: bool = False) -> dict:
     if not force and os.path.exists(CACHE_PATH):
         age = time.time() - os.path.getmtime(CACHE_PATH)
         if age < CACHE_TTL_SECONDS:
+            _log(f"serving cached result ({age:.0f}s old).")
             with open(CACHE_PATH) as f:
                 return json.load(f)
 
+    _log("no fresh cache — building from scratch (this can take several minutes on the full dataset; run `python -m real_data.graph_builder` directly to watch progress).")
     data = build_real_network_data()
     os.makedirs(config.CACHE_DIR, exist_ok=True)
     with open(CACHE_PATH, "w") as f:
         json.dump(data, f)
+    _log(f"=== ALL DONE: {len(data['nodes'])} nodes, {len(data['links'])} links. Cached to {CACHE_PATH} ===")
     return data
 
 
