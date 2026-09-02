@@ -141,11 +141,12 @@ def extract_wallet_mentions(posts: pd.DataFrame, comments: pd.DataFrame) -> list
 
 if __name__ == "__main__":
     import time
-    from . import dread_loader
+    from .loader import RealDataLoader
 
-    users = dread_loader.load_users()
-    posts = dread_loader.load_posts()
-    comments = dread_loader.load_comments()
+    loader = RealDataLoader()
+    users = loader.users
+    posts = loader.posts
+    comments = loader.comments
 
     t0 = time.time()
     clusters = find_pgp_alias_clusters(users)

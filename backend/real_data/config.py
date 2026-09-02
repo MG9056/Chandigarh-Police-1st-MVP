@@ -1,12 +1,13 @@
 """
 Config for the real-data pipeline (Elliptic++ + Dread forum archive).
 
-All paths are directories, not single files, so this works whether you
-drop in 1 sample file or the full ~20-file Dread export / full Elliptic++
-set — the loaders glob() everything matching the pattern.
+File discovery itself is schema-based now (see loader.py) — nothing
+here specifies filenames or glob patterns anymore. REAL_DATA_ROOT is
+scanned recursively, so Elliptic++ and Dread files can live in
+separate subfolders, be mixed together, or be renamed entirely; the
+loader figures out what each file is from its actual columns.
 
-Override via env vars if your data lives somewhere else:
-    ELLIPTIC_DATA_DIR, DREAD_DATA_DIR
+Override via env var if your data lives somewhere else: REAL_DATA_ROOT
 """
 
 from __future__ import annotations
@@ -15,20 +16,10 @@ import os
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
-ELLIPTIC_DATA_DIR = os.environ.get(
-    "ELLIPTIC_DATA_DIR", os.path.join(_HERE, "..", "real_data_files", "elliptic")
-)
-DREAD_DATA_DIR = os.environ.get(
-    "DREAD_DATA_DIR", os.path.join(_HERE, "..", "real_data_files", "dread")
+REAL_DATA_ROOT = os.environ.get(
+    "REAL_DATA_ROOT", os.path.join(_HERE, "..", "real_data_files")
 )
 CACHE_DIR = os.path.join(_HERE, "cache")
-
-ELLIPTIC_WALLETS_GLOB = "*wallet*.csv"
-ELLIPTIC_EDGES_GLOB = "*edge*.csv"
-
-DREAD_USERS_GLOB = "users-*.parquet"
-DREAD_POSTS_GLOB = "posts-*.parquet"
-DREAD_COMMENTS_GLOB = "comments-*.parquet"
 
 # Elliptic++ wallets_classes.csv convention (per the dataset's own docs):
 #   1 = illicit, 2 = licit, 3 = unknown
@@ -53,17 +44,7 @@ CONFIDENCE_WALLET_MENTION = 0.55  # address regex-matched in forum text
 
 BTC_ADDRESS_REGEX = r"\b(?:bc1[a-z0-9]{11,71}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})\b"
 
-# Boards/keywords used for the (illustrative, non-geotagged) India activity
-# signal that feeds the map — see geo_signals.py for why this is a volume
+# Board used for the (illustrative, non-geotagged) India activity signal
+# that feeds the map — see geo_signals.py for why this is a volume
 # proxy, not real geolocation.
 INDIA_SUBDREADS = {"DarknetMarketsIndia"}
-CITY_KEYWORDS = {
-    "chandigarh": "chandigarh",
-    "ludhiana": "ludhiana",
-    "amritsar": "amritsar",
-    "delhi": "delhi_ncr",
-    "new delhi": "delhi_ncr",
-    "gurgaon": "delhi_ncr",
-    "gurugram": "delhi_ncr",
-    "noida": "delhi_ncr",
-}

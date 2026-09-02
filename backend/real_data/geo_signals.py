@@ -21,11 +21,30 @@ import time
 
 import pandas as pd
 
-from . import config, dread_loader
+from . import config
 from .india_gazetteer import ALIASES, PLACES
+from .loader import RealDataLoader
+
+_T0 = time.time()
+
+
+def _log(msg: str) -> None:
+    print(f"[geo_signals +{time.time() - _T0:.1f}s] {msg}", flush=True)
+
 
 CACHE_PATH = os.path.join(config.CACHE_DIR, "geo_activity.json")
 CACHE_TTL_SECONDS = 6 * 60 * 60
+# Bump this whenever build_geo_activity()'s output shape changes. A
+# cached file without a matching version (including old caches from
+# before this existed, which have none at all) is rebuilt regardless of
+# age — otherwise a schema change ships silently: the old cache keeps
+# getting served with no error, and whatever reads the new shape (e.g.
+# frontend expecting "places") just gets nothing back with zero
+# indication why. This exact bug shipped once already — the 4-hardcoded-
+# -city version cached {counts, share}; this version returns {places,
+# total_mentions, ...} instead, and nothing before this comment would
+# have caught the mismatch.
+CACHE_SCHEMA_VERSION = 2
 
 # Every recognizable name (canonical + aliases), longest first so e.g.
 # "New Delhi" matches before the bare "Delhi" inside it — findall()
@@ -77,12 +96,17 @@ def extract_place_mentions(text_series: pd.Series) -> dict[str, int]:
     return counts
 
 
-def build_geo_activity(dread_dir: str = config.DREAD_DATA_DIR) -> dict:
-    posts = dread_loader.load_posts(dread_dir)
-    comments = dread_loader.load_comments(dread_dir)
+def build_geo_activity(data_paths: str | list[str] | None = None) -> dict:
+    loader = RealDataLoader(data_paths)
+    _log(f"loader classification: {loader.summary()}")
+    _log("loading posts and comments...")
+    posts = loader.posts
+    comments = loader.comments
+    _log(f"loaded {len(posts)} posts, {len(comments)} comments. Scanning for place mentions...")
 
     post_counts = extract_place_mentions(posts.body_text)
     comment_counts = extract_place_mentions(comments.body_text)
+    _log("scan complete.")
 
     combined: dict[str, int] = dict(post_counts)
     for place, n in comment_counts.items():
@@ -98,6 +122,7 @@ def build_geo_activity(dread_dir: str = config.DREAD_DATA_DIR) -> dict:
     places.sort(key=lambda p: p["count"], reverse=True)
 
     return {
+        "cache_schema_version": CACHE_SCHEMA_VERSION,
         "places": places,
         "total_mentions": sum(p["count"] for p in places),
         "distinct_places_mentioned": len(places),
@@ -113,15 +138,29 @@ def build_geo_activity(dread_dir: str = config.DREAD_DATA_DIR) -> dict:
 
 def get_cached_or_build_geo(force: bool = False) -> dict:
     if not force and os.path.exists(CACHE_PATH):
-        age = time.time() - os.path.getmtime(CACHE_PATH)
-        if age < CACHE_TTL_SECONDS:
-            with open(CACHE_PATH) as f:
-                return json.load(f)
+        try:
+            age = time.time() - os.path.getmtime(CACHE_PATH)
+            if age < CACHE_TTL_SECONDS:
+                with open(CACHE_PATH) as f:
+                    cached = json.load(f)
+                if cached.get("cache_schema_version") == CACHE_SCHEMA_VERSION:
+                    _log(f"serving cached result ({age:.0f}s old, schema v{CACHE_SCHEMA_VERSION}).")
+                    return cached
+                _log(f"cached file is schema v{cached.get('cache_schema_version')!r}, code expects v{CACHE_SCHEMA_VERSION} — ignoring stale cache and rebuilding.")
+        except json.JSONDecodeError:
+            # Truncated/corrupt file — e.g. the process was killed mid-write
+            # on a previous run. Treat exactly like a stale/mismatched cache:
+            # log it and rebuild, rather than letting this propagate into an
+            # unhandled 500 (which the browser would misreport as a CORS
+            # error — see main.py's exception handler comment).
+            _log("cache file exists but isn't valid JSON (likely a truncated write from an earlier crash) — ignoring it and rebuilding.")
 
+    _log("building geo activity from scratch...")
     data = build_geo_activity()
     os.makedirs(config.CACHE_DIR, exist_ok=True)
     with open(CACHE_PATH, "w") as f:
         json.dump(data, f)
+    _log(f"done: {data['distinct_places_mentioned']} places, {data['total_mentions']} mentions. Cached to {CACHE_PATH}")
     return data
 
 

@@ -1,10 +1,14 @@
 """
-Combines the Elliptic++ subgraph (elliptic_loader) and the Dread
+Combines a real Elliptic++ illicit-wallet cluster and real Dread
 correlation signals (intelligence.py) into the exact {nodes, links}
 shape NetworkGraph.jsx already renders — same node fields
 (id/label/group/risk_level/notes) and link fields (source/target/value/
 type/confidence) as graph_adapter.py's synthetic output, so the
 frontend needs zero changes to consume this.
+
+All raw data comes from loader.RealDataLoader, which auto-detects
+Elliptic++ vs Dread files by schema rather than filename — see
+loader.py's module docstring for why.
 
 Node id namespacing: "wallet:<address>", "account:<username>",
 "market:<subdread>" — keeps the two source datasets from colliding if
@@ -18,16 +22,107 @@ import os
 import time
 from collections import defaultdict
 
-from . import config, dread_loader, elliptic_loader, intelligence
+import networkx as nx
+import pandas as pd
+
+from . import config, intelligence
+from .loader import RealDataLoader
 
 CACHE_PATH = os.path.join(config.CACHE_DIR, "network_real.json")
 CACHE_TTL_SECONDS = 6 * 60 * 60  # rebuild at most every 6h; data only changes when you drop in new files
+# Bump whenever build_real_network_data()'s output shape changes. See
+# the identical mechanism (and the bug it fixes) in geo_signals.py's
+# CACHE_SCHEMA_VERSION — a schema change without this bumped means a
+# stale cache gets served forever with no error, since only the file's
+# age is otherwise checked, never its shape.
+CACHE_SCHEMA_VERSION = 1
 
 _T0 = time.time()
 
 
 def _log(msg: str) -> None:
     print(f"[graph_builder +{time.time() - _T0:.1f}s] {msg}", flush=True)
+
+
+# --- Elliptic++ side: pick a real, self-contained illicit-touching
+# cluster small enough to render, optionally enriched with real feature
+# columns if a features file was found. ---------------------------------
+
+def _illicit_focused_subgraph(loader: RealDataLoader, max_nodes: int = config.MAX_ELLIPTIC_NODES) -> dict:
+    """
+    Blockchain address graphs have one dominant giant component that's
+    too tangled to render meaningfully, plus hundreds of small,
+    naturally self-contained components. Rather than thinning the giant
+    component into a sparse skeleton (tried it once — 120 nodes, 22
+    edges, all the actual cluster structure lost), this takes whole
+    small components — real, fully-formed sub-clusters — greedily by
+    size until the node budget is used, favoring components with a
+    higher illicit fraction when sizes are close.
+
+    Returns {"nodes": [...], "edges": [...]}, each node carrying its
+    real address, class label, computed degree, and (if a features file
+    was found) a "features" dict with every real Elliptic++ feature
+    column, verbatim.
+    """
+    wallets = loader.wallets
+    edges = loader.address_edges
+    features = loader.wallet_features
+
+    class_by_addr = dict(zip(wallets.address, wallets["class"]))
+    illicit = set(wallets[wallets["class"] == config.ILLICIT_CLASS].address)
+    _log(f"{len(illicit)} illicit-labeled wallets. Filtering edge list...")
+
+    touching = edges[edges.input_address.isin(illicit) | edges.output_address.isin(illicit)]
+    _log(f"{len(touching)} edges touch an illicit wallet.")
+    if touching.empty:
+        return {"nodes": [], "edges": []}
+
+    _log("building graph (can be slow at full Elliptic++ scale)...")
+    g = nx.from_pandas_edgelist(touching, source="input_address", target="output_address")
+    g.remove_edges_from(nx.selfloop_edges(g))
+    _log(f"graph built: {g.number_of_nodes()} nodes, {g.number_of_edges()} edges. Finding connected components...")
+
+    def illicit_fraction(component: set) -> float:
+        return sum(1 for n in component if class_by_addr.get(n) == config.ILLICIT_CLASS) / len(component)
+
+    components = sorted(nx.connected_components(g), key=lambda c: (len(c), illicit_fraction(c)), reverse=True)
+    _log(f"found {len(components)} connected components. Largest: {len(components[0])} nodes.")
+
+    kept_nodes: set = set()
+    for comp in components:
+        if len(kept_nodes) + len(comp) > max_nodes:
+            continue
+        kept_nodes |= comp
+        if len(kept_nodes) >= max_nodes * 0.9:
+            break
+    _log(f"selected {len(kept_nodes)} nodes for the rendered subgraph.")
+
+    degree = dict(g.degree(kept_nodes))
+
+    def feature_dict(addr: str) -> dict | None:
+        if features is None or addr not in features.index:
+            return None
+        row = features.loc[addr]
+        out = {}
+        for col, val in row.items():
+            if pd.isna(val):
+                out[col] = None
+            elif hasattr(val, "item"):
+                out[col] = val.item()
+            else:
+                out[col] = val
+        return out
+
+    nodes = []
+    for addr in kept_nodes:
+        node = {"address": addr, "class": class_by_addr.get(addr, config.UNKNOWN_CLASS), "degree": degree.get(addr, 0)}
+        feat = feature_dict(addr)
+        if feat:
+            node["features"] = feat
+        nodes.append(node)
+
+    kept_edges = [(u, v) for u, v in g.edges(kept_nodes) if u in kept_nodes and v in kept_nodes]
+    return {"nodes": nodes, "edges": kept_edges}
 
 
 def _wallet_node(address: str, cls: int, degree: int) -> dict:
@@ -48,7 +143,7 @@ def _wallet_node(address: str, cls: int, degree: int) -> dict:
 
 def _account_node(username: str, market_posts: dict, mention_count: int) -> dict:
     top_market = max(market_posts, key=market_posts.get) if market_posts else None
-    note = f"Dread forum account."
+    note = "Dread forum account."
     if top_market:
         note += f" Most active on r/{top_market} ({market_posts[top_market]} posts)."
     if mention_count:
@@ -72,15 +167,13 @@ def _market_node(subdread: str) -> dict:
     }
 
 
-def build_real_network_data(
-    elliptic_dir: str = config.ELLIPTIC_DATA_DIR,
-    dread_dir: str = config.DREAD_DATA_DIR,
-) -> dict:
+def build_real_network_data(data_paths: str | list[str] | None = None) -> dict:
+    loader = RealDataLoader(data_paths)
+    _log(f"loader classification: {loader.summary()}")
+
     # ---- Elliptic++ side ----
     _log("=== starting Elliptic++ side ===")
-    ell = elliptic_loader.build_illicit_focused_subgraph(
-        max_nodes=config.MAX_ELLIPTIC_NODES, data_dir=elliptic_dir
-    )
+    ell = _illicit_focused_subgraph(loader, max_nodes=config.MAX_ELLIPTIC_NODES)
     wallet_addrs = {n["address"] for n in ell["nodes"]}
     _log(f"=== Elliptic++ side done: {len(ell['nodes'])} wallet nodes ===")
 
@@ -91,10 +184,10 @@ def build_real_network_data(
     ]
 
     # ---- Dread side ----
-    _log("=== starting Dread side: loading parquet files ===")
-    users = dread_loader.load_users(dread_dir)
-    posts = dread_loader.load_posts(dread_dir)
-    comments = dread_loader.load_comments(dread_dir)
+    _log("=== starting Dread side ===")
+    users = loader.users
+    posts = loader.posts
+    comments = loader.comments
     _log(f"loaded {len(users)} users, {len(posts)} posts, {len(comments)} comments.")
 
     _log("finding PGP/email alias clusters...")
@@ -145,9 +238,7 @@ def build_real_network_data(
     for author, subdread, count in markets:
         if author in selected_set:
             market_totals[subdread] += count
-    used_markets = set(
-        sorted(market_totals, key=market_totals.get, reverse=True)[: config.MAX_MARKET_NODES]
-    )
+    used_markets = set(sorted(market_totals, key=market_totals.get, reverse=True)[: config.MAX_MARKET_NODES])
     for subdread in used_markets:
         nodes.append(_market_node(subdread))
 
@@ -184,16 +275,22 @@ def build_real_network_data(
                 "value": 1, "type": "inferred", "confidence": config.CONFIDENCE_WALLET_MENTION,
             })
 
-    return {"nodes": nodes, "links": links}
+    return {"cache_schema_version": CACHE_SCHEMA_VERSION, "nodes": nodes, "links": links}
 
 
 def get_cached_or_build(force: bool = False) -> dict:
     if not force and os.path.exists(CACHE_PATH):
-        age = time.time() - os.path.getmtime(CACHE_PATH)
-        if age < CACHE_TTL_SECONDS:
-            _log(f"serving cached result ({age:.0f}s old).")
-            with open(CACHE_PATH) as f:
-                return json.load(f)
+        try:
+            age = time.time() - os.path.getmtime(CACHE_PATH)
+            if age < CACHE_TTL_SECONDS:
+                with open(CACHE_PATH) as f:
+                    cached = json.load(f)
+                if cached.get("cache_schema_version") == CACHE_SCHEMA_VERSION:
+                    _log(f"serving cached result ({age:.0f}s old, schema v{CACHE_SCHEMA_VERSION}).")
+                    return cached
+                _log(f"cached file is schema v{cached.get('cache_schema_version')!r}, code expects v{CACHE_SCHEMA_VERSION} — ignoring stale cache and rebuilding.")
+        except json.JSONDecodeError:
+            _log("cache file exists but isn't valid JSON (likely a truncated write from an earlier crash) — ignoring it and rebuilding.")
 
     _log("no fresh cache — building from scratch (this can take several minutes on the full dataset; run `python -m real_data.graph_builder` directly to watch progress).")
     data = build_real_network_data()
