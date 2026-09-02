@@ -71,3 +71,34 @@ def get_reports():
 def get_synthetic_network_data():
     from graph_adapter import build_network_data
     return build_network_data()
+
+@app.get("/api/network/real")
+def get_real_network_data(refresh: bool = False):
+    """
+    Real Elliptic++ (illicit-focused wallet cluster) + real Dread forum
+    correlation (PGP alias clusters, reply graph, market activity, and
+    wallet-mention bridges) — see backend/real_data/. Cached to disk for
+    up to 6h since building it re-scans the full parquet/CSV set;
+    pass ?refresh=true to force a rebuild after dropping in new files.
+    """
+    from real_data.graph_builder import get_cached_or_build
+    try:
+        return get_cached_or_build(force=refresh)
+    except FileNotFoundError as e:
+        return {
+            "nodes": [], "links": [],
+            "error": f"Real data not found: {e}. Drop Elliptic++ CSVs into "
+                     "backend/real_data_files/elliptic/ and Dread parquet files into "
+                     "backend/real_data_files/dread/, then retry.",
+        }
+
+@app.get("/api/geo/activity")
+def get_geo_activity(refresh: bool = False):
+    """Real city-mention/board-activity counts from the Dread archive,
+    bucketed into the map's regions. See real_data/geo_signals.py for
+    why this is an activity-volume proxy, not real geolocation."""
+    from real_data.geo_signals import get_cached_or_build_geo
+    try:
+        return get_cached_or_build_geo(force=refresh)
+    except FileNotFoundError as e:
+        return {"places": [], "total_mentions": 0, "distinct_places_mentioned": 0, "india_board_posts": 0, "error": f"Real data not found: {e}"}

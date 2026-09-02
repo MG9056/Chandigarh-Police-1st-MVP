@@ -1,14 +1,30 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { forceCollide, forceX, forceY } from 'd3-force';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
 import { ZoomIn, ZoomOut, Maximize, Minimize, Expand } from 'lucide-react';
 import { Button } from '../ui/button';
 
+// Loose "home" direction per entity type so the layout settles into
+// readable quadrants (suspects / wallets / accounts / markets) instead
+// of clumping wherever the highest-degree node happens to pull
+// everything. Kept weak (see forceX/forceY strength below) so real
+// relationships still dominate local layout — this only nudges the
+// overall shape.
+const GROUP_ANGLE = {
+  suspect: 0,
+  wallet: Math.PI / 2,
+  account: Math.PI,
+  market: (3 * Math.PI) / 2,
+};
+
 export default function NetworkGraph() {
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const [source, setSource] = useState('real'); // 'real' | 'synthetic'
   const [data, setData] = useState({ nodes: [], links: [] });
+  const [loadError, setLoadError] = useState(null);
   const containerRef = useRef();
   const fgRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
@@ -17,25 +33,80 @@ export default function NetworkGraph() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/network/synthetic')
+    setData({ nodes: [], links: [] });
+    setLoadError(null);
+    const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
+    fetch(`http://localhost:8000${endpoint}`)
       .then(res => res.json())
-      .then(graphData => setData(graphData))
-      .catch(err => console.error("Error fetching network data:", err));
-  }, []);
+      .then(graphData => {
+        if (graphData.error) {
+          setLoadError(graphData.error);
+        }
+        setData(graphData);
+      })
+      .catch(err => {
+        console.error("Error fetching network data:", err);
+        setLoadError(err.message);
+      });
+  }, [source]);
+
+  // Degree (connection count) per node, so forces below can treat a
+  // 12-link hub differently from a 1-link leaf instead of applying the
+  // exact same push/pull to every node regardless of how connected it is.
+  const degreeById = useMemo(() => {
+    const m = new Map();
+    for (const l of data.links) {
+      const s = typeof l.source === 'object' ? l.source.id : l.source;
+      const t = typeof l.target === 'object' ? l.target.id : l.target;
+      m.set(s, (m.get(s) || 0) + 1);
+      m.set(t, (m.get(t) || 0) + 1);
+    }
+    return m;
+  }, [data]);
 
   useEffect(() => {
-    if (fgRef.current) {
-      fgRef.current.d3Force('charge').strength(-2500);
-      fgRef.current.d3Force('link').distance(250);
-      
-      // Zoom to fit on initial data load
-      if (data.nodes.length > 0) {
-        setTimeout(() => {
-          fgRef.current.zoomToFit(800, 50);
-        }, 800);
-      }
-    }
-  }, [data]);
+    if (!fgRef.current || data.nodes.length === 0) return;
+    const fg = fgRef.current;
+    const degree = (node) => degreeById.get(node.id) || 0;
+
+    // Degree-scaled repulsion: previously every node pushed with the
+    // same -2500 strength, so the two highest-degree nodes (which also
+    // attract the most links) ended up as gravity wells that dragged
+    // everything else into two identical blobs. Capping the scaling
+    // keeps a 12-link hub from becoming 10x stronger than a leaf node.
+    fg.d3Force('charge').strength((node) => -60 - 20 * Math.min(degree(node), 10));
+
+    // Link distance/strength now depends on the relationship itself:
+    // an observed link backed by many transactions pulls its two nodes
+    // close together; a single low-confidence inferred link stays
+    // loose. Before, every link used the same fixed distance (250)
+    // regardless of type or weight, so "strongly related" and "barely
+    // related" looked identical — that's what collapsed everything
+    // into two clusters instead of a legible structure.
+    fg.d3Force('link')
+      .distance((link) => {
+        const base = link.type === 'inferred' ? 130 : 80;
+        const weight = Math.min(link.value || 1, 5);
+        return Math.max(30, base - weight * 10);
+      })
+      .strength((link) => (link.type === 'inferred' ? 0.25 : 0.55));
+
+    // Collision force (previously missing entirely): stops nodes from
+    // overlapping. Without this, dense areas render as a smeared,
+    // overlapping ring rather than distinguishable nodes — which is
+    // exactly what read as a "donut."
+    fg.d3Force('collide', forceCollide((node) => 16 + 3 * Math.min(degree(node), 8)));
+
+    // Gentle pull toward a quadrant per entity type (suspect/wallet/
+    // account/market), weak enough that link forces still dominate
+    // local layout, but enough to break the "2 arbitrary hub clusters"
+    // look into groups that actually mean something at a glance.
+    fg.d3Force('x', forceX((node) => 220 * Math.cos(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
+    fg.d3Force('y', forceY((node) => 220 * Math.sin(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
+
+    fg.d3ReheatSimulation();
+    setTimeout(() => fg.zoomToFit(800, 60), 900);
+  }, [data, degreeById]);
 
   const highlightNodes = useMemo(() => new Set(), []);
   const highlightLinks = useMemo(() => new Set(), []);
@@ -86,6 +157,31 @@ export default function NetworkGraph() {
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <Button
+              variant={source === 'real' ? 'default' : 'secondary'}
+              size="sm"
+              className="text-xs font-mono uppercase tracking-wider"
+              onClick={() => setSource('real')}
+            >
+              {t('Real Intelligence')}
+            </Button>
+            <Button
+              variant={source === 'synthetic' ? 'default' : 'secondary'}
+              size="sm"
+              className="text-xs font-mono uppercase tracking-wider"
+              onClick={() => setSource('synthetic')}
+            >
+              {t('Synthetic Demo')}
+            </Button>
+          </div>
+          {source === 'real' && (
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider max-w-[280px] text-right">
+              {t('Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).')}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
@@ -211,8 +307,12 @@ export default function NetworkGraph() {
               }}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground animate-pulse">
-              {t('Loading intelligence network...')}
+            <div className="absolute inset-0 flex items-center justify-center text-center px-8 text-muted-foreground animate-pulse">
+              {loadError ? (
+                <span className="text-red-500 font-mono text-xs normal-case animate-none">{loadError}</span>
+              ) : (
+                t('Loading intelligence network...')
+              )}
             </div>
           )}
         </div>
