@@ -13,16 +13,21 @@ const mockTransactions = [
 export default function SuspectProfiles() {
   const { t } = useTranslation();
   const [suspects, setSuspects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/network/data')
-      .then(res => res.json())
+    fetch('/api/network/data')
+      .then(res => res.ok ? res.json() : null)
       .then(data => {
-        const suspectNodes = data.nodes.filter(n => n.group === 'suspect');
-        setSuspects(suspectNodes);
+        if (data && Array.isArray(data.nodes)) {
+          const suspectNodes = data.nodes.filter(n => n.group === 'suspect');
+          setSuspects(suspectNodes);
+        }
       })
-      .catch(err => console.error("Error fetching suspects:", err));
+      .catch(err => console.error("Error fetching suspects:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -35,9 +40,13 @@ export default function SuspectProfiles() {
       </div>
       
       <div className="flex-1 overflow-y-auto space-y-4 pr-4">
-        {suspects.length === 0 ? (
+        {loading ? (
           <div className="text-center text-muted-foreground py-10 animate-pulse font-mono tracking-widest uppercase text-sm">
             {t('Loading profiles...')}
+          </div>
+        ) : suspects.length === 0 ? (
+          <div className="text-center text-muted-foreground py-10 font-mono tracking-widest uppercase text-sm">
+            {t('No target profiles found')}
           </div>
         ) : (
           suspects.map((suspect) => (

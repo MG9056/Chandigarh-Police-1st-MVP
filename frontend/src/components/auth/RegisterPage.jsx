@@ -11,8 +11,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
     confirmPassword: '',
     full_name: '',
     badge_number: '',
-    unit: '',
-    requested_role: 'CONSTABLE'
+    unit: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,8 +43,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
         password: formData.password,
         full_name: formData.full_name,
         badge_number: formData.badge_number,
-        unit: formData.unit,
-        requested_role: formData.requested_role
+        unit: formData.unit
       });
       setSuccessMsg(res.message || 'Account registration submitted. Pending senior officer review.');
     } catch (err) {
@@ -178,20 +176,8 @@ export default function RegisterPage({ onSwitchToLogin }) {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-mono uppercase text-muted-foreground">Requested Role</label>
-              <select
-                name="requested_role"
-                value={formData.requested_role}
-                onChange={handleChange}
-                className="w-full bg-background/60 border border-border/60 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary font-mono"
-              >
-                <option value="CONSTABLE">CONSTABLE</option>
-                <option value="INVESTIGATOR">INVESTIGATOR</option>
-                <option value="INSPECTOR">INSPECTOR</option>
-                <option value="SP">SP</option>
-                <option value="IGP">IGP</option>
-              </select>
+            <div className="p-3 bg-muted/30 border border-border/40 rounded-lg text-xs font-mono text-muted-foreground">
+              ℹ️ Role assignment and operational scope will be determined and assigned by a Senior Officer during account review.
             </div>
 
             <Button type="submit" disabled={loading} className="w-full gap-2 mt-4 font-mono">
