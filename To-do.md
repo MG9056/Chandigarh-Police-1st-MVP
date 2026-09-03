@@ -1,8 +1,6 @@
 # To-do List
 
-1. Scaffold the project 
-2. Setup the frontend (JS+React) and backend (FastAPI)
-3. Implement the following features as instructed in AGENTS.md and DESIGN.md :
+- Implement the following features as instructed in AGENTS.md and DESIGN.md :
     - 1. Multi-Source Data Collection:Enable collection and aggregation of information from legally accessible darknet marketplaces,public forums, blockchain intelligence sources, and other relevant digital platforms.
     -2 Intelligent Entity Correlation:Identify relationships between usernames, cryptocurrency wallets, email addresses,communication channels, and other digital identifiers to assist investigators in discovering potential criminal networks.
     -3 Suspicious Activity Detection:Automatically detect unusual patterns, recurring keywords, high-risk listings, or abnormal behavioral trends that may indicate illicit drug trafficking activities.
