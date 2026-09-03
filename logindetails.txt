@@ -1,0 +1,9 @@
+Email: inspector.chandr@chandigarhpolice.gov.in
+Password: InspectorPass123! (Must be $\ge 12$ characters)
+Full Name: Rohit Chand
+Badge Number: CP-4491
+Unit: Cyber Crime Cell
+Requested Role: INSPECTOR
+
+Email: dgp@chandigarhpolice.gov.in
+Password: AdminPassword123!

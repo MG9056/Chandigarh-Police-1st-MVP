@@ -29,7 +29,29 @@ def get_db():
 
 def init_db():
     """
-    Creates all database tables defined in models.py.
+    Creates all database tables defined in models.py and seeds initial DGP admin.
     """
     import models  # Ensures models are registered with Base
     Base.metadata.create_all(bind=engine)
+
+    # Seed initial DGP Super Admin account if not present
+    db = SessionLocal()
+    try:
+        from models import User, RoleEnum, AccountStatusEnum
+        from security import hash_password
+        existing = db.query(User).filter(User.email == "dgp@chandigarhpolice.gov.in").first()
+        if not existing:
+            dgp_user = User(
+                email="dgp@chandigarhpolice.gov.in",
+                full_name="DGP Admin",
+                password_hash=hash_password("AdminPassword123!"),
+                role=RoleEnum.SUPER_ADMIN,
+                account_status=AccountStatusEnum.ACTIVE
+            )
+            db.add(dgp_user)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print("Database auto-seed error:", e)
+    finally:
+        db.close()
