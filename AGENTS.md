@@ -6,6 +6,7 @@
 # Important Files and Locations
 
 1. Project-Journal.md file will be used to document features completed, mistakes made and then how they were fixed. **You can update this file yourself**
+2. /specs contains prd for each feature to be implemented. **Use these instructions to build the feature**
 
 # Instructions
 - The first build was of the mvp frontend. The design for the frontend has been finalized and will remain the same. Any additions should follow the same theme.
