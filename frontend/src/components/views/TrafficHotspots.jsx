@@ -83,11 +83,17 @@ export default function TrafficHotspots() {
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
   // Every place the scan actually found a mention of, capped to the
-  // top 50 so the map stays legible — the underlying scan itself is
-  // never truncated, only how many markers get drawn.
+  // top 50 so the map stays legible. Also drops anything whose share
+  // of total mentions rounds to 0% — a single mention out of thousands
+  // isn't a "hotspot," it's noise, and showing it as a pulsing marker
+  // makes the map look busier/less trustworthy than the data supports.
   const places = useMemo(() => {
     if (!geoActivity?.places) return [];
-    return geoActivity.places.slice(0, 50);
+    const total = geoActivity.total_mentions || 0;
+    if (total <= 0) return [];
+    return geoActivity.places
+      .filter((p) => Math.round((p.count / total) * 100) > 0)
+      .slice(0, 50);
   }, [geoActivity]);
 
   const maxCount = places.length ? places[0].count : 0;
@@ -152,7 +158,7 @@ export default function TrafficHotspots() {
                       {t('Mentions')}: <span className="text-foreground">{spot.count}</span>
                     </div>
                     <div className="font-mono text-[10px] text-muted-foreground">
-                      {t('Share of all place mentions')}: <span className="text-foreground">{geoActivity ? Math.round((spot.count / geoActivity.total_mentions) * 100) : 0}%</span>
+                      {t('Share of all place mentions')}: <span className="text-foreground" style={{ color: 'black' }}>{geoActivity ? Math.round((spot.count / geoActivity.total_mentions) * 100) : 0}%</span>
                     </div>
                   </Popup>
                 </Marker>

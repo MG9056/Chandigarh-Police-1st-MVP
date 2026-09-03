@@ -278,7 +278,18 @@ def build_real_network_data(data_paths: str | list[str] | None = None) -> dict:
     return {"cache_schema_version": CACHE_SCHEMA_VERSION, "nodes": nodes, "links": links}
 
 
+import threading
+
+_build_lock = threading.Lock()
+_build_cond = threading.Condition(_build_lock)
+_build_in_progress = False
+_build_result: dict | None = None
+_build_error: Exception | None = None
+
+
 def get_cached_or_build(force: bool = False) -> dict:
+    global _build_in_progress, _build_result, _build_error
+
     if not force and os.path.exists(CACHE_PATH):
         try:
             age = time.time() - os.path.getmtime(CACHE_PATH)
@@ -292,14 +303,39 @@ def get_cached_or_build(force: bool = False) -> dict:
         except json.JSONDecodeError:
             _log("cache file exists but isn't valid JSON (likely a truncated write from an earlier crash) — ignoring it and rebuilding.")
 
-    _log("no fresh cache — building from scratch (this can take several minutes on the full dataset; run `python -m real_data.graph_builder` directly to watch progress).")
-    data = build_real_network_data()
-    os.makedirs(config.CACHE_DIR, exist_ok=True)
-    with open(CACHE_PATH, "w") as f:
-        json.dump(data, f)
-    _log(f"=== ALL DONE: {len(data['nodes'])} nodes, {len(data['links'])} links. Cached to {CACHE_PATH} ===")
-    return data
+    # Single-flight: if a build is already running (e.g. React StrictMode
+    # fired the fetch twice, or someone switched tabs mid-build), don't
+    # start a second full Elliptic++/Dread pipeline in parallel — that's
+    # what turns one slow build into 2-3 concurrent ones fighting over
+    # CPU and memory, which looks like the server hanging. Wait for the
+    # in-flight build and reuse its result instead.
+    with _build_cond:
+        if _build_in_progress:
+            _log("a build is already in progress — waiting on it instead of starting a duplicate.")
+            _build_cond.wait()
+            if _build_error is not None:
+                raise _build_error
+            return _build_result
+        _build_in_progress = True
 
+    try:
+        _log("no fresh cache — building from scratch (this can take several minutes on the full dataset; run `python -m real_data.graph_builder` directly to watch progress).")
+        data = build_real_network_data()
+        os.makedirs(config.CACHE_DIR, exist_ok=True)
+        with open(CACHE_PATH, "w") as f:
+            json.dump(data, f)
+        _log(f"=== ALL DONE: {len(data['nodes'])} nodes, {len(data['links'])} links. Cached to {CACHE_PATH} ===")
+        with _build_cond:
+            _build_result, _build_error = data, None
+            _build_in_progress = False
+            _build_cond.notify_all()
+        return data
+    except Exception as e:
+        with _build_cond:
+            _build_error = e
+            _build_in_progress = False
+            _build_cond.notify_all()
+        raise
 
 if __name__ == "__main__":
     import time as _t
