@@ -17,9 +17,13 @@ from routers.search_router import router as search_router
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
+import asyncio
+from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    asyncio.create_task(start_background_ingestion_task())
     yield
 
 app = FastAPI(
@@ -66,6 +70,11 @@ def load_db():
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Welcome to DarKnight API"}
+
+@app.get("/api/ingestion-status")
+def get_ingestion_status(current_user: User = Depends(get_current_user)):
+    from pipelines.ingest_ai_router import INGESTION_STATUS
+    return INGESTION_STATUS
 
 @app.get("/api/dashboard/summary")
 def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

@@ -29,9 +29,10 @@ def get_db():
 
 def init_db():
     """
-    Creates all database tables defined in models.py and seeds initial DGP admin.
+    Creates all database tables defined in models.py and canonical_schema.py and seeds initial DGP admin.
     """
-    import models  # Ensures models are registered with Base
+    import models  # Ensures legacy models are registered with Base
+    import data.canonical_schema  # Ensures canonical models are registered with Base
     Base.metadata.create_all(bind=engine)
 
     # Seed initial DGP Super Admin account if not present

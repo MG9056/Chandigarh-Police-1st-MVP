@@ -163,3 +163,35 @@ If you're picking this up to move past MVP, roughly in priority order:
 This app was built by an AI coding agent working from `AGENTS.md` + `DESIGN.md` + `To-do.md` as its spec. `Project-Journal.md` is the agent's own log of what it built each phase and the bugs it hit along the way (e.g., a Tailwind v4 → v3 downgrade to fix a shadcn/ui init failure). It's worth skimming once if something in the styling setup looks unusual — the reasoning is documented there rather than in code comments.
 
 The app has been renamed at least once (`Kala Jaddu` → `DarKnight`); grep for both terms if you're hunting for stale references anywhere outside this README.
+
+---
+
+## 10. Centralized Canonical Schema & Autonomous Ingestion Pipeline
+
+### Architecture
+- **Canonical Schema (`backend/data/canonical_schema.py`)**: Unifies all incompatible schemas into 3 fundamental buckets:
+  - **Things (`CanonicalEntity`)**: Suspects, crypto wallets, listings, channels, accounts, IP nodes.
+  - **Connections (`CanonicalTransaction`)**: Financial transactions, relationship edges.
+  - **Events (`CanonicalObservation`)**: Messages, spatial location pings, network traffic flows.
+- **Geospatial Reference**: Retains `BoundingBox`, `CanonicalRegion`, `CanonicalDetailedLocation`.
+
+### One-Time Migration Script
+- Run `python backend/pipelines/migrate_to_canonical.py` to populate canonical database tables from existing database rows (`darknight.db`) and synthetic datasets (`backend/synthetic_data.py`).
+
+### Autonomous Background Ingestion Engine (`backend/pipelines/ingest_ai_router.py`)
+- **Non-blocking Server Startup**: Launches automatically as a background task on FastAPI server start.
+- **Directory Scanner**: Scans project files (`.json`, `.csv`, `.db`, `.parquet`, `.tsv`) while excluding node_modules, venv, git, etc.
+- **Resumable Manifest Tracking**: Maintains `ingestion_file_manifest` and `ingestion_record_manifest` tables in `darknight.db`. On crash/restart, resumes from the exact record without duplicate writes or data loss.
+- **Hybrid AI Classifier**:
+  - Uses **Anthropic API** when `ANTHROPIC_API_KEY` is present.
+  - Uses an **Offline Heuristic Classifier** fallback when API key is missing (tagging metadata with `{"classified_by": "heuristic"}`).
+- **High-Visibility Logging**:
+  - Auto-created categories logged to `new_categories_created.log` and tracked in `backend/data/canonical_schema_extensions.py`.
+  - Identifier collisions logged to `identifier_collisions.log`.
+- **Status Endpoint**: Query `GET /api/ingestion-status` for live processing metrics.
+- **Manual CLI Execution**:
+  ```bash
+  python -m backend.pipelines.ingest_ai_router --full-scan
+  python -m backend.pipelines.ingest_ai_router --file path/to/dataset.json
+  ```
+- **Test Suite**: Run `python backend/tests/test_ingestion_resumability.py` to verify crash recovery.
