@@ -1,0 +1,25 @@
+# ==== Web framework / server ====
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+email-validator==2.2.0        # needed for pydantic's EmailStr (used in signup/login schemas)
+
+# ==== Database ====
+SQLAlchemy==2.0.36
+
+# ==== Auth & security ====
+PyJWT==2.10.1                 # access / refresh / re-auth JWTs (security.py)
+bcrypt==4.2.1                 # password hashing (security.py)
+pyotp==2.9.0                  # TOTP-based 2FA (security.py)
+
+# ==== Entity resolution (synthetic-data pipeline) ====
+rapidfuzz==3.11.0             # fuzzy username matching (entity_resolution.py)
+
+# ==== Real-data pipeline (backend/real_data/) ====
+pandas==2.2.3
+pyarrow==18.1.0                # parquet support for the Dread archive files
+networkx==3.4.2                 # graph construction / community & centrality metrics
+
+# ==== Testing (used by backend/tests/) ====
+pytest==8.3.4
+httpx==0.28.1                  # required by fastapi.testclient.TestClient
