@@ -134,3 +134,28 @@ class DataProvenance(Base):
     investigation_id = Column(String, nullable=True, index=True)
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
+
+# Import and expose crawler models for metadata creation
+from crawler.models import (
+    Source,
+    Keyword,
+    CaseKeyword,
+    CrawlerRun,
+    RawRecord,
+    RobotsCache,
+)
+
+__all__ = [
+    "User",
+    "RefreshSession",
+    "InvestigationAccessGrant",
+    "AuditLog",
+    "DataProvenance",
+    "Source",
+    "Keyword",
+    "CaseKeyword",
+    "CrawlerRun",
+    "RawRecord",
+    "RobotsCache",
+]
+

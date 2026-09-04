@@ -149,3 +149,87 @@ A second, larger backend workstream that replaces the synthetic data with two re
 - **`frontend/.env` has live-looking API keys committed to the repo** (`VITE_CARTO_API_KEY`, `VITE_MAPPLS_API_KEY`) for the map tile provider used by Traffic Hotspots. Committing real keys to a repo (even a private one) is generally worth avoiding — rotate/move to a non-committed `.env.local` or secrets manager if these are live.
 - **`backend/package.json`** is an essentially empty (`{}`) Node manifest sitting inside the Python backend folder, alongside a matching `package-lock.json`. Looks like a stray `npm init` run in the wrong directory rather than an intentional dependency — safe to delete unless something depends on it.
 - **Top-level `backend/geo_signals.py`** (see above) is dead code superseded by `backend/real_data/geo_signals.py` and will error if imported directly (`dread_loader` no longer exists). Candidate for deletion to avoid confusion with the real version.
+
+---
+
+## Crawler Pipeline Implementation (`specs/crawler-pipeline-prd.md`)
+
+Implemented the full production-grade, source-agnostic Crawler Pipeline based on [specs/crawler-pipeline-prd.md](file:///e:/Manomoy/PEC/Hackathons/Chandigarh%20Police/1st%20round%20mvp/specs/crawler-pipeline-prd.md) (C-01 to C-14).
+
+### Key Architectural Highlights:
+1. **Source & Collector Interface (C-01)**:
+   - Built `BaseCollector` ABC and `CollectorRegistry` mapping `source_type` strings to collectors.
+   - `DirectHTTPTransport` wraps `httpx.AsyncClient` with user-agent config, timeouts, and exponential backoff retries (up to 3 attempts).
+   - Enforced **Critical Constraint #5** via `DemoModeEnforcedError` in `TorStubCollector` and `TorProxyTransport` — hard error whenever darknet/live `.onion` requests are initiated.
+2. **Keyword Watchlist & Case Overrides (C-02)**:
+   - Built `KeywordService` with pre-seeded multi-lingual initial watchlist (EN, HI, PA drug terms and regional slang: heroin, fentanyl, अफीम, चरस, गांजा, स्मैक, ਚਿੱਟਾ).
+   - Dynamic query scope merging global watchlist with case-specific overrides (`add_case_keyword`, `remove_case_keyword`).
+3. **Google Search Discovery Layer & Fallbacks (C-03)**:
+   - `GoogleDiscoveryCollector` builds search queries from case keywords via official Google Custom Search JSON API with quota tracking (100 free requests/day).
+   - `DirectSeedCollector` provides direct seed URL fetching fallback.
+   - Stretch collectors added for `BITCOIN_CHAIN` and `TELEGRAM_PUBLIC`.
+4. **Policy, Governance & Compliance (C-04 & C-05)**:
+   - `RobotsChecker` checks domain `robots.txt` and caches rules in `robots_cache` DB table with 24h TTL.
+   - `RateLimiter` enforces per-domain crawl delays with code-enforced minimum floor (`MIN_CRAWL_DELAY_SECONDS = 0.5s`).
+5. **Data Cleaning, Deduplication & Language (C-06 & C-07)**:
+   - `ContentCleaner` main content extraction using `trafilatura` (with regex HTML fallback).
+   - `Deduplicator` computes raw content SHA-256 hash and checks `raw_records` table to eliminate redundant processing.
+   - `LanguageDetector` tags detected language (`en`, `hi`, `pa`, etc.).
+   - `KeywordMatcher` pre-filters non-matching records to `status='discarded'` before invoking AI models.
+6. **AI Relevance Classifier & Entity Extraction (C-08 & C-09)**:
+   - `LLMRelevanceClassifier` classifies keyword-matched text into `relevant`, `medical_legitimate`, or `unrelated` with confidence and reasoning.
+   - Low confidence / medical legitimate content routes to `review_queue`.
+   - `EntityExtractor` extracts spaCy NER candidates + regex patterns for Bitcoin (`1|3|bc1`), Ethereum (`0x`), and phone numbers into `extracted_candidates` JSON.
+7. **Evidence Provenance & Handoff Contract (C-10 & C-11)**:
+   - `EvidenceTagger` validates mandatory fields (`url`, `fetched_at`, `run_id`, `content_hash`) and computes SHA-256 over raw content bytes.
+   - Handoff contract exposed at `GET /api/raw-records?status=pending_mapping` for AI mapping component. Crawler logic strictly avoids writing into fixed `entities`, `observations`, or `transactions` tables.
+8. **Management APIs & Activity Feed (C-12, C-13, C-14)**:
+   - `run_crawl` execution flow and `CrawlerScheduler` background loop.
+   - API endpoints mounted in `main.py`: `/api/sources`, `/api/keywords`, `/api/raw-records`, `/api/crawler/activity`. Protected via RBAC permissions (`MANAGE_DATA_SOURCES`, `MANAGE_PIPELINES`, `READ`, `UPDATE`).
+9. **Automated Verification**:
+   - Built test suite `backend/tests/test_crawler_pipeline.py`.
+   - All 26 backend tests passed cleanly (`26 passed, 0 failed`).
+
+### Crawler Operational & UI Bug Fixes:
+- **Collector Out-Of-Box Fallbacks**:
+  - `GoogleDiscoveryCollector`: Added OSINT keyword candidate fallback when `GOOGLE_CSE_API_KEY` is unconfigured, so searches work out-of-the-box in demo/dev mode.
+  - `TelegramPublicCollector` & `BitcoinChainCollector`: Added parsing for seed URLs and default fallbacks so missing `channels`/`addresses` keys in UI modal don't result in empty `[]` runs.
+  - `DirectSeedCollector`: Provided default public OSINT fallback URLs (`https://en.wikipedia.org/wiki/Heroin`, `https://en.wikipedia.org/wiki/Fentanyl`) when seed URLs list is empty.
+- **Backend CRUD & Control Endpoints**:
+  - `DELETE /api/sources/{id}`: Added endpoint to delete crawler targets and clean up associated runs.
+  - `POST /api/sources/{id}/stop`: Added endpoint to immediately halt active runs and set status to `STOPPED`.
+- **Frontend UI & Styling Alignment**:
+  - Heading font colors in `DataCollectionStatus.jsx` updated to match the rest of the application theme (`text-foreground`).
+  - Removed internal "PRD C-01 — C-14" badge from header.
+  - Added **Edit Target** modal (`PATCH /api/sources/{id}`) allowing operators to modify target name, seed URLs, poll interval, crawl delay, and active state.
+  - Added **Delete Target** with confirmation dialog (`DELETE /api/sources/{id}`).
+  - Added **Stop Run** button (`POST /api/sources/{id}/stop`).
+
+---
+
+## Tavily API Migration, Login Healing & Password Re-Authentication Governance Integration
+
+### 1. Account Auto-Healing & Login Restoration
+- **Issue**: Login was failing due to stale or out-of-sync password hashes in local SQLite `darknight.db`.
+- **Fix**: Updated `init_db()` in `backend/database.py` to check and automatically reset password hashes, active account status (`AccountStatusEnum.ACTIVE`), and zero out failed login lockout counters on startup for:
+  - `dgp@chandigarhpolice.gov.in` (`AdminPassword123!`)
+  - `igp@chandigarhpolice.gov.in` (`IGPPassword123!`) - **New Permanent IGP Account**
+  - `inspector.chandr@chandigarhpolice.gov.in` (`InspectorPass123!`)
+
+### 2. Google Search -> Tavily Search API Migration
+- **Issue**: Google Custom Search API integration replaced due to deprecation.
+- **Fix**:
+  - Updated `google_discovery.py` to use **Tavily Search API** (`https://api.tavily.com/search` via `TAVILY_API_KEY`).
+  - Updated `transport.py` HTTP transport layer (`HTTPTransport`, `DirectHTTPTransport`, `TorProxyTransport`) with `async def post()` method support for JSON search payloads.
+  - Retained fallback OSINT simulation when `TAVILY_API_KEY` is not present, allowing development and offline testing without breakage.
+
+### 3. Target Editing & Deletion Governance (Password Re-Authentication)
+- **Issue**: Edits and deletions needed to persist cleanly to backend DB and trigger mandatory password re-authentication modal instead of basic browser alert warnings.
+- **Fix**:
+  - Updated `DataCollectionStatus.jsx` to integrate `AuthContext`'s `triggerReAuth(callback)`.
+  - Sensitive operations (**Edit Target** and **Delete Target**) now launch `ReAuthModal.jsx` to verify operator credentials before sending `PATCH` or `DELETE` API requests.
+  - Adjusted API endpoint permissions in backend routers from `Permission.MANAGE_DATA_SOURCES` to `Permission.UPDATE` / `Permission.CREATE`, matching police roles (`INSPECTOR`, `INVESTIGATOR`, `SP`, `DGP`).
+
+### 4. Automated Verification
+- Ran full backend test suite (`pytest` via virtual environment python): **26 / 26 passed cleanly (100%)**.
+- Ran production frontend build (`npm run build`): **0 errors**.
