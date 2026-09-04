@@ -300,3 +300,284 @@ def test_crawler_management_api(auth_headers, setup_db):
     resp_raw = client.get("/api/raw-records?status=pending_mapping", headers=auth_headers)
     assert resp_raw.status_code == 200
     assert "items" in resp_raw.json()
+
+def test_google_discovery_success():
+    async def _inner():
+        os.environ["TAVILY_API_KEY"] = "test-key"
+
+        try:
+            collector = GoogleDiscoveryCollector()
+
+            class MockTransport:
+                def __init__(self):
+                    self.post_called = False
+                    self.post_url = None
+                    self.post_payload = None
+
+                async def post(self, url, json=None):
+                    self.post_called = True
+                    self.post_url = url
+                    self.post_payload = json
+
+                    return {
+                        "status_code": 200,
+                        "text": (
+                            '{"results": ['
+                            '{"title": "Test Result", '
+                            '"url": "https://example.com/test", '
+                            '"content": "Heroin vendor offering stealth shipping."}'
+                            ']}'
+                        )
+                    }
+
+                async def get(self, url):
+                    return {
+                        "status_code": 200,
+                        "text": "Test page content"
+                    }
+
+            transport = MockTransport()
+
+            records = await collector.fetch(
+                {
+                    "keywords": ["heroin", "tramadol"],
+                    "seed_urls": []
+                },
+                transport
+            )
+
+            assert transport.post_called is True
+            assert transport.post_url == "https://api.tavily.com/search"
+
+            assert transport.post_payload["api_key"] == "test-key"
+            assert transport.post_payload["query"] == "heroin tramadol"
+
+            assert len(records) == 1
+            assert records[0]["url"] == "https://example.com/test"
+            assert "Heroin vendor" in records[0]["raw_text"]
+            assert records[0]["source"] == "tavily_search_discovery"
+
+        finally:
+            os.environ.pop("TAVILY_API_KEY", None)
+
+    asyncio.run(_inner())
+
+
+def test_google_discovery_tavily_error():
+    async def _inner():
+        os.environ["TAVILY_API_KEY"] = "invalid-key"
+
+        try:
+            collector = GoogleDiscoveryCollector()
+
+            class MockTransport:
+                def __init__(self):
+                    self.post_called = False
+
+                async def post(self, url, json=None):
+                    self.post_called = True
+
+                    return {
+                        "status_code": 401,
+                        "text": '{"error": "Unauthorized"}'
+                    }
+
+                async def get(self, url):
+                    raise AssertionError(
+                        "Fallback should not run when a Tavily API key is configured."
+                    )
+
+            transport = MockTransport()
+
+            records = await collector.fetch(
+                {
+                    "keywords": ["heroin"],
+                    "seed_urls": []
+                },
+                transport
+            )
+
+            assert transport.post_called is True
+            assert records == []
+            assert collector.requests_used == 1
+
+        finally:
+            os.environ.pop("TAVILY_API_KEY", None)
+
+    asyncio.run(_inner())
+
+
+def test_google_discovery_empty_keywords_and_seeds():
+    async def _inner():
+        collector = GoogleDiscoveryCollector()
+
+        class MockTransport:
+            def __init__(self):
+                self.post_called = False
+                self.get_called = False
+
+            async def post(self, url, json=None):
+                self.post_called = True
+                return {
+                    "status_code": 200,
+                    "text": '{"results": []}'
+                }
+
+            async def get(self, url):
+                self.get_called = True
+                return {
+                    "status_code": 200,
+                    "text": "Test page"
+                }
+
+        transport = MockTransport()
+
+        records = await collector.fetch(
+            {
+                "keywords": [],
+                "seed_urls": []
+            },
+            transport
+        )
+
+        assert records == []
+        assert transport.post_called is False
+        assert transport.get_called is False
+
+    asyncio.run(_inner())
+
+
+def test_google_discovery_without_tavily_key():
+    async def _inner():
+        os.environ.pop("TAVILY_API_KEY", None)
+
+        collector = GoogleDiscoveryCollector()
+
+        class MockTransport:
+            def __init__(self):
+                self.urls = []
+
+            async def post(self, url, json=None):
+                raise AssertionError(
+                    "Tavily should not be called without an API key."
+                )
+
+            async def get(self, url):
+                self.urls.append(url)
+
+                return {
+                    "status_code": 200,
+                    "text": "<html><body>Heroin information</body></html>"
+                }
+
+        transport = MockTransport()
+
+        records = await collector.fetch(
+            {
+                "keywords": ["heroin"],
+                "seed_urls": []
+            },
+            transport
+        )
+
+        assert len(records) == 1
+        assert records[0]["url"] == "https://en.wikipedia.org/wiki/Heroin"
+        assert records[0]["raw_text"] == (
+            "<html><body>Heroin information</body></html>"
+        )
+        assert records[0]["source"] == "tavily_search_discovery_osint"
+
+        assert transport.urls == [
+            "https://en.wikipedia.org/wiki/Heroin"
+        ]
+
+    asyncio.run(_inner())
+
+def test_google_discovery_run_crawl_integration(setup_db, monkeypatch):
+    async def _inner():
+        db = setup_db
+
+        monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+
+        class MockTransport:
+            def __init__(self):
+                self.post_called = False
+                self.post_payload = None
+
+            async def post(self, url, json=None):
+                self.post_called = True
+                self.post_payload = json
+
+                return {
+                    "status_code": 200,
+                    "text": (
+                        '{"results": ['
+                        '{"title": "Test Intelligence", '
+                        '"url": "https://example.com/intelligence", '
+                        '"content": "Heroin trafficking investigation involving '
+                        'a suspicious shipment."}'
+                        ']}'
+                    )
+                }
+
+            async def get(self, url):
+                return {
+                    "status_code": 200,
+                    "text": "<html><body>Test content</body></html>"
+                }
+
+        mock_transport = MockTransport()
+
+        import crawler.orchestration.flows as flows
+
+        original_transport = flows.DirectHTTPTransport
+        flows.DirectHTTPTransport = lambda: mock_transport
+
+        try:
+            source = db.query(Source).filter(
+                Source.name == "Google Integration Test"
+            ).first()
+
+            if source:
+                db.delete(source)
+                db.commit()
+
+            source = Source(
+    name="Google Integration Test",
+    source_type="GOOGLE_SEARCH_DISCOVERY",
+    transport_type="direct",
+    config={
+        "seed_urls": []
+    }
+)
+
+            db.add(source)
+            db.commit()
+            db.refresh(source)
+
+            run = await run_crawl(
+                source_id=source.id,
+                db=db
+            )
+
+            db.refresh(run)
+
+            print("\n=== GOOGLE INTEGRATION DEBUG ===")
+            print("Tavily POST called:", mock_transport.post_called)
+            print("Tavily payload:", mock_transport.post_payload)
+            print("Run status:", run.status)
+            print("URLs attempted:", run.urls_attempted)
+            print("Records produced:", run.records_produced)
+            print("Records relevant:", run.records_relevant)
+            print("Error summary:", run.error_summary)
+            print("================================\n")
+
+            assert mock_transport.post_called is True
+            assert run.status == "COMPLETED"
+            assert run.urls_attempted > 0
+            assert run.records_produced > 0
+
+        finally:
+            flows.DirectHTTPTransport = original_transport
+
+    asyncio.run(_inner())
