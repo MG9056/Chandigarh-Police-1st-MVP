@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, TrendingUp, Key } from 'lucide-react';
+import { apiFetch } from '../../lib/apiClient';
 
 export default function AlertsFeed() {
   const { t } = useTranslation();
@@ -8,20 +9,20 @@ export default function AlertsFeed() {
   const [suspicious, setSuspicious] = useState([]);
 
   useEffect(() => {
-    fetch('/api/alerts')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        if (Array.isArray(data)) setAlerts(data);
-      })
-      .catch(err => console.error("Error fetching alerts:", err));
-      
-    fetch('/api/alerts/suspicious')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        if (Array.isArray(data)) setSuspicious(data);
-      })
-      .catch(err => console.error("Error fetching suspicious activity:", err));
-  }, []);
+  apiFetch('/api/alerts')
+    .then(res => res.ok ? res.json() : [])
+    .then(data => {
+      if (Array.isArray(data)) setAlerts(data);
+    })
+    .catch(err => console.error("Error fetching alerts:", err));
+
+  apiFetch('/api/alerts/suspicious')
+    .then(res => res.ok ? res.json() : [])
+    .then(data => {
+      if (Array.isArray(data)) setSuspicious(data);
+    })
+    .catch(err => console.error("Error fetching suspicious activity:", err));
+}, []);
 
   const getSeverityColor = (severity) => {
     if (severity === 'red') return 'bg-red-500/10 border-red-500/20 text-red-500';

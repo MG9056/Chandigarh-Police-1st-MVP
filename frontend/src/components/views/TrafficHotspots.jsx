@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import indiaOsmData from '../../assets/india-osm.json';
+import { apiFetch } from '../../lib/apiClient';
 
 const TIER_COLORS = {
   critical: '#ef4444',
@@ -51,18 +52,24 @@ export default function TrafficHotspots() {
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/geo/activity')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (!data) return;
-        if (data.error) setLoadError(data.error);
-        setGeoActivity(data);
-      })
-      .catch(err => {
-        console.error("Error fetching geo activity:", err);
-        setLoadError(err.message);
-      });
-  }, []);
+  apiFetch('/api/geo/activity')
+    .then(res => {
+      if (res.status === 401) {
+        setLoadError('Your session expired. Please log in again.');
+        return null;
+      }
+      return res.ok ? res.json() : null;
+    })
+    .then(data => {
+      if (!data) return;
+      if (data.error) setLoadError(data.error);
+      setGeoActivity(data);
+    })
+    .catch(err => {
+      console.error("Error fetching geo activity:", err);
+      setLoadError(err.message);
+    });
+}, []);
 
   const cartoKey = import.meta.env.VITE_CARTO_API_KEY;
   const tileUrl = cartoKey

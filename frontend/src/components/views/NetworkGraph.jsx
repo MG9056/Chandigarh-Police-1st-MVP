@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
 import { ZoomIn, ZoomOut, Maximize, Minimize, Expand } from 'lucide-react';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 const GROUP_ANGLE = {
   suspect: 0,
@@ -27,29 +28,35 @@ export default function NetworkGraph() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
-    setData({ nodes: [], links: [] });
-    setLoadError(null);
-    const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
-    fetch(endpoint)
-      .then(res => res.ok ? res.json() : null)
-      .then(graphData => {
-        if (!graphData) {
-          setLoadError('Failed to load network data');
-          return;
-        }
-        if (graphData.error) {
-          setLoadError(graphData.error);
-        }
-        setData({
-          nodes: Array.isArray(graphData.nodes) ? graphData.nodes : [],
-          links: Array.isArray(graphData.links) ? graphData.links : []
-        });
-      })
-      .catch(err => {
-        console.error("Error fetching network data:", err);
-        setLoadError(err.message);
+  setData({ nodes: [], links: [] });
+  setLoadError(null);
+  const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
+  apiFetch(endpoint)
+    .then(res => {
+      if (res.status === 401) {
+        setLoadError('Your session expired. Please log in again.');
+        return null;
+      }
+      return res.ok ? res.json() : null;
+    })
+    .then(graphData => {
+      if (!graphData) {
+        if (!loadError) setLoadError('Failed to load network data');
+        return;
+      }
+      if (graphData.error) {
+        setLoadError(graphData.error);
+      }
+      setData({
+        nodes: Array.isArray(graphData.nodes) ? graphData.nodes : [],
+        links: Array.isArray(graphData.links) ? graphData.links : []
       });
-  }, [source]);
+    })
+    .catch(err => {
+      console.error("Error fetching network data:", err);
+      setLoadError(err.message);
+    });
+}, [source]);
 
   const degreeById = useMemo(() => {
     const m = new Map();

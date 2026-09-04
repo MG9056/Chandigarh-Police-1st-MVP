@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Activity, ShieldAlert, Network } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTheme } from '../theme-provider';
+import { apiFetch } from '../../lib/apiClient';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const listingsData = [
@@ -28,13 +29,13 @@ export default function DashboardOverview({ setActiveView }) {
   const [summary, setSummary] = useState(null);
 
   useEffect(() => {
-    fetch('/api/dashboard/summary')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && !data.detail) setSummary(data);
-      })
-      .catch(err => console.error("Error fetching summary:", err));
-  }, []);
+  apiFetch('/api/dashboard/summary')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data && !data.detail) setSummary(data);
+    })
+    .catch(err => console.error("Error fetching summary:", err));
+}, []);
 
   if (!summary) return <div className="p-8 text-center text-muted-foreground animate-pulse font-mono text-sm">{t('Loading dashboard intelligence...')}</div>;
 

@@ -2,19 +2,20 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Download, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 export default function ReportingEvidence() {
   const { t } = useTranslation();
   const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    fetch('/api/reports')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        if (Array.isArray(data)) setReports(data);
-      })
-      .catch(err => console.error("Error fetching reports:", err));
-  }, []);
+  apiFetch('/api/reports')
+    .then(res => res.ok ? res.json() : [])
+    .then(data => {
+      if (Array.isArray(data)) setReports(data);
+    })
+    .catch(err => console.error("Error fetching reports:", err));
+}, []);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full font-mono">

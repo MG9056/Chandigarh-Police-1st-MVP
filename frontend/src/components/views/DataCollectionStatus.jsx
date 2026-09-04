@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Server, Database, Globe, RefreshCcw, MessageSquare, Radio } from 'lucide-react';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 const defaultSources = [
   { id: 1, name: "Darknet Market Alpha", type: "Onion Service", status: "Active", lastSync: "2 mins ago" },
@@ -18,16 +19,16 @@ export default function DataCollectionStatus() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/data-sources')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSources(data);
-        }
-      })
-      .catch(err => console.error("Error fetching data sources:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  apiFetch('/api/data-sources')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        setSources(data);
+      }
+    })
+    .catch(err => console.error("Error fetching data sources:", err))
+    .finally(() => setLoading(false));
+}, []);
 
   const getSourceIcon = (type) => {
     switch (type) {
