@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
 from contextlib import asynccontextmanager
 from datetime import datetime
 import json
