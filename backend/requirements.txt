@@ -2,6 +2,16 @@ fastapi
 uvicorn[standard]
 pydantic
 
+# Database and Security
+SQLAlchemy
+alembic
+passlib
+bcrypt
+PyJWT
+pyotp
+email-validator
+httpx
+
 # Entity resolution (existing synthetic-data pipeline)
 rapidfuzz
 

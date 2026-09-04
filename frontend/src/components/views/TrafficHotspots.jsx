@@ -5,11 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import indiaOsmData from '../../assets/india-osm.json';
+import { apiFetch } from '../../lib/apiClient';
 
-// Marker color/size tiers are computed relative to the mention counts
-// actually returned by /api/geo/activity (see tierFor below) — there's
-// no fixed absolute scale, since that depends entirely on what's in
-// the archive.
 const TIER_COLORS = {
   critical: '#ef4444',
   high: '#f97316',
@@ -55,23 +52,25 @@ export default function TrafficHotspots() {
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/geo/activity')
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) setLoadError(data.error);
-        setGeoActivity(data);
-      })
-      .catch(err => {
-        console.error("Error fetching geo activity:", err);
-        setLoadError(err.message);
-      });
-  }, []);
+  apiFetch('/api/geo/activity')
+    .then(res => {
+      if (res.status === 401) {
+        setLoadError('Your session expired. Please log in again.');
+        return null;
+      }
+      return res.ok ? res.json() : null;
+    })
+    .then(data => {
+      if (!data) return;
+      if (data.error) setLoadError(data.error);
+      setGeoActivity(data);
+    })
+    .catch(err => {
+      console.error("Error fetching geo activity:", err);
+      setLoadError(err.message);
+    });
+}, []);
 
-  // CARTO's raster basemaps now require a free API key or every tile
-  // gets an "API KEY REQUIRED" watermark stamped on it (a policy change
-  // on their end, not something broken here — see .env for how to get
-  // a free key). Falls back to plain OpenStreetMap tiles if no key is
-  // configured, which have no watermark but also no dark-theme variant.
   const cartoKey = import.meta.env.VITE_CARTO_API_KEY;
   const tileUrl = cartoKey
     ? (theme === 'dark'
@@ -82,13 +81,8 @@ export default function TrafficHotspots() {
     ? '&copy; <a href="https://carto.com/">CARTO</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-  // Every place the scan actually found a mention of, capped to the
-  // top 50 so the map stays legible. Also drops anything whose share
-  // of total mentions rounds to 0% — a single mention out of thousands
-  // isn't a "hotspot," it's noise, and showing it as a pulsing marker
-  // makes the map look busier/less trustworthy than the data supports.
   const places = useMemo(() => {
-    if (!geoActivity?.places) return [];
+    if (!geoActivity?.places || !Array.isArray(geoActivity.places)) return [];
     const total = geoActivity.total_mentions || 0;
     if (total <= 0) return [];
     return geoActivity.places
@@ -114,9 +108,9 @@ export default function TrafficHotspots() {
           )}
         </div>
         {geoActivity && !loadError && (
-          <div className="text-right">
-            <p className="font-mono text-xs text-primary uppercase tracking-widest">{geoActivity.distinct_places_mentioned} {t('places found')}</p>
-            <p className="font-mono text-[10px] text-muted-foreground uppercase">{geoActivity.total_mentions} {t('total mentions')}</p>
+          <div className="text-right font-mono">
+            <p className="text-xs text-primary uppercase tracking-widest">{geoActivity.distinct_places_mentioned ?? 0} {t('places found')}</p>
+            <p className="text-[10px] text-muted-foreground uppercase">{geoActivity.total_mentions ?? 0} {t('total mentions')}</p>
           </div>
         )}
       </div>

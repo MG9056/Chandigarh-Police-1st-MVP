@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Activity, ShieldAlert, Network } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTheme } from '../theme-provider';
+import { apiFetch } from '../../lib/apiClient';
 import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const listingsData = [
@@ -28,13 +29,15 @@ export default function DashboardOverview({ setActiveView }) {
   const [summary, setSummary] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/dashboard/summary')
-      .then(res => res.json())
-      .then(data => setSummary(data))
-      .catch(err => console.error("Error fetching summary:", err));
-  }, []);
+  apiFetch('/api/dashboard/summary')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data && !data.detail) setSummary(data);
+    })
+    .catch(err => console.error("Error fetching summary:", err));
+}, []);
 
-  if (!summary) return <div className="p-8 text-center text-muted-foreground animate-pulse">{t('Loading dashboard intelligence...')}</div>;
+  if (!summary) return <div className="p-8 text-center text-muted-foreground animate-pulse font-mono text-sm">{t('Loading dashboard intelligence...')}</div>;
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -48,7 +51,7 @@ export default function DashboardOverview({ setActiveView }) {
           <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
             <Activity className="w-4 h-4 text-primary" /> {t('Active Investigations')}
           </span>
-          <span className="text-5xl font-black text-foreground mt-2">{summary.active_investigations}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.active_investigations ?? 0}</span>
         </div>
         <div 
           onClick={() => setActiveView && setActiveView('alerts')}
@@ -57,7 +60,7 @@ export default function DashboardOverview({ setActiveView }) {
           <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
             <ShieldAlert className="w-4 h-4 text-primary" /> {t('Critical Alerts')}
           </span>
-          <span className="text-5xl font-black text-foreground mt-2">{summary.critical_alerts}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.critical_alerts ?? 0}</span>
         </div>
         <div 
           onClick={() => setActiveView && setActiveView('data')}
@@ -66,7 +69,7 @@ export default function DashboardOverview({ setActiveView }) {
           <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">
             <Network className="w-4 h-4 text-primary" /> {t('Sources Monitored')}
           </span>
-          <span className="text-5xl font-black text-foreground mt-2">{summary.sources_monitored}</span>
+          <span className="text-5xl font-black text-foreground mt-2">{summary.sources_monitored ?? 0}</span>
         </div>
       </div>
       
@@ -141,7 +144,7 @@ export default function DashboardOverview({ setActiveView }) {
           {t('Select an item from the Navigation panel to view detailed metrics, suspect relationships, or actionable intelligence here. The dashboard automatically aggregates signals across multiple encrypted channels.')}
         </p>
         <p className="text-xs font-mono tracking-wider text-muted-foreground mt-8 text-right opacity-50 uppercase">
-          {t('Last Synced')}: {new Date(summary.last_update).toLocaleString()}
+          {t('Last Synced')}: {summary?.last_update ? new Date(summary.last_update).toLocaleString() : 'N/A'}
         </p>
       </div>
     </div>
