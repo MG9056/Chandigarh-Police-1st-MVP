@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Activity } from 'lucide-react';
+import { apiFetch } from '../../lib/apiClient';
 
 const mockTransactions = [
   { id: 1, type: 'Receive', amount: '2.5 BTC', date: '2023-10-28', node: 'Mixer Node Alpha' },
@@ -18,17 +19,17 @@ export default function SuspectProfiles() {
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
-    fetch('/api/network/data')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.nodes)) {
-          const suspectNodes = data.nodes.filter(n => n.group === 'suspect');
-          setSuspects(suspectNodes);
-        }
-      })
-      .catch(err => console.error("Error fetching suspects:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  apiFetch('/api/network/data')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data && Array.isArray(data.nodes)) {
+        const suspectNodes = data.nodes.filter(n => n.group === 'suspect');
+        setSuspects(suspectNodes);
+      }
+    })
+    .catch(err => console.error("Error fetching suspects:", err))
+    .finally(() => setLoading(false));
+}, []);
 
   return (
     <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">

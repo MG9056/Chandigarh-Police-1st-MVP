@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, History, Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 export default function SearchInvestigation() {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ export default function SearchInvestigation() {
     
     setIsSearching(true);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const res = await apiFetch(`/api/search?q=${encodeURIComponent(query)}`);
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.results)) {
