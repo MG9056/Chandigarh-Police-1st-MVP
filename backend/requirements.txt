@@ -19,3 +19,9 @@ rapidfuzz
 pandas
 pyarrow
 networkx
+
+# Crawler Pipeline (specs/crawler-pipeline-prd.md)
+trafilatura
+langdetect
+spacy
+
