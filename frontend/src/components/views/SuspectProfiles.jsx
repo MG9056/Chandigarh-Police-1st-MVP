@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Activity, Wallet, ShoppingBag, MessageSquare, ShieldAlert } from 'lucide-react';
+import { apiFetch } from '../../lib/apiClient';
 
 export default function SuspectProfiles() {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ export default function SuspectProfiles() {
   const [suspectDetail, setSuspectDetail] = useState({});
 
   useEffect(() => {
-    fetch('/api/suspects?limit=100')
+    apiFetch('/api/suspects?limit=100')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data && Array.isArray(data.suspects)) {
@@ -52,7 +53,7 @@ export default function SuspectProfiles() {
           <span className="text-primary font-bold">{suspects.length} {t('Entities Registered')}</span>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto space-y-4 pr-4">
         {loading ? (
           <div className="text-center text-muted-foreground py-10 animate-pulse font-mono tracking-widest uppercase text-sm">
@@ -68,7 +69,7 @@ export default function SuspectProfiles() {
 
             return (
               <div key={suspect.id} className="bracket-border bg-background/40 backdrop-blur-sm transition-all">
-                <div 
+                <div
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-primary/5 transition-colors group"
                   onClick={() => handleToggleExpand(suspect.id)}
                 >

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, History, Filter, User, Wallet, ShoppingBag, MessageSquare, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 export default function SearchInvestigation() {
   const { t } = useTranslation();
@@ -12,11 +13,11 @@ export default function SearchInvestigation() {
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
-    
+
     setIsSearching(true);
     try {
       const url = `/api/search/universal?q=${encodeURIComponent(query)}&category=${categoryFilter}`;
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data);
@@ -48,11 +49,11 @@ export default function SearchInvestigation() {
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('Search by BTC address, vendor alias, handle, drug category, or keyword (e.g. Alpha, SUEX, bc1, opioids)...')} 
+            placeholder={t('Search by BTC address, vendor alias, handle, drug category, or keyword (e.g. Alpha, SUEX, bc1, opioids)...')}
             className="w-full pl-10 pr-4 py-3 rounded-lg border bg-card text-card-foreground shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-xs font-mono"
           />
         </div>
@@ -68,11 +69,10 @@ export default function SearchInvestigation() {
             key={cat}
             type="button"
             onClick={() => setCategoryFilter(cat)}
-            className={`px-3 py-1.5 rounded-full uppercase tracking-wider transition-colors flex items-center gap-1.5 ${
-              categoryFilter === cat 
-                ? 'bg-primary text-primary-foreground font-bold' 
+            className={`px-3 py-1.5 rounded-full uppercase tracking-wider transition-colors flex items-center gap-1.5 ${categoryFilter === cat
+                ? 'bg-primary text-primary-foreground font-bold'
                 : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-            }`}
+              }`}
           >
             {cat === 'suspects' && <User className="w-3.5 h-3.5" />}
             {cat === 'wallets' && <Wallet className="w-3.5 h-3.5" />}

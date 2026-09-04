@@ -1,5 +1,5 @@
+import { registerAuthFailureHandler } from '../lib/apiClient';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -38,10 +38,17 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   }, []);
-
+  
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+  
+  useEffect(() => {
+  registerAuthFailureHandler(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+  });
+}, []);
 
   // Login handler
   const login = async (email, password, totpCode = '') => {
