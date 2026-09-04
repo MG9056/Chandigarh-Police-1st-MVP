@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { ThemeProvider, useTheme } from './components/theme-provider';
 import BootupAnimation from './components/BootupAnimation';
 import { Button } from './components/ui/button';
-import { Activity, Bell, Network, Search, FileText, ShieldAlert, Database, Shield } from 'lucide-react';
+import { LogOut, User, Shield } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+
+import LoginPage from './components/auth/LoginPage';
+import RegisterPage from './components/auth/RegisterPage';
+import ReAuthModal from './components/auth/ReAuthModal';
 
 import DashboardOverview from './components/views/DashboardOverview';
 import NetworkGraph from './components/views/NetworkGraph';
@@ -18,42 +23,43 @@ import SuspectProfiles from './components/views/SuspectProfiles';
 function Dashboard() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
 
   const changeLang = (lang) => {
     i18n.changeLanguage(lang);
   };
 
-    const renderActiveView = () => {
-      switch (activeView) {
-        case 'dashboard': return <DashboardOverview setActiveView={setActiveView} />;
-        case 'data': return <DataCollectionStatus />;
-        case 'alerts': return <AlertsFeed />;
-        case 'network': return <NetworkGraph />;
-        case 'search': return <SearchInvestigation />;
-        case 'reports': return <ReportingEvidence />;
-        case 'security': return <AccessControl />;
-        case 'hotspots': return <TrafficHotspots />;
-        case 'profiles': return <SuspectProfiles />;
-        default: return <DashboardOverview />;
-      }
-    };
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard': return <DashboardOverview setActiveView={setActiveView} />;
+      case 'data': return <DataCollectionStatus />;
+      case 'alerts': return <AlertsFeed />;
+      case 'network': return <NetworkGraph />;
+      case 'search': return <SearchInvestigation />;
+      case 'reports': return <ReportingEvidence />;
+      case 'security': return <AccessControl />;
+      case 'hotspots': return <TrafficHotspots />;
+      case 'profiles': return <SuspectProfiles />;
+      default: return <DashboardOverview />;
+    }
+  };
 
   const navItems = [
-    { id: 'dashboard', icon: null, label: 'Dashboard' },
-    { id: 'hotspots', icon: null, label: 'Traffic Hotspots' },
-    { id: 'profiles', icon: null, label: 'Target Profiles' },
-    { id: 'data', icon: null, label: 'Data Collection Status' },
-    { id: 'alerts', icon: null, label: 'Alerts & Suspicious Activity' },
-    { id: 'network', icon: null, label: 'Network Visualization' },
-    { id: 'search', icon: null, label: 'Search & Investigation' },
-    { id: 'reports', icon: null, label: 'Reports & Evidence' },
-    { id: 'security', icon: null, label: 'Security & Access Control' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'hotspots', label: 'Traffic Hotspots' },
+    { id: 'profiles', label: 'Target Profiles' },
+    { id: 'data', label: 'Data Collection Status' },
+    { id: 'alerts', label: 'Alerts & Suspicious Activity' },
+    { id: 'network', label: 'Network Visualization' },
+    { id: 'search', label: 'Search & Investigation' },
+    { id: 'reports', label: 'Reports & Evidence' },
+    { id: 'security', label: 'Security & Access Control' },
   ];
 
   return (
     <div className="h-screen bg-background text-foreground flex flex-col font-sans relative z-0 overflow-hidden">
-      {/* Flammini Style Background Effects */}
+      {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none z-[-1] overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/20 rounded-full blur-[150px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-primary/10 rounded-full blur-[150px]" />
@@ -67,23 +73,37 @@ function Dashboard() {
             <div className="relative w-8 h-8 flex items-center justify-center bracket-border">
               <div className="w-3 h-3 bg-primary rotate-45 text-glow" />
             </div>
-            <h1 className="text-xl font-bold tracking-[0.2em] text-primary text-glow">DarKnight</h1>
+            <h1 className="text-xl font-bold tracking-[0.2em] text-primary text-glow font-mono uppercase">DarKnight</h1>
           </div>
-        <div className="flex items-center gap-4">
-          <div className="flex bg-muted/50 p-1 rounded-md border border-border/50">
-            <Button variant={i18n.language === 'en' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('en')} className="h-7 text-xs px-2">EN</Button>
-            <Button variant={i18n.language === 'hi' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('hi')} className="h-7 text-xs px-2">HI</Button>
-            <Button variant={i18n.language === 'pa' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('pa')} className="h-7 text-xs px-2">PA</Button>
+
+          <div className="flex items-center gap-4">
+            {/* Authenticated Officer Badge */}
+            {user && (
+              <div className="flex items-center gap-3 px-3 py-1 bg-card/60 border border-border/50 rounded-lg text-xs font-mono">
+                <div className="flex flex-col text-right">
+                  <span className="font-bold text-foreground">{user.full_name}</span>
+                  <span className="text-[10px] text-primary">{user.role}</span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={logout} title="Secure Logout" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            <div className="flex bg-muted/50 p-1 rounded-md border border-border/50">
+              <Button variant={i18n.language === 'en' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('en')} className="h-7 text-xs px-2">EN</Button>
+              <Button variant={i18n.language === 'hi' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('hi')} className="h-7 text-xs px-2">HI</Button>
+              <Button variant={i18n.language === 'pa' ? 'default' : 'ghost'} size="sm" onClick={() => changeLang('pa')} className="h-7 text-xs px-2">PA</Button>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </Button>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </Button>
-        </div>
-      </header>
+        </header>
 
         {/* Main Layout */}
         <main className="flex-1 flex overflow-hidden">
@@ -122,17 +142,36 @@ function Dashboard() {
           </section>
         </main>
       </div>
+      <ReAuthModal />
     </div>
   );
 }
 
 export default function App() {
   const [booting, setBooting] = useState(true);
+  const [showRegister, setShowRegister] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (booting) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="darknight-theme">
+        <BootupAnimation onComplete={() => setBooting(false)} />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="darknight-theme">
-      {booting ? (
-        <BootupAnimation onComplete={() => setBooting(false)} />
+      {isLoading ? (
+        <div className="h-screen w-full flex items-center justify-center bg-background text-primary font-mono text-sm">
+          Loading Security Credentials...
+        </div>
+      ) : !isAuthenticated ? (
+        showRegister ? (
+          <RegisterPage onSwitchToLogin={() => setShowRegister(false)} />
+        ) : (
+          <LoginPage onSwitchToRegister={() => setShowRegister(true)} />
+        )
       ) : (
         <Dashboard />
       )}

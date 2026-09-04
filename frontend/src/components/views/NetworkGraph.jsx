@@ -5,13 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
 import { ZoomIn, ZoomOut, Maximize, Minimize, Expand } from 'lucide-react';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
-// Loose "home" direction per entity type so the layout settles into
-// readable quadrants (suspects / wallets / accounts / markets) instead
-// of clumping wherever the highest-degree node happens to pull
-// everything. Kept weak (see forceX/forceY strength below) so real
-// relationships still dominate local layout — this only nudges the
-// overall shape.
 const GROUP_ANGLE = {
   suspect: 0,
   wallet: Math.PI / 2,
@@ -33,29 +28,40 @@ export default function NetworkGraph() {
   const [selectedNode, setSelectedNode] = useState(null);
 
   useEffect(() => {
-    setData({ nodes: [], links: [] });
-    setLoadError(null);
-    const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
-    fetch(`http://localhost:8000${endpoint}`)
-      .then(res => res.json())
-      .then(graphData => {
-        if (graphData.error) {
-          setLoadError(graphData.error);
-        }
-        setData(graphData);
-      })
-      .catch(err => {
-        console.error("Error fetching network data:", err);
-        setLoadError(err.message);
+  setData({ nodes: [], links: [] });
+  setLoadError(null);
+  const endpoint = source === 'real' ? '/api/network/real' : '/api/network/synthetic';
+  apiFetch(endpoint)
+    .then(res => {
+      if (res.status === 401) {
+        setLoadError('Your session expired. Please log in again.');
+        return null;
+      }
+      return res.ok ? res.json() : null;
+    })
+    .then(graphData => {
+      if (!graphData) {
+        if (!loadError) setLoadError('Failed to load network data');
+        return;
+      }
+      if (graphData.error) {
+        setLoadError(graphData.error);
+      }
+      setData({
+        nodes: Array.isArray(graphData.nodes) ? graphData.nodes : [],
+        links: Array.isArray(graphData.links) ? graphData.links : []
       });
-  }, [source]);
+    })
+    .catch(err => {
+      console.error("Error fetching network data:", err);
+      setLoadError(err.message);
+    });
+}, [source]);
 
-  // Degree (connection count) per node, so forces below can treat a
-  // 12-link hub differently from a 1-link leaf instead of applying the
-  // exact same push/pull to every node regardless of how connected it is.
   const degreeById = useMemo(() => {
     const m = new Map();
-    for (const l of data.links) {
+    const links = data?.links || [];
+    for (const l of links) {
       const s = typeof l.source === 'object' ? l.source.id : l.source;
       const t = typeof l.target === 'object' ? l.target.id : l.target;
       m.set(s, (m.get(s) || 0) + 1);
@@ -65,24 +71,12 @@ export default function NetworkGraph() {
   }, [data]);
 
   useEffect(() => {
-    if (!fgRef.current || data.nodes.length === 0) return;
+    if (!fgRef.current || !data.nodes || data.nodes.length === 0) return;
     const fg = fgRef.current;
     const degree = (node) => degreeById.get(node.id) || 0;
 
-    // Degree-scaled repulsion: previously every node pushed with the
-    // same -2500 strength, so the two highest-degree nodes (which also
-    // attract the most links) ended up as gravity wells that dragged
-    // everything else into two identical blobs. Capping the scaling
-    // keeps a 12-link hub from becoming 10x stronger than a leaf node.
     fg.d3Force('charge').strength((node) => -60 - 20 * Math.min(degree(node), 10));
 
-    // Link distance/strength now depends on the relationship itself:
-    // an observed link backed by many transactions pulls its two nodes
-    // close together; a single low-confidence inferred link stays
-    // loose. Before, every link used the same fixed distance (250)
-    // regardless of type or weight, so "strongly related" and "barely
-    // related" looked identical — that's what collapsed everything
-    // into two clusters instead of a legible structure.
     fg.d3Force('link')
       .distance((link) => {
         const base = link.type === 'inferred' ? 130 : 80;
@@ -91,16 +85,8 @@ export default function NetworkGraph() {
       })
       .strength((link) => (link.type === 'inferred' ? 0.25 : 0.55));
 
-    // Collision force (previously missing entirely): stops nodes from
-    // overlapping. Without this, dense areas render as a smeared,
-    // overlapping ring rather than distinguishable nodes — which is
-    // exactly what read as a "donut."
     fg.d3Force('collide', forceCollide((node) => 16 + 3 * Math.min(degree(node), 8)));
 
-    // Gentle pull toward a quadrant per entity type (suspect/wallet/
-    // account/market), weak enough that link forces still dominate
-    // local layout, but enough to break the "2 arbitrary hub clusters"
-    // look into groups that actually mean something at a glance.
     fg.d3Force('x', forceX((node) => 220 * Math.cos(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
     fg.d3Force('y', forceY((node) => 220 * Math.sin(GROUP_ANGLE[node.group] ?? 0)).strength(0.05));
 
@@ -115,7 +101,7 @@ export default function NetworkGraph() {
     highlightNodes.clear();
     highlightLinks.clear();
 
-    if (hoverNode || selectedNode) {
+    if ((hoverNode || selectedNode) && data.links) {
       const activeNode = hoverNode || selectedNode;
       highlightNodes.add(activeNode);
       data.links.forEach(link => {
@@ -200,7 +186,7 @@ export default function NetworkGraph() {
               {isExpanded ? <Minimize className="w-4 h-4 text-red-500" /> : <Maximize className="w-4 h-4" />}
             </Button>
           </div>
-          {data.nodes.length > 0 ? (
+          {data.nodes && data.nodes.length > 0 ? (
             <ForceGraph2D
               ref={fgRef}
               width={dimensions.width}
@@ -279,7 +265,7 @@ export default function NetworkGraph() {
                 ctx.fillStyle = textColor;
                 ctx.fillText(fullText, node.x, node.y);
                 
-                ctx.globalAlpha = 1; // restore alpha
+                ctx.globalAlpha = 1;
               }}
               nodePointerAreaPaint={(node, color, ctx, globalScale) => {
                 const fontSize = 12 / globalScale;
@@ -307,7 +293,7 @@ export default function NetworkGraph() {
               }}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-center px-8 text-muted-foreground animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center text-center px-8 text-muted-foreground animate-pulse font-mono text-xs">
               {loadError ? (
                 <span className="text-red-500 font-mono text-xs normal-case animate-none">{loadError}</span>
               ) : (
@@ -317,19 +303,18 @@ export default function NetworkGraph() {
           )}
         </div>
         
-        {/* Detail Panel */}
         {selectedNode && (
           <div className="w-[350px] flex-shrink-0 bg-background/80 backdrop-blur-md bracket-border p-6 overflow-y-auto animate-in slide-in-from-right-4 duration-300">
-            <h3 className="font-bold text-lg mb-6 border-b border-border/50 pb-3 text-primary tracking-widest uppercase">{t('Intelligence Details')}</h3>
+            <h3 className="font-bold text-lg mb-6 border-b border-border/50 pb-3 text-primary tracking-widest uppercase font-mono">{t('Intelligence Details')}</h3>
             <div className="space-y-6">
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Identifier')}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Identifier')}</span>
                 <p className="font-mono mt-1 text-sm">{selectedNode.label}</p>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Classification')}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Classification')}</span>
                 <p className="mt-1 capitalize">
-                  <span className={`px-2 py-1 rounded text-xs font-bold 
+                  <span className={`px-2 py-1 rounded text-xs font-bold font-mono
                     ${selectedNode.group === 'suspect' ? 'bg-red-500/20 text-red-500' : 
                       selectedNode.group === 'wallet' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 
                       'bg-blue-500/20 text-blue-500'}`}>
@@ -339,7 +324,7 @@ export default function NetworkGraph() {
               </div>
               {selectedNode.risk_level && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Risk Level')}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Risk Level')}</span>
                   <div className="mt-1 flex items-center gap-2">
                     <div className={`h-2 flex-1 rounded-full ${
                       selectedNode.risk_level === 'Critical' ? 'bg-red-700' :
@@ -347,35 +332,35 @@ export default function NetworkGraph() {
                       selectedNode.risk_level === 'Medium' ? 'bg-yellow-500' :
                       'bg-blue-500'
                     }`}></div>
-                    <span className="text-sm font-bold">{t(selectedNode.risk_level) || selectedNode.risk_level}</span>
+                    <span className="text-sm font-bold font-mono">{t(selectedNode.risk_level) || selectedNode.risk_level}</span>
                   </div>
                 </div>
               )}
               {selectedNode.last_active && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Last Active')}</span>
-                  <p className="text-sm mt-1">{selectedNode.last_active}</p>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Last Active')}</span>
+                  <p className="text-sm mt-1 font-mono">{selectedNode.last_active}</p>
                 </div>
               )}
               {selectedNode.balance && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Estimated Balance')}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Estimated Balance')}</span>
                   <p className="font-mono mt-1 text-sm font-semibold">{selectedNode.balance}</p>
                 </div>
               )}
               {selectedNode.notes && (
                 <div>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('Notes')}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Notes')}</span>
                   <p className="text-sm mt-1 leading-relaxed text-muted-foreground">{t(selectedNode.notes) || selectedNode.notes}</p>
                 </div>
               )}
             </div>
-            <Button className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground" onClick={() => setSelectedNode(null)}>{t('Close Panel')}</Button>
+            <Button className="w-full mt-6 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-mono" onClick={() => setSelectedNode(null)}>{t('Close Panel')}</Button>
           </div>
         )}
       </div>
       
-      <div className="mt-4 flex flex-wrap gap-4 text-sm">
+      <div className="mt-4 flex flex-wrap gap-4 text-sm font-mono text-xs">
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500"></div> {t('Suspect / Alias')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500"></div> {t('Crypto Wallet')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500"></div> {t('Digital Marketplace')}</div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Server, Database, Globe, RefreshCcw, MessageSquare, Radio } from 'lucide-react';
 import { Button } from '../ui/button';
+import { apiFetch } from '../../lib/apiClient';
 
 const defaultSources = [
   { id: 1, name: "Darknet Market Alpha", type: "Onion Service", status: "Active", lastSync: "2 mins ago" },
@@ -18,16 +19,16 @@ export default function DataCollectionStatus() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/data-sources')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSources(data);
-        }
-      })
-      .catch(err => console.error("Error fetching data sources:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  apiFetch('/api/data-sources')
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        setSources(data);
+      }
+    })
+    .catch(err => console.error("Error fetching data sources:", err))
+    .finally(() => setLoading(false));
+}, []);
 
   const getSourceIcon = (type) => {
     switch (type) {
@@ -42,13 +43,13 @@ export default function DataCollectionStatus() {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full font-mono">
       <div className="mb-6 flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">{t('Multi-Source Data Collection')}</h2>
-          <p className="text-muted-foreground">{t('Monitor the aggregation of intelligence from legally accessible digital platforms.')}</p>
+          <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase">{t('Multi-Source Data Collection')}</h2>
+          <p className="text-muted-foreground text-xs">{t('Monitor the aggregation of intelligence from legally accessible digital platforms.')}</p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2 font-mono text-xs">
           <RefreshCcw className="w-4 h-4" /> {t('Restart All Nodes')}
         </Button>
       </div>
@@ -60,8 +61,8 @@ export default function DataCollectionStatus() {
               <div className="flex items-center gap-3">
                 {getSourceIcon(src.type)}
                 <div>
-                  <h4 className="font-semibold">{t(src.name) || src.name}</h4>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{t(src.type) || src.type}</span>
+                  <h4 className="font-semibold text-sm">{t(src.name) || src.name}</h4>
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{t(src.type) || src.type}</span>
                 </div>
               </div>
               <span className={`px-2 py-1 rounded text-xs font-semibold ${
