@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
 import { KeyRound, Copy, Check, AlertTriangle, ShieldCheck, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import React, { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 
 export default function TFAModal({ onClose, onComplete }) {
   const [step, setStep] = useState('init'); // init, verify
@@ -9,6 +10,8 @@ export default function TFAModal({ onClose, onComplete }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const qrCanvasRef = useRef(null);
 
   const startSetup = async () => {
     setLoading(true);
@@ -28,6 +31,13 @@ export default function TFAModal({ onClose, onComplete }) {
       setLoading(false);
     }
   };
+  useEffect(() => {
+  if (setupData?.otpauth_url) {
+    QRCode.toDataURL(setupData.otpauth_url, { width: 200, margin: 1 })
+      .then(setQrDataUrl)
+      .catch(err => console.error('QR generation failed:', err));
+  }
+  }, [setupData]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -99,6 +109,19 @@ export default function TFAModal({ onClose, onComplete }) {
         {step === 'verify' && setupData && (
           <div className="space-y-4">
             <div className="p-4 bg-muted/40 rounded-xl border border-border/60 space-y-2">
+              {qrDataUrl && (
+                <div className="flex flex-col items-center gap-2 p-4 bg-muted/40 rounded-xl border border-border/60">
+                  <label className="text-xs font-mono uppercase text-muted-foreground">Scan with Authenticator App</label>
+                  <img
+                    src={qrDataUrl}
+                    alt="2FA QR Code"
+                    className="rounded-lg border border-border/60 bg-white p-2"
+                    width={180}
+                    height={180}
+                  />
+                  <p className="text-[10px] text-muted-foreground font-mono">or enter the key below manually</p>
+                </div>
+              )}
               <label className="text-xs font-mono uppercase text-muted-foreground block">Secret Key (Base32)</label>
               <div className="p-2 bg-background font-mono text-sm tracking-widest text-amber-400 font-bold rounded border select-all text-center">
                 {setupData.secret}
