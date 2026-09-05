@@ -13,6 +13,7 @@ from routers.reauth_router import router as reauth_router
 from routers.delegation_router import router as delegation_router
 from routers.audit_router import router as audit_router
 from routers.evidence_provenance_router import router as evidence_provenance_router
+from routers.investigation_router import router as investigation_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +52,7 @@ app.include_router(reauth_router)
 app.include_router(delegation_router)
 app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
+app.include_router(investigation_router)
 
 def load_db():
     db_path = os.path.join(os.path.dirname(__file__), "mock_db.json")
