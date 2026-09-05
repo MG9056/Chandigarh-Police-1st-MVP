@@ -44,8 +44,8 @@ crawler_scheduler = CrawlerScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+
     asyncio.create_task(start_background_ingestion_task())
-    yield
 
     scheduler_task = asyncio.create_task(
         crawler_scheduler.start()
@@ -61,7 +61,6 @@ async def lifespan(app: FastAPI):
             await scheduler_task
         except asyncio.CancelledError:
             pass
-
 app = FastAPI(
     title="DarKnight API",
     description="Security-enforced API for Chandigarh Police Intelligence Platform",
