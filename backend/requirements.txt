@@ -1,3 +1,5 @@
+# ==== Web framework / server ====
+email-validator==2.2.0        # needed for pydantic's EmailStr (used in signup/login schemas)
 fastapi
 uvicorn[standard]
 pydantic
@@ -10,7 +12,7 @@ bcrypt
 PyJWT
 pyotp
 email-validator
-httpx
+
 
 # Entity resolution (existing synthetic-data pipeline)
 rapidfuzz
@@ -19,3 +21,13 @@ rapidfuzz
 pandas
 pyarrow
 networkx
+
+# Crawler Pipeline (specs/crawler-pipeline-prd.md)
+trafilatura
+langdetect
+spacy
+python-dotenv
+
+# ==== Testing (used by backend/tests/) ====
+pytest==8.3.4
+httpx

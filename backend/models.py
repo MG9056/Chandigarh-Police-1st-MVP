@@ -230,4 +230,34 @@ class InvestigationAssignment(Base):
     )
 
     def __str__(self):
-        return f"Assignment({self.assigned_to_id} → Investigation {self.investigation_id})"
+        return f"Assignment({self.assigned_to_id} -> Investigation {self.investigation_id})"
+
+
+# Import and expose crawler models so Base.metadata.create_all() creates their tables
+from crawler.models import (
+    Source,
+    Keyword,
+    CaseKeyword,
+    CrawlerRun,
+    RawRecord,
+    RobotsCache,
+)
+
+__all__ = [
+    # Core application models
+    "User",
+    "RefreshSession",
+    "InvestigationAccessGrant",
+    "AuditLog",
+    "DataProvenance",
+    # Investigation management models (Step 1)
+    "Investigation",
+    "InvestigationAssignment",
+    # Crawler subsystem models
+    "Source",
+    "Keyword",
+    "CaseKeyword",
+    "CrawlerRun",
+    "RawRecord",
+    "RobotsCache",
+]
