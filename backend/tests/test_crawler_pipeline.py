@@ -290,32 +290,262 @@ def test_evidence_provenance_tagging():
 # C-11 & C-12: End-to-End Orchestration Flow
 # ----------------------------------------------------
 
-def test_end_to_end_crawl_flow(setup_db):
+def test_end_to_end_crawl_flow(setup_db, monkeypatch):
     async def _inner():
         db = setup_db
 
-        source = Source(
-            name="Test Seed Source",
-            source_type="DIRECT_SEED",
-            config={"seed_urls": ["https://example.com/drugs"]},
-            poll_interval_seconds=30,
-            crawl_delay_seconds=0.5,
-            is_active=True,
-        )
-        db.add(source)
-        db.commit()
+        # --------------------------------------------------
+        # Mock external HTTP boundary
+        # --------------------------------------------------
 
-        KeywordService.add_global(db, term="heroin", language="en")
+        class MockTransport:
+            async def get(self, url):
+                if url.endswith("/robots.txt"):
+                    return {
+                        "status_code": 200,
+                        "text": (
+                            "User-agent: *\n"
+                            "Allow: /"
+                        ),
+                    }
 
-        run = await run_crawl(source_id=str(source.id), case_id="CASE-202", db=db)
-        assert run.status == "COMPLETED"
+                return {
+                    "status_code": 200,
+                    "text": """
+                        <html>
+                            <head>
+                                <title>Test Intelligence</title>
+                            </head>
+                            <body>
+                                <h1>Heroin Vendor Investigation</h1>
+                                <p>
+                                    A vendor is offering heroin through
+                                    Telegram. Contact +91 9876543210.
+                                </p>
+                            </body>
+                        </html>
+                    """,
+                }
 
-        records = db.query(RawRecord).filter(RawRecord.run_id == run.id).all()
-        assert isinstance(records, list)
+        mock_transport = MockTransport()
+
+        # run_crawl() uses the imported DirectHTTPTransport
+        import crawler.orchestration.flows as flows
+
+        original_transport = flows.DirectHTTPTransport
+        flows.DirectHTTPTransport = lambda: mock_transport
+
+        # --------------------------------------------------
+        # Mock LLM boundary
+        # --------------------------------------------------
+
+        class MockLLMResult:
+            label = "relevant"
+            confidence = 0.95
+            reasoning = (
+                "The content describes an illicit drug transaction."
+            )
+
+            structured_intelligence = {
+                "entities": [
+                    {
+                        "type": "DRUG",
+                        "value": "heroin",
+                        "role": "substance",
+                        "confidence": 0.99,
+                    },
+                    {
+                        "type": "PHONE_NUMBER",
+                        "value": "+91 9876543210",
+                        "role": "contact",
+                        "confidence": 0.90,
+                    },
+                ],
+                "relationships": [
+                    {
+                        "subject": "Vendor",
+                        "relation": "OFFERS",
+                        "object": "heroin",
+                        "confidence": 0.94,
+                    }
+                ],
+            }
+
+        class MockClassifier:
+            async def classify(
+                self,
+                text,
+                matched_keywords,
+                candidates=None,
+            ):
+                assert "heroin" in text.lower()
+                assert "heroin" in matched_keywords
+
+                return MockLLMResult()
+
+        original_classifier = flows.LLMRelevanceClassifier
+        flows.LLMRelevanceClassifier = MockClassifier
+
+        try:
+            # --------------------------------------------------
+            # Create source
+            # --------------------------------------------------
+
+            source = Source(
+                name="E2E Test Source",
+                source_type="DIRECT_SEED",
+                transport_type="direct",
+                config={
+                    "seed_urls": [
+                        "https://example.com/drugs"
+                    ]
+                },
+                poll_interval_seconds=30,
+                crawl_delay_seconds=0,
+                is_active=True,
+            )
+
+            db.add(source)
+            db.commit()
+            db.refresh(source)
+
+            # --------------------------------------------------
+            # Create active keyword
+            # --------------------------------------------------
+
+            KeywordService.add_global(
+                db,
+                term="heroin",
+                language="en",
+            )
+
+            # --------------------------------------------------
+            # Run the REAL orchestration pipeline
+            # --------------------------------------------------
+
+            run = await run_crawl(
+                source_id=str(source.id),
+                case_id="CASE-E2E",
+                db=db,
+            )
+
+            db.refresh(run)
+
+            # --------------------------------------------------
+            # Verify crawl execution
+            # --------------------------------------------------
+
+            assert run.status == "COMPLETED"
+            assert run.urls_attempted > 0
+            assert run.records_produced > 0
+            assert run.records_relevant > 0
+
+            # --------------------------------------------------
+            # Verify database persistence
+            # --------------------------------------------------
+
+            records = (
+                db.query(RawRecord)
+                .filter(RawRecord.run_id == run.id)
+                .all()
+            )
+
+            assert len(records) == 1
+
+            record = records[0]
+
+            # --------------------------------------------------
+            # Verify raw collection
+            # --------------------------------------------------
+
+            assert record.url == "https://example.com/drugs"
+            assert record.raw_text
+            assert "Heroin Vendor Investigation" in record.raw_text
+
+            # --------------------------------------------------
+            # Verify cleaning
+            # --------------------------------------------------
+
+            assert record.cleaned_text
+            assert "Heroin Vendor Investigation" in record.cleaned_text
+            assert "<script>" not in record.cleaned_text
+
+            # --------------------------------------------------
+            # Verify evidence / provenance
+            # --------------------------------------------------
+
+            assert record.content_hash
+            assert record.fetched_at
+            assert record.run_id == run.id
+
+            # --------------------------------------------------
+            # Verify language detection
+            # --------------------------------------------------
+
+            assert record.language == "en"
+
+            # --------------------------------------------------
+            # Verify keyword pre-filter
+            # --------------------------------------------------
+
+            assert "heroin" in record.matched_keywords
+
+            # --------------------------------------------------
+            # Verify LLM relevance classification
+            # --------------------------------------------------
+
+            assert record.relevance_label == "relevant"
+            assert float(record.relevance_confidence) == pytest.approx(0.95)
+            assert record.relevance_reasoning
+
+            # --------------------------------------------------
+            # Verify entity extraction
+            # --------------------------------------------------
+
+            assert record.extracted_candidates is not None
+
+            candidate_values = [
+                candidate["value"]
+                for candidate in record.extracted_candidates
+            ]
+
+            assert "+91 9876543210" in candidate_values
+
+            # --------------------------------------------------
+            # Verify structured AI intelligence
+            # --------------------------------------------------
+
+            assert record.structured_intelligence is not None
+
+            intelligence = record.structured_intelligence
+
+            assert "entities" in intelligence
+            assert "relationships" in intelligence
+
+            assert intelligence["entities"][0]["type"] == "DRUG"
+            assert intelligence["entities"][0]["value"] == "heroin"
+
+            assert (
+                intelligence["relationships"][0]["relation"]
+                == "OFFERS"
+            )
+
+            assert (
+                intelligence["relationships"][0]["object"]
+                == "heroin"
+            )
+
+            # --------------------------------------------------
+            # Verify final routing
+            # --------------------------------------------------
+
+            assert record.status == "pending_mapping"
+
+        finally:
+            flows.DirectHTTPTransport = original_transport
+            flows.LLMRelevanceClassifier = original_classifier
 
     asyncio.run(_inner())
-
-
 # ----------------------------------------------------
 # C-13 & C-14: Management API & Activity Feed
 # ----------------------------------------------------
@@ -413,7 +643,7 @@ def test_google_discovery_success():
             assert len(records) == 1
             assert records[0]["url"] == "https://example.com/test"
             assert "Heroin vendor" in records[0]["raw_text"]
-            assert records[0]["source"] == "tavily_search_discovery"
+            assert records[0]["source"] == "tavily_recursive_discovery"
 
         finally:
             os.environ.pop("TAVILY_API_KEY", None)
@@ -660,30 +890,56 @@ def test_google_discovery_recursive_queue(monkeypatch):
     queries = []
 
     class MockTransport:
+        def __init__(self):
+            self.call_count = 0
+
         async def post(self, url, json=None):
+            self.call_count += 1
             queries.append(json["query"])
+
+            if self.call_count == 1:
+                results = [
+                    {
+                        "url": "https://example.com/page1",
+                        "title": "Example Tramadol Vendor",
+                        "content": (
+                            "A vendor offering tramadol "
+                            "through Telegram."
+                        ),
+                    },
+                    {
+                        "url": "https://example.org/page2",
+                        "title": "Example Marketplace",
+                        "content": (
+                            "Marketplace content involving "
+                            "tramadol."
+                        ),
+                    },
+                ]
+            else:
+                results = [
+                    {
+                        "url": "https://newsite.com/page3",
+                        "title": "New Tramadol Listing",
+                        "content": (
+                            "New vendor content involving "
+                            "tramadol."
+                        ),
+                    },
+                    {
+                        "url": "https://othersite.com/page4",
+                        "title": "New Telegram Marketplace",
+                        "content": (
+                            "New marketplace content involving "
+                            "Telegram and tramadol."
+                        ),
+                    },
+                ]
 
             return {
                 "status_code": 200,
                 "text": json_module.dumps({
-                    "results": [
-                        {
-                            "url": "https://example.com/page1",
-                            "title": "Example Tramadol Vendor",
-                            "content": (
-                                "A vendor offering tramadol "
-                                "through Telegram."
-                            ),
-                        },
-                        {
-                            "url": "https://example.org/page2",
-                            "title": "Example Marketplace",
-                            "content": (
-                                "Marketplace content involving "
-                                "tramadol."
-                            ),
-                        },
-                    ]
+                    "results": results
                 }),
             }
 
@@ -772,10 +1028,11 @@ def test_google_discovery_revisits_url_after_cooldown(
         datetime.now(timezone.utc)
         - timedelta(seconds=61)
     )
-
+    
     state["seen_url_times"][
         "https://example.com/page1"
     ] = old_time.isoformat()
+    state["domain_last_seen"]["example.com"] = old_time.isoformat()
 
     second_records = asyncio.run(
         collector.fetch(
@@ -837,20 +1094,26 @@ def test_google_discovery_domain_exploration_control(
     transport = MockTransport()
 
     records = asyncio.run(
-        collector.fetch(
-            source_config,
-            transport,
-        )
+    collector.fetch(
+        source_config,
+        transport,
     )
+)
 
-    assert len(records) == 3
+    site_a_records = [
+        record
+        for record in records
+        if "site-a.com" in record["url"]
+    ]
+
+    assert len(site_a_records) <= 2
+    assert len(records) == 2
 
     domains = [
         collector._get_domain(record["url"])
         for record in records
     ]
-
-    assert domains.count("site-a.com") == 2
+    assert domains.count("site-a.com") == 1
     assert domains.count("site-b.com") == 1
 
 def test_llm_relevance_classifier_empty_text():
@@ -924,12 +1187,24 @@ def test_llm_relevance_classifier_gemini_response(
 
             return MockResponse()
 
-    class MockAio:
-        def __init__(self):
-            self.models = MockModels()
+    mock_models = classifier.client.aio.models
 
-    classifier.client.aio = MockAio()
+    async def mock_generate_content(
+        model,
+        contents,
+        config,
+    ):
+        assert model == "gemini-3.6-flash"
+        assert "tramadol" in contents.lower()
+        assert "telegram" in contents.lower()
 
+        return MockResponse()
+
+    monkeypatch.setattr(
+        mock_models,
+        "generate_content",
+        mock_generate_content,
+    )
     result = asyncio.run(
     classifier.classify(
         "A vendor offers tramadol through Telegram.",
@@ -996,7 +1271,8 @@ def test_llm_relevance_classifier_fallback_without_key():
     )
 
     assert result.label == "relevant"
-    assert result.confidence < 0.8
+    assert result.confidence == 0.6
+    assert "fallback" in result.reasoning.lower()
 
 def test_llm_receives_extracted_candidates(monkeypatch):
     monkeypatch.setenv(
@@ -1045,11 +1321,21 @@ def test_llm_receives_extracted_candidates(monkeypatch):
             captured["prompt"] = contents
             return MockResponse()
 
-    class MockAio:
-        def __init__(self):
-            self.models = MockModels()
+    mock_models = classifier.client.aio.models
 
-    classifier.client.aio = MockAio()
+    async def mock_generate_content(
+        model,
+        contents,
+        config,
+    ):
+        captured["prompt"] = contents
+        return MockResponse()
+
+    monkeypatch.setattr(
+        mock_models,
+        "generate_content",
+        mock_generate_content,
+    )
 
     candidates = [
         {

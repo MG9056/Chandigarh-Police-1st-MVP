@@ -32,11 +32,11 @@ PHONE_REGEX = re.compile(
     r"""
     (?<![\d.])
     (?:
-        \+\d{1,3}[\s-]?
-    )?
-    (?:\(\d{2,4}\)[\s-]?)?
-    \d{3,4}[\s-]?\d{3,4}
-    (?![\d.])
+        \+\d{1,3}(?:[\s-]?\d){10}
+        |
+        \(\d{3}\)[\s-]?\d{3}[\s-]?\d{4}
+    )
+    (?!\d)
     """,
     re.VERBOSE,
 )
@@ -101,7 +101,7 @@ class EntityExtractor:
     ) -> bool:
         """
         Reject candidates that are more likely to be ordinary
-        numeric/decimal content than phone numbers.
+        decimal/numeric content than phone numbers.
         """
 
         if "." in phone:
@@ -110,11 +110,16 @@ class EntityExtractor:
         before = text[max(0, start - 2):start]
         after = text[end:end + 2]
 
-        if "." in before or "." in after:
+        # Reject cases where the candidate is directly part of
+        # a decimal number, e.g. 1234567890.123
+        if before.endswith(".") and len(before) >= 2 and before[-2].isdigit():
+            return True
+
+        if after.startswith(".") and len(after) >= 2 and after[1].isdigit():
             return True
 
         return False
-
+    
     @staticmethod
     def _candidate(
         entity_type: str,
