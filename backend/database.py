@@ -29,30 +29,82 @@ def get_db():
 
 def init_db():
     """
-    Creates all database tables defined in models.py and canonical_schema.py and seeds initial DGP admin.
+    Creates all database tables defined in the application and crawler models,
+    then seeds the initial DGP admin.
     """
-    import models  # Ensures legacy models are registered with Base
-    import data.canonical_schema  # Ensures canonical models are registered with Base
+    import models  # Ensures existing application models are registered with Base
+    import crawler.models  # Ensures crawler models are registered with Base
+    import data.canonical_schema
+
     Base.metadata.create_all(bind=engine)
 
-    # Seed initial DGP Super Admin account if not present
+    # Seed initial DGP Super Admin & Inspector accounts if not present
     db = SessionLocal()
     try:
         from models import User, RoleEnum, AccountStatusEnum
         from security import hash_password
-        existing = db.query(User).filter(User.email == "dgp@chandigarhpolice.gov.in").first()
-        if not existing:
-            dgp_user = User(
+
+        # Seed/verify DGP Admin
+        dgp = db.query(User).filter(User.email == "dgp@chandigarhpolice.gov.in").first()
+        if not dgp:
+            dgp = User(
                 email="dgp@chandigarhpolice.gov.in",
                 full_name="DGP Admin",
                 password_hash=hash_password("AdminPassword123!"),
                 role=RoleEnum.SUPER_ADMIN,
                 account_status=AccountStatusEnum.ACTIVE
             )
-            db.add(dgp_user)
-            db.commit()
+            db.add(dgp)
+        else:
+            dgp.password_hash = hash_password("AdminPassword123!")
+            dgp.account_status = AccountStatusEnum.ACTIVE
+            dgp.failed_login_attempts = 0
+            dgp.locked_until = None
+
+        # Seed/verify Inspector
+        inspector = db.query(User).filter(User.email == "inspector.chandr@chandigarhpolice.gov.in").first()
+        if not inspector:
+            inspector = User(
+                email="inspector.chandr@chandigarhpolice.gov.in",
+                full_name="Rohit Chand",
+                badge_number="CP-4491",
+                unit="Cyber Crime Cell",
+                password_hash=hash_password("InspectorPass123!"),
+                role=RoleEnum.INSPECTOR,
+                account_status=AccountStatusEnum.ACTIVE
+            )
+            db.add(inspector)
+        else:
+            inspector.password_hash = hash_password("InspectorPass123!")
+            inspector.account_status = AccountStatusEnum.ACTIVE
+            inspector.failed_login_attempts = 0
+            inspector.locked_until = None
+
+        # Seed/verify IGP Admin
+        igp = db.query(User).filter(User.email == "igp@chandigarhpolice.gov.in").first()
+        if not igp:
+            igp = User(
+                email="igp@chandigarhpolice.gov.in",
+                full_name="IGP Intelligence",
+                badge_number="CP-1001",
+                unit="Crime & Intelligence Branch",
+                password_hash=hash_password("IGPPassword123!"),
+                role=RoleEnum.IGP,
+                account_status=AccountStatusEnum.ACTIVE
+            )
+            db.add(igp)
+        else:
+            igp.password_hash = hash_password("IGPPassword123!")
+            igp.account_status = AccountStatusEnum.ACTIVE
+            igp.failed_login_attempts = 0
+            igp.locked_until = None
+
+        db.commit()
+
     except Exception as e:
         db.rollback()
         print("Database auto-seed error:", e)
+
     finally:
         db.close()
+

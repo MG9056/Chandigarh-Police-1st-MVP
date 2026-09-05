@@ -259,4 +259,27 @@ class NetworkTrafficFlow(Base):
     application_label = Column(String, nullable=True, index=True)   # Chat, P2P, Browsing, File-Transfer
     is_encrypted = Column(Boolean, default=False, index=True)
     source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
+# Import and expose crawler models for metadata creation
+from crawler.models import (
+    Source,
+    Keyword,
+    CaseKeyword,
+    CrawlerRun,
+    RawRecord,
+    RobotsCache,
+)
+
+__all__ = [
+    "User",
+    "RefreshSession",
+    "InvestigationAccessGrant",
+    "AuditLog",
+    "DataProvenance",
+    "Source",
+    "Keyword",
+    "CaseKeyword",
+    "CrawlerRun",
+    "RawRecord",
+    "RobotsCache",
+]
 
