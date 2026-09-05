@@ -8,7 +8,11 @@ import {
 } from '../../api/investigationApi';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
-import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft, Layers, Hash, Database, FileText } from 'lucide-react';
+import SourcesTab from './tabs/SourcesTab';
+import KeywordsTab from './tabs/KeywordsTab';
+import IntelligenceTab from './tabs/IntelligenceTab';
+
 
 const PRIORITY_LABELS = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
 const STATUS_COLORS = {
@@ -23,11 +27,13 @@ export default function InvestigationDetail({ investigationId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('overview'); // overview, sources, keywords, intelligence
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
   const [assignmentMode, setAssignmentMode] = useState(false);
   const [newAssigneeId, setNewAssigneeId] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
 
   useEffect(() => {
     loadInvestigation();
@@ -184,19 +190,69 @@ export default function InvestigationDetail({ investigationId, onBack }) {
 
       {/* Feedback Banners */}
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/40 text-destructive text-xs rounded flex items-center gap-2">
+        <div className="p-3 bg-destructive/10 border border-destructive/40 text-destructive text-xs rounded flex items-center gap-2 font-mono">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
       )}
       {success && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 text-xs rounded flex items-center gap-2">
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 text-xs rounded flex items-center gap-2 font-mono">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
           {success}
         </div>
       )}
 
-      {/* Details Card */}
+      {/* Tab Navigation Bar */}
+      <div className="flex gap-2 border-b border-border/40 pb-2 font-mono">
+        <Button
+          size="sm"
+          variant={activeTab === 'overview' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('overview')}
+          className="h-7 gap-1 text-xs uppercase"
+        >
+          <Layers className="w-3.5 h-3.5" /> Overview
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === 'sources' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('sources')}
+          className="h-7 gap-1 text-xs uppercase"
+        >
+          <Database className="w-3.5 h-3.5" /> Sources
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === 'keywords' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('keywords')}
+          className="h-7 gap-1 text-xs uppercase"
+        >
+          <Hash className="w-3.5 h-3.5" /> Keywords
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === 'intelligence' ? 'default' : 'ghost'}
+          onClick={() => setActiveTab('intelligence')}
+          className="h-7 gap-1 text-xs uppercase"
+        >
+          <FileText className="w-3.5 h-3.5" /> Intelligence
+        </Button>
+      </div>
+
+      {/* Tab Body */}
+      {activeTab === 'sources' && (
+        <SourcesTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+      {activeTab === 'keywords' && (
+        <KeywordsTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+      {activeTab === 'intelligence' && (
+        <IntelligenceTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+
+      {activeTab === 'overview' && (
+        <>
+          {/* Details Card */}
+
       <div className="p-4 bg-card/40 border border-border/50 rounded space-y-3">
         <div className="flex items-center justify-between border-b border-border/40 pb-2">
           <h3 className="font-bold text-sm font-mono uppercase tracking-wider text-muted-foreground">Details</h3>
@@ -424,7 +480,10 @@ export default function InvestigationDetail({ investigationId, onBack }) {
           </Button>
         </div>
       )}
+        </>
+      )}
     </div>
   );
 }
+
 
