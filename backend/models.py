@@ -257,9 +257,8 @@ class NetworkTrafficFlow(Base):
     encapsulation_label = Column(String, nullable=True, index=True)
     application_label = Column(String, nullable=True, index=True)
     is_encrypted = Column(Boolean, default=False, index=True)
-    source_dataset = Column(String, nullable=False)
 
-
+    source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
 # Import and expose crawler models for metadata creation
 from crawler.models import (
     Source,

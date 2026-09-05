@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request, Depends
+import asyncio
+from crawler.orchestration.scheduler import CrawlerScheduler
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -22,17 +24,37 @@ from datetime import datetime, timezone
 
 import asyncio
 from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+from crawler.api.routers.sources import router as sources_router
+from crawler.api.routers.keywords import router as keywords_router
+from crawler.api.routers.raw_records import router as raw_records_router
+from crawler.api.routers.activity import router as activity_router
 
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
+crawler_scheduler = CrawlerScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     asyncio.create_task(start_background_ingestion_task())
     yield
+
+    scheduler_task = asyncio.create_task(
+        crawler_scheduler.start()
+    )
+
+    try:
+        yield
+    finally:
+        crawler_scheduler.stop()
+        scheduler_task.cancel()
+
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(
     title="DarKnight API",

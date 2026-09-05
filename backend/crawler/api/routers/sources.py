@@ -5,6 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+
+from datetime import datetime, timezone
+
+
 from database import get_db
 from models import User
 from rbac import require_permission, Permission
@@ -19,7 +23,11 @@ class SourceCreate(BaseModel):
     name: str
     source_type: str
     config: Dict[str, Any] = {}
+
     poll_interval_minutes: int = 60
+
+    poll_interval_seconds: int = 60
+
     crawl_delay_seconds: float = 1.0
     transport_type: str = "direct"
 
@@ -27,7 +35,7 @@ class SourceCreate(BaseModel):
 class SourceUpdate(BaseModel):
     name: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
-    poll_interval_minutes: Optional[int] = None
+    poll_interval_seconds: Optional[int] = None
     crawl_delay_seconds: Optional[float] = None
     is_active: Optional[bool] = None
     transport_type: Optional[str] = None
@@ -52,7 +60,7 @@ def list_sources(
             "name": s.name,
             "source_type": s.source_type,
             "config": s.config,
-            "poll_interval_minutes": s.poll_interval_minutes,
+            "poll_interval_seconds": s.poll_interval_seconds,
             "crawl_delay_seconds": float(s.crawl_delay_seconds or 1.0),
             "is_active": s.is_active,
             "transport_type": s.transport_type,
@@ -78,7 +86,7 @@ def create_source(
         name=payload.name,
         source_type=payload.source_type.upper(),
         config=payload.config,
-        poll_interval_minutes=payload.poll_interval_minutes,
+        poll_interval_seconds=payload.poll_interval_seconds,
         crawl_delay_seconds=payload.crawl_delay_seconds,
         transport_type=payload.transport_type,
         created_by=current_user.id,
@@ -105,8 +113,8 @@ def update_source(
         source.name = payload.name
     if payload.config is not None:
         source.config = payload.config
-    if payload.poll_interval_minutes is not None:
-        source.poll_interval_minutes = payload.poll_interval_minutes
+    if payload.poll_interval_seconds is not None:
+        source.poll_interval_seconds = payload.poll_interval_seconds
     if payload.crawl_delay_seconds is not None:
         source.crawl_delay_seconds = payload.crawl_delay_seconds
     if payload.is_active is not None:

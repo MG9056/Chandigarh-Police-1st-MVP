@@ -31,12 +31,11 @@ def init_db():
     """
     Creates all database tables defined in models.py, canonical_schema.py, and crawler models, and seeds initial accounts.
     """
-    import models  # Ensures legacy models are registered with Base
-    import data.canonical_schema  # Ensures canonical models are registered with Base
-    try:
-        import crawler.models
-    except ImportError:
-        pass
+    
+    import models  # Ensures existing application models are registered with Base
+    import crawler.models  # Ensures crawler models are registered with Base
+    import data.canonical_schema
+
     Base.metadata.create_all(bind=engine)
 
     # Seed initial DGP Super Admin & Inspector accounts if not present

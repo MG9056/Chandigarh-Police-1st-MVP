@@ -144,30 +144,7 @@ DarKnight is an intelligence platform engineered for law enforcement. It aggrega
 
 ## 6. Safety & Demo Mode Safeguards
 
-## 6. Safety & Demo Mode Safeguards
-
 Per PRD Critical Constraints:
 1. **Demo Mode Enforcement (`DemoModeEnforcedError`)**: Hard-coded in `TorStubCollector` and `TorProxyTransport`. Any attempt to make live `.onion` or Tor requests immediately halts with `DemoModeEnforcedError`.
 2. **Schema Handoff Contract**: Crawler writes solely to `raw_records` and `crawler_runs`. It never writes directly to fixed entity/observation/transaction tables.
 3. **No Stolen Data or Intrusion**: Operates exclusively on legal public web sources, authorized discovery APIs, and synthetic or sanitized OSINT demonstration datasets.
-
----
-
-## 7. Next Steps / Roadmap
-
-If you're picking this up to move past MVP, roughly in priority order:
-
-1. **Centralize the API base URL** into a single config/env var (`VITE_API_BASE_URL`) instead of repeating `http://localhost:8000` in every view file.
-2. **Add `backend/requirements.txt`** (or a `pyproject.toml`) pinning `fastapi`, `uvicorn`, etc. — currently undocumented.
-3. **Decide on real data sources / connectors** for Section 1 (Multi-Source Data Collection) — this is currently the least-implemented feature (not even wired to mock data).
-4. **Add authentication** before this touches anything resembling real investigative data — currently zero auth on API or frontend.
-5. **Implement the third (right) panel** called for in `DESIGN.md`, or update the design doc if the two-panel layout is the accepted direction going forward.
-6. **Replace the in-memory JSON "DB"** with a real datastore once write operations (creating reports, flagging entities, audit logs) are needed.
-7. **Add tests** — there are currently none on either frontend or backend.
-8. **Wire `oxlint` into CI** so lint issues are caught before merge.
-9. **Fill in real translations** — the Hindi/Punjabi strings in `src/i18n.js` cover only nav labels and a handful of headings; most body copy is still English-only inside the JSX.
-
----
-
-## 8. Design constraints to keep in mind (from `DESIGN.md`)
-...

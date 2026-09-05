@@ -1,9 +1,50 @@
-DATASETS
+# ==============================
+# Dataset / real data
+# ==============================
+DATASETS/
 backend/real_data_files/
 backend/real_data/cache/
-__pycache__/
-*.pyc
-backend/darknight.db
 .env
 backend/.env
 scratch/
+
+# ==============================
+# Environment / secrets
+# ==============================
+backend/.env
+
+# ==============================
+# Local database
+# ==============================
+backend/darknight.db
+
+# ==============================
+# Python
+# ==============================
+__pycache__/
+**/__pycache__/
+
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling / caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==============================
+# OS / editor
+# ==============================
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/

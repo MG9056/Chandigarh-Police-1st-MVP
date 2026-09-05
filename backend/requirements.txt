@@ -12,21 +12,36 @@ bcrypt==5.0.0
 PyJWT==2.13.0
 pyotp==2.10.0
 
+email-validator==2.2.0        # needed for pydantic's EmailStr (used in signup/login schemas)
+fastapi
+uvicorn[standard]
+pydantic
+
+# Database and Security
+SQLAlchemy
+alembic
+passlib
+bcrypt
+PyJWT
+pyotp
+email-validator
+
+
 # AI / Ingestion Engine
 google-generativeai==0.8.6
 requests==2.33.0
 
-# Entity resolution
-rapidfuzz==3.14.6
+# Real-data pipeline (backend/real_data/)
+pandas
+pyarrow
+networkx
 
-# Real-data pipeline
-pandas==3.0.5
-pyarrow==25.0.1
-networkx==3.6.1
+# Crawler Pipeline (specs/crawler-pipeline-prd.md)
+trafilatura
+langdetect
+spacy
+python-dotenv
 
-# Crawler Pipeline
-python-dotenv==1.2.2
-
-# ==== Testing ====
+# ==== Testing (used by backend/tests/) ====
 pytest==8.3.4
-httpx==0.28.1
+httpx
