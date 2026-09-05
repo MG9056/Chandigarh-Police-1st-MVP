@@ -29,11 +29,14 @@ def get_db():
 
 def init_db():
     """
+
     Creates all database tables defined in the application and crawler models,
     then seeds the initial DGP admin, Inspector, and IGP accounts.
     """
+    
     import models  # Ensures existing application models are registered with Base
     import crawler.models  # Ensures crawler models are registered with Base
+    import data.canonical_schema
 
     Base.metadata.create_all(bind=engine)
 

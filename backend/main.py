@@ -10,14 +10,25 @@ from datetime import datetime
 import json
 import os
 
-from database import init_db
-from models import User
+from database import init_db, get_db
+from models import User, Suspect, CryptoWallet, DarknetListing, TelegramMessage, TelegramChannel, NetworkTrafficFlow
 from routers.auth_router import router as auth_router, get_current_user
 from routers.admin_router import router as admin_router
 from routers.reauth_router import router as reauth_router
 from routers.delegation_router import router as delegation_router
 from routers.audit_router import router as audit_router
 from routers.evidence_provenance_router import router as evidence_provenance_router
+from routers.search_router import router as search_router
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+
+import asyncio
+from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+from crawler.api.routers.sources import router as sources_router
+from crawler.api.routers.keywords import router as keywords_router
+from crawler.api.routers.raw_records import router as raw_records_router
+from crawler.api.routers.activity import router as activity_router
+
 from routers.investigation_router import router as investigation_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
@@ -29,6 +40,8 @@ crawler_scheduler = CrawlerScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    asyncio.create_task(start_background_ingestion_task())
+    yield
 
     scheduler_task = asyncio.create_task(
         crawler_scheduler.start()
@@ -77,6 +90,7 @@ app.include_router(reauth_router)
 app.include_router(delegation_router)
 app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
+app.include_router(search_router)
 app.include_router(investigation_router)
 
 # Include Routers — Crawler subsystem (upstream/main branch)
@@ -84,7 +98,6 @@ app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
-
 
 def load_db():
     db_path = os.path.join(os.path.dirname(__file__), "mock_db.json")
@@ -97,36 +110,33 @@ def load_db():
 def read_root():
     return {"status": "ok", "message": "Welcome to DarKnight API"}
 
+@app.get("/api/ingestion-status")
+def get_ingestion_status(current_user: User = Depends(get_current_user)):
+    from pipelines.ingest_ai_router import INGESTION_STATUS
+    return INGESTION_STATUS
+
 @app.get("/api/dashboard/summary")
-def get_dashboard_summary(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    summary = db.get("dashboard_summary", {})
-    summary["last_update"] = datetime.now().isoformat()
-    return summary
+def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    total_suspects = db.query(Suspect).count()
+    critical_alerts = db.query(Suspect).filter(Suspect.risk_score >= 80).count()
+    total_wallets = db.query(CryptoWallet).count()
+    total_listings = db.query(DarknetListing).count()
+    total_messages = db.query(TelegramMessage).count()
+    total_channels = db.query(TelegramChannel).count()
+    total_flows = db.query(NetworkTrafficFlow).count()
 
-@app.get("/api/data-sources")
-@app.get("/api/data-collection/status")
-def get_data_sources(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("data_sources", [])
-
-@app.get("/api/alerts")
-def get_alerts(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("alerts", [])
-
-@app.get("/api/network/data")
-def get_network_data(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("network_data", {"nodes": [], "links": []})
-
-@app.get("/api/search")
-def search_entities(q: str = "", current_user: User = Depends(get_current_user)):
-    db = load_db()
-    results = db.get("search_entities", [])
-    if q:
-        results = [r for r in results if q.lower() in r["identifier"].lower()]
-    return {"results": results}
+    return {
+        "active_investigations": total_suspects,
+        "critical_alerts": critical_alerts,
+        "sources_monitored": 4,
+        "total_suspects": total_suspects,
+        "total_wallets": total_wallets,
+        "total_listings": total_listings,
+        "total_telegram_messages": total_messages,
+        "total_telegram_channels": total_channels,
+        "total_network_traffic_flows": total_flows,
+        "last_update": datetime.now(timezone.utc).isoformat()
+    }
 
 @app.get("/api/alerts/suspicious")
 def get_suspicious_activity(current_user: User = Depends(get_current_user)):

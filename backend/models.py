@@ -135,6 +135,131 @@ class DataProvenance(Base):
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
 
+# --- Helper Functions ---
+
+def time_step_to_timestamp(time_step: int) -> datetime:
+    """
+    Maps Elliptic++ discrete time_step integers (1..49) to concrete UTC datetimes.
+    Formula: Base epoch (2019-01-01T00:00:00Z) + (time_step - 1) * 2 weeks.
+    (Elliptic dataset timesteps represent ~2-week observation windows starting early 2019).
+    """
+    from datetime import timedelta
+    base_epoch = datetime(2019, 1, 1, tzinfo=timezone.utc)
+    step = max(1, time_step)
+    return base_epoch + timedelta(weeks=2 * (step - 1))
+
+# --- Domain & Intelligence Models for Project Dark Knight ---
+
+class Suspect(Base):
+    __tablename__ = "suspects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    primary_alias = Column(String, nullable=False, index=True)
+    aliases_json = Column(Text, nullable=True)          # JSON list of known handles/aliases
+    pgp_fingerprint = Column(String, nullable=True, index=True)
+    phone_number = Column(String, nullable=True, index=True)
+    telegram_handle = Column(String, nullable=True, index=True)
+    risk_score = Column(Integer, default=50, index=True) # Risk score (0-100)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+    wallets = relationship("CryptoWallet", back_populates="suspect", cascade="all, delete-orphan")
+    listings = relationship("DarknetListing", back_populates="suspect")
+
+
+class CryptoWallet(Base):
+    __tablename__ = "crypto_wallets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    address = Column(String, unique=True, nullable=False, index=True)
+    currency = Column(String, nullable=False, default="BTC", index=True)
+    balance = Column(String, nullable=True, default="0.0")
+    risk_level = Column(String, nullable=False, default="UNKNOWN", index=True)
+    associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
+
+    suspect = relationship("Suspect", back_populates="wallets")
+    outgoing_txs = relationship("CryptoTransaction", foreign_keys="[CryptoTransaction.from_address]", primaryjoin="CryptoWallet.address==CryptoTransaction.from_address")
+    incoming_txs = relationship("CryptoTransaction", foreign_keys="[CryptoTransaction.to_address]", primaryjoin="CryptoWallet.address==CryptoTransaction.to_address")
+
+
+class CryptoTransaction(Base):
+    __tablename__ = "crypto_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tx_hash = Column(String, unique=True, nullable=False, index=True)
+    from_address = Column(String, nullable=False, index=True)
+    to_address = Column(String, nullable=False, index=True)
+    amount = Column(String, nullable=True, default="UNSPECIFIED")
+    currency = Column(String, nullable=False, default="BTC", index=True)
+    timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+
+
+class DarknetListing(Base):
+    __tablename__ = "darknet_listings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    vendor_alias = Column(String, nullable=False, index=True)
+    platform = Column(String, nullable=False, default="Agora", index=True)
+    drug_category = Column(String, nullable=False, index=True)
+    price = Column(String, nullable=True)
+    currency = Column(String, nullable=True, default="BTC")
+    location = Column(String, nullable=True, index=True)
+    url = Column(String, nullable=True)
+    scraped_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+    associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
+
+    suspect = relationship("Suspect", back_populates="listings")
+
+
+class TelegramChannel(Base):
+    __tablename__ = "telegram_channels"
+
+    id = Column(Integer, primary_key=True, index=True)
+    channel_id = Column(String, unique=True, nullable=False, index=True)
+    channel_name = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    member_count = Column(Integer, default=0)
+
+    messages = relationship("TelegramMessage", back_populates="channel", cascade="all, delete-orphan")
+
+
+class TelegramMessage(Base):
+    __tablename__ = "telegram_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    channel_id = Column(Integer, ForeignKey("telegram_channels.id"), nullable=False, index=True)
+    sender_handle = Column(String, nullable=False, index=True)
+    message_text = Column(Text, nullable=False)
+    detected_wallets_json = Column(Text, nullable=True)
+    detected_keywords_json = Column(Text, nullable=True)
+    timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+
+    channel = relationship("TelegramChannel", back_populates="messages")
+
+
+class NetworkTrafficFlow(Base):
+    """
+    Stores ingested flow analytics from Daksh's dataset collection (Darknet.CSV, Binary, MultiTotal).
+    """
+    __tablename__ = "network_traffic_flows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    flow_id = Column(String, nullable=False, index=True)
+    src_ip = Column(String, nullable=False, index=True)
+    src_port = Column(Integer, nullable=True)
+    dst_ip = Column(String, nullable=False, index=True)
+    dst_port = Column(Integer, nullable=True)
+    protocol = Column(String, nullable=True)
+    timestamp_str = Column(String, nullable=True)
+    encapsulation_label = Column(String, nullable=True, index=True)
+    application_label = Column(String, nullable=True, index=True)
+    is_encrypted = Column(Boolean, default=False, index=True)
+
+    source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
+# Import and expose crawler models for metadata creation
 
 class Investigation(Base):
     """
@@ -250,6 +375,13 @@ __all__ = [
     "InvestigationAccessGrant",
     "AuditLog",
     "DataProvenance",
+    "Suspect",
+    "CryptoWallet",
+    "CryptoTransaction",
+    "DarknetListing",
+    "TelegramChannel",
+    "TelegramMessage",
+    "NetworkTrafficFlow",
     # Investigation management models (Step 1)
     "Investigation",
     "InvestigationAssignment",

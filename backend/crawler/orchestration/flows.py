@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 import logging
 import uuid
 from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from crawler.models.source import Source
@@ -60,7 +59,6 @@ async def run_crawl(
         started_at=datetime.now(timezone.utc),
         triggered_by=triggered_by,
     )
-
     db.add(run)
     db.commit()
 
