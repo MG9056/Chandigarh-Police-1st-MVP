@@ -33,7 +33,7 @@ class Source(Base):
         default=dict,
     )
 
-    poll_interval_minutes: Mapped[int] = mapped_column(
+    poll_interval_seconds: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=60,

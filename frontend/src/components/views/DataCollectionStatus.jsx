@@ -52,7 +52,7 @@ export default function DataCollectionStatus() {
     name: '',
     source_type: 'DIRECT_SEED',
     seed_urls: '',
-    poll_interval_minutes: 60,
+    poll_interval_seconds: 60,
     crawl_delay_seconds: 1.0,
     transport_type: 'direct',
   });
@@ -127,6 +127,20 @@ export default function DataCollectionStatus() {
   useEffect(() => {
     reloadAllData();
   }, []);
+
+  useEffect(() => {
+  const intervalId = setInterval(() => {
+    Promise.all([
+      fetchSources(),
+      fetchActivity(),
+      fetchRawRecords(),
+    ]).catch((err) => {
+      console.error('Error polling crawler state:', err);
+    });
+  }, 2000);
+
+  return () => clearInterval(intervalId);
+}, []);
 
   // Trigger Source Run
   const handleTriggerRun = async (sourceId) => {
@@ -216,14 +230,14 @@ export default function DataCollectionStatus() {
           name: newSource.name,
           source_type: newSource.source_type,
           config: { seed_urls: urlsArray },
-          poll_interval_minutes: parseInt(newSource.poll_interval_minutes),
+          poll_interval_seconds: parseInt(newSource.poll_interval_seconds),
           crawl_delay_seconds: parseFloat(newSource.crawl_delay_seconds),
           transport_type: newSource.transport_type,
         }),
       });
       if (res.ok) {
         setShowAddSourceModal(false);
-        setNewSource({ name: '', source_type: 'DIRECT_SEED', seed_urls: '', poll_interval_minutes: 60, crawl_delay_seconds: 1.0, transport_type: 'direct' });
+        setNewSource({ name: '', source_type: 'DIRECT_SEED', seed_urls: '', poll_interval_seconds: 60, crawl_delay_seconds: 1.0, transport_type: 'direct' });
         fetchSources();
       } else {
         const errData = await res.json().catch(() => ({}));
@@ -243,7 +257,7 @@ export default function DataCollectionStatus() {
       name: src.name,
       source_type: src.source_type,
       seed_urls: seedUrlsText,
-      poll_interval_minutes: src.poll_interval_minutes || 60,
+      poll_interval_seconds: src.poll_interval_seconds || 60,
       crawl_delay_seconds: src.crawl_delay_seconds || 1.0,
       transport_type: src.transport_type || 'direct',
       is_active: src.is_active,
@@ -266,7 +280,7 @@ export default function DataCollectionStatus() {
           body: JSON.stringify({
             name: editingSource.name,
             config: { seed_urls: urlsArray },
-            poll_interval_minutes: parseInt(editingSource.poll_interval_minutes),
+            poll_interval_seconds: parseInt(editingSource.poll_interval_seconds),
             crawl_delay_seconds: parseFloat(editingSource.crawl_delay_seconds),
             transport_type: editingSource.transport_type,
             is_active: editingSource.is_active,
@@ -479,7 +493,7 @@ export default function DataCollectionStatus() {
               <div className="grid grid-cols-2 gap-2 text-xs bg-muted/60 p-2.5 rounded-lg border border-border/80 mb-4">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase">Poll Interval:</span>
-                  <span className="text-foreground font-medium">{src.poll_interval_minutes} mins</span>
+                  <span className="text-foreground font-medium">{src.poll_interval_seconds} secs</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase">Crawl Delay Floor:</span>
@@ -811,12 +825,12 @@ export default function DataCollectionStatus() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1">Poll Interval (mins)</label>
+                  <label className="block text-slate-300 mb-1">Poll Interval (seconds)</label>
                   <input
                     type="number"
                     min="5"
-                    value={newSource.poll_interval_minutes}
-                    onChange={(e) => setNewSource({ ...newSource, poll_interval_minutes: e.target.value })}
+                    value={newSource.poll_interval_seconds}
+                    onChange={(e) => setNewSource({ ...newSource, poll_interval_seconds: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -883,12 +897,12 @@ export default function DataCollectionStatus() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1">Poll Interval (mins)</label>
+                  <label className="block text-slate-300 mb-1">Poll Interval (seconds)</label>
                   <input
                     type="number"
                     min="5"
-                    value={editingSource.poll_interval_minutes}
-                    onChange={(e) => setEditingSource({ ...editingSource, poll_interval_minutes: e.target.value })}
+                    value={editingSource.poll_interval_seconds}
+                    onChange={(e) => setEditingSource({ ...editingSource, poll_interval_seconds: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
                   />
                 </div>

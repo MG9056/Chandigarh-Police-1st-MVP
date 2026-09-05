@@ -77,6 +77,7 @@ async def run_crawl(
         # 4. Fetch raw records from collector
         fetched_records = await collector.fetch(source_config, transport)
         run.urls_attempted = len(fetched_records)
+        db.commit()
 
         robots_checker = RobotsChecker()
         rate_limiter = RateLimiter(default_delay=float(source.crawl_delay_seconds or 1.0))
@@ -85,6 +86,15 @@ async def run_crawl(
 
         # 5. Process each record through pipeline
         for rec in fetched_records:
+            db.refresh(source)
+            db.refresh(run)
+
+            if run.status == "STOPPED" or not source.is_active:
+                run.status = "STOPPED"
+                run.finished_at = datetime.now(timezone.utc)
+                run.error_summary = "Crawl stopped by operator."
+                db.commit()
+                return run
             url = rec.get("url")
             if not url:
                 continue
@@ -98,8 +108,8 @@ async def run_crawl(
             )
             if not allowed:
                 run.urls_skipped_robots += 1
+                db.commit()
                 continue
-
             # Policy: rate limiting
             await rate_limiter.wait_if_needed(url, requested_delay=float(source.crawl_delay_seconds or 1.0))
 
@@ -109,6 +119,7 @@ async def run_crawl(
             except ValueError as ve:
                 logger.error(f"Provenance validation error for {url}: {ve}")
                 run.errors_count += 1
+                db.commit()
                 continue
 
             content_hash = rec_tagged["content_hash"]
@@ -146,6 +157,7 @@ async def run_crawl(
                 )
                 db.add(raw_rec)
                 run.records_produced += 1
+                db.commit()
                 continue
 
             # AI Relevance Classification
@@ -183,6 +195,7 @@ async def run_crawl(
             )
             db.add(raw_rec)
             run.records_produced += 1
+            db.commit()
 
         run.status = "COMPLETED"
         run.finished_at = datetime.now(timezone.utc)

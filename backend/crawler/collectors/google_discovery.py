@@ -78,6 +78,7 @@ class GoogleDiscoveryCollector(BaseCollector):
                         )
 
                         results = data.get("results", [])
+                        logger.info(f"Tavily returned {len(results)} results")
 
                         for result in results:
 
