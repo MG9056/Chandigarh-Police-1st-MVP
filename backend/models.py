@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Index
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Index, JSON, Numeric
 from sqlalchemy.orm import relationship
+from sqlalchemy import Uuid
+from uuid import uuid4
 from datetime import datetime, timezone
 from database import Base
 
@@ -135,6 +137,61 @@ class DataProvenance(Base):
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
 
+class SuspiciousActivityStatusEnum:
+    OPEN = "open"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+class AlertStatusEnum:
+    ACTIVE = "active"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+
+class SuspiciousActivity(Base):
+    """
+    Detected suspicious pattern/event derived from a RawRecord.
+    Preserves the distinction between original collected data (RawRecord)
+    and derived detection/AI analysis (this model).
+    """
+    __tablename__ = "suspicious_activities"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    raw_record_id = Column(Uuid(as_uuid=True), ForeignKey("raw_records.id"), nullable=True, index=True)
+    case_id = Column(String, nullable=True, index=True)
+    activity_type = Column(String, nullable=False, index=True)  # high_relevance, keyword_burst, entity_indicator, combined_signal
+    description = Column(Text, nullable=False)
+    confidence = Column(Numeric, nullable=False)  # Detection/risk confidence score 0.0–1.0
+    evidence_summary = Column(JSON, nullable=True)  # Explainable reasons array
+    status = Column(String, nullable=False, default=SuspiciousActivityStatusEnum.OPEN)
+    detected_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    alerts = relationship("Alert", back_populates="suspicious_activity")
+
+    __table_args__ = (
+        Index("idx_sa_raw_record_type", "raw_record_id", "activity_type"),
+    )
+
+class Alert(Base):
+    """
+    Actionable notification generated from a suspicious activity detection.
+    Uses dedup_key to prevent duplicate alerts for the same underlying detection.
+    """
+    __tablename__ = "alerts"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    suspicious_activity_id = Column(Uuid(as_uuid=True), ForeignKey("suspicious_activities.id"), nullable=True, index=True)
+    raw_record_id = Column(Uuid(as_uuid=True), ForeignKey("raw_records.id"), nullable=True, index=True)
+    case_id = Column(String, nullable=True, index=True)
+    severity = Column(String, nullable=False)  # "red", "yellow", "green"
+    message = Column(Text, nullable=False)
+    status = Column(String, nullable=False, default=AlertStatusEnum.ACTIVE)
+    dedup_key = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    suspicious_activity = relationship("SuspiciousActivity", back_populates="alerts")
+
 # Import and expose crawler models for metadata creation
 from crawler.models import (
     Source,
@@ -151,6 +208,10 @@ __all__ = [
     "InvestigationAccessGrant",
     "AuditLog",
     "DataProvenance",
+    "SuspiciousActivity",
+    "SuspiciousActivityStatusEnum",
+    "Alert",
+    "AlertStatusEnum",
     "Source",
     "Keyword",
     "CaseKeyword",

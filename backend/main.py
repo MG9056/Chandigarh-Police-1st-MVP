@@ -20,6 +20,7 @@ from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
+from routers.alerts_router import router as alerts_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -62,6 +63,7 @@ app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
+app.include_router(alerts_router)
 
 
 def load_db():
@@ -88,10 +90,7 @@ def get_data_sources(current_user: User = Depends(get_current_user)):
     db = load_db()
     return db.get("data_sources", [])
 
-@app.get("/api/alerts")
-def get_alerts(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("alerts", [])
+# /api/alerts — now served by routers/alerts_router.py (DB-backed)
 
 @app.get("/api/network/data")
 def get_network_data(current_user: User = Depends(get_current_user)):
@@ -106,10 +105,7 @@ def search_entities(q: str = "", current_user: User = Depends(get_current_user))
         results = [r for r in results if q.lower() in r["identifier"].lower()]
     return {"results": results}
 
-@app.get("/api/alerts/suspicious")
-def get_suspicious_activity(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("suspicious_activity", [])
+# /api/alerts/suspicious — now served by routers/alerts_router.py (DB-backed)
 
 @app.get("/api/reports")
 def get_reports(current_user: User = Depends(get_current_user)):

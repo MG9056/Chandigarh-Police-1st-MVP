@@ -3,3 +3,6 @@ backend/real_data_files/
 backend/real_data/cache/
 backend/.env
 backend/darknight.db
+# Python cache
+__pycache__/
+*.py[cod]
