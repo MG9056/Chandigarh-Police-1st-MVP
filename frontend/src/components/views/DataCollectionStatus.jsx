@@ -751,6 +751,86 @@ export default function DataCollectionStatus() {
                   <span className="text-slate-300">{selectedRecord.relevance_reasoning || 'N/A'}</span>
                 </div>
               </div>
+              {selectedRecord?.structured_intelligence && (
+  <div className="mt-4">
+    <h4 className="font-bold text-slate-300 uppercase mb-2">
+      AI Structured Intelligence
+    </h4>
+
+    <div className="space-y-3">
+      <div>
+        <div className="text-xs font-semibold text-slate-400 uppercase mb-2">
+          Entities
+        </div>
+
+        {selectedRecord.structured_intelligence.entities?.length > 0 ? (
+          <div className="space-y-2">
+            {selectedRecord.structured_intelligence.entities.map(
+              (entity, index) => (
+                <div
+                  key={`${entity.type}-${entity.value}-${index}`}
+                  className="rounded-md border border-slate-800 bg-slate-950 p-2"
+                >
+                  <div className="text-xs font-medium text-emerald-300 break-all">
+                    {entity.value}
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 mt-1">
+                    {entity.type} · {entity.role}
+                  </div>
+
+                  <div className="text-[11px] text-slate-500">
+                    Confidence: {(entity.confidence * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-slate-500">
+            No entities identified.
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="text-xs font-semibold text-slate-400 uppercase mb-2">
+          Relationships
+        </div>
+
+        {selectedRecord.structured_intelligence.relationships?.length > 0 ? (
+          <div className="space-y-2">
+            {selectedRecord.structured_intelligence.relationships.map(
+              (relationship, index) => (
+                <div
+                  key={`${relationship.subject}-${relationship.relation}-${relationship.object}-${index}`}
+                  className="rounded-md border border-slate-800 bg-slate-950 p-2"
+                >
+                  <div className="text-xs text-slate-200 break-words">
+                    {relationship.subject}{" "}
+                    <span className="font-semibold text-emerald-400">
+                      {relationship.relation}
+                    </span>{" "}
+                    {relationship.object}
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 mt-1">
+                    Confidence:{" "}
+                    {(relationship.confidence * 100).toFixed(0)}%
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-slate-500">
+            No relationships identified.
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
               <div>
                 <h4 className="font-bold text-slate-300 uppercase mb-1">Extracted Candidate Entities</h4>

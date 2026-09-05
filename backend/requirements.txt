@@ -41,7 +41,7 @@ trafilatura
 langdetect
 spacy
 python-dotenv
-
+google-genai
 # ==== Testing (used by backend/tests/) ====
 pytest==8.3.4
 httpx
