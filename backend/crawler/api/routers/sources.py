@@ -136,10 +136,22 @@ async def trigger_source_run(
     source_uuid = uuid.UUID(source_id) if isinstance(source_id, str) else source_id
     source = db.query(Source).filter(Source.id == source_uuid).first()
     if not source:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Source not found"
+        )
 
-    # Run crawl in background task or inline for quick trigger
-    asyncio.create_task(run_crawl(source_id=source.id, case_id=case_id, triggered_by=current_user.id))
+    # Run Now reactivates the source so it can be crawled again
+    source.is_active = True
+    db.commit()
+
+    asyncio.create_task(
+        run_crawl(
+            source_id=source.id,
+            case_id=case_id,
+            triggered_by=current_user.id
+        )
+    )
 
     return {
         "message": f"Crawl run triggered for source '{source.name}'",

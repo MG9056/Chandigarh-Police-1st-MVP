@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from typing import Any, Dict, List
 
@@ -46,37 +47,136 @@ class EntityExtractor:
     """
     Extracts candidate entities from cleaned text.
 
-    spaCy provides:
-        PERSON
-        GPE
-        ORG
-        LOC
+    The NER engine can be switched between:
+        - spaCy
+        - GLiNER
 
-    Regex provides:
+    Set the ENTITY_EXTRACTOR environment variable to:
+        ENTITY_EXTRACTOR=spacy
+    or:
+        ENTITY_EXTRACTOR=gliner
+
+    If ENTITY_EXTRACTOR is not set, spaCy is used by default.
+
+    Regex provides deterministic extraction for:
         BITCOIN_ADDRESS
         ETHEREUM_ADDRESS
         PHONE_NUMBER
 
-    The extractor does NOT assign fake probability-style confidence
-    values. It produces candidates and records how each candidate
-    was detected.
+    GLiNER confidence scores are preserved because they are produced
+    directly by the NER model. They are NOT treated as final
+    investigation confidence. Final contextual relevance/confidence
+    is assigned later by the LLM.
 
-    Final contextual confidence is assigned later by the LLM.
+    The selected NER model is loaded once when EntityExtractor is
+    created and reused for all records.
     """
 
+    # ------------------------------------------------------------------
+    # GLiNER labels
+    # ------------------------------------------------------------------
+
+    GLINER_LABELS = [
+        "person",
+        "organization",
+        "drug",
+        "drug quantity",
+        "drug price",
+        "vendor",
+        "marketplace",
+        "messaging platform",
+        "username",
+        "cryptocurrency",
+        "location",
+        "law enforcement agency",
+        "email address",
+    ]
+
+    # Only send reasonably sized text to the NER model.
+    MAX_TEXT_LENGTH = 10000
+
+    # Minimum GLiNER confidence accepted as a candidate.
+    GLINER_THRESHOLD = 0.5
+
     def __init__(self):
-        self.nlp = None
+        self.model = None
+
+        # Default to spaCy so the project works without GLiNER.
+        self.extractor_type = os.getenv(
+            "ENTITY_EXTRACTOR",
+            "spacy",
+        ).lower()
+
+        if self.extractor_type == "gliner":
+            self._load_gliner()
+        else:
+            # Treat any value other than "gliner" as spaCy.
+            self.extractor_type = "spacy"
+            self._load_spacy()
+
+    # ------------------------------------------------------------------
+    # Model loading
+    # ------------------------------------------------------------------
+
+    def _load_spacy(self):
+        """
+        Load spaCy NER model.
+        """
 
         try:
             import spacy
 
-            self.nlp = spacy.load("en_core_web_sm")
+            logger.info(
+                "Loading spaCy entity extractor..."
+            )
+
+            self.model = spacy.load(
+                "en_core_web_sm"
+            )
+
+            logger.info(
+                "spaCy entity extractor loaded successfully."
+            )
 
         except Exception as e:
-            logger.info(
-                "spaCy en_core_web_sm model not loaded "
-                f"({e}); fallback regex extraction will be used."
+            logger.error(
+                "spaCy model could not be loaded: %s. "
+                "Regex extraction will still be available.",
+                e,
+                exc_info=True,
             )
+
+    def _load_gliner(self):
+        """
+        Load GLiNER NER model.
+        """
+
+        try:
+            from gliner import GLiNER
+
+            logger.info(
+                "Loading GLiNER model urchade/gliner_medium-v2.1..."
+            )
+
+            self.model = GLiNER.from_pretrained(
+                "urchade/gliner_medium-v2.1"
+            )
+
+            logger.info(
+                "GLiNER model loaded successfully."
+            )
+
+        except Exception as e:
+            logger.error(
+                "GLiNER model could not be loaded: %s. "
+                "Regex extraction will still be available.",
+                e,
+                exc_info=True,
+            )
+
+    # ------------------------------------------------------------------
+    # Utility methods
+    # ------------------------------------------------------------------
 
     @staticmethod
     def _normalise_phone(phone: str) -> str:
@@ -110,85 +210,344 @@ class EntityExtractor:
         before = text[max(0, start - 2):start]
         after = text[end:end + 2]
 
-        # Reject cases where the candidate is directly part of
-        # a decimal number, e.g. 1234567890.123
-        if before.endswith(".") and len(before) >= 2 and before[-2].isdigit():
+        if (
+            before.endswith(".")
+            and len(before) >= 2
+            and before[-2].isdigit()
+        ):
             return True
 
-        if after.startswith(".") and len(after) >= 2 and after[1].isdigit():
+        if (
+            after.startswith(".")
+            and len(after) >= 2
+            and after[1].isdigit()
+        ):
             return True
 
         return False
-    
+
+    @staticmethod
+    def _clean_entity_text(text: str) -> str:
+        """
+        Clean whitespace and surrounding punctuation from a NER
+        entity without changing its actual content.
+        """
+
+        text = re.sub(
+            r"\s+",
+            " ",
+            text,
+        ).strip()
+
+        text = text.strip(
+            " \t\r\n.,;:!?()[]{}<>\"'`"
+        )
+
+        return text
+
     @staticmethod
     def _candidate(
         entity_type: str,
         value: str,
         source: str,
+        confidence: float | None = None,
     ) -> Dict[str, Any]:
         """
         Create a machine-extracted candidate.
-
-        Confidence is intentionally left unset because this extractor
-        does not produce calibrated probabilities.
         """
 
         return {
             "type": entity_type,
             "value": value,
-            "confidence": None,
+            "confidence": confidence,
             "confidence_source": source,
         }
 
-    def extract(self, text: str) -> List[Dict[str, Any]]:
-        if not text:
+    @staticmethod
+    def _dedupe_key(
+        entity_type: str,
+        value: str,
+        case_sensitive: bool,
+    ) -> tuple:
+        """
+        Build a deduplication key.
+
+        Bitcoin addresses are case-sensitive because Base58 casing
+        changes the actual address.
+
+        Other entity values are treated case-insensitively.
+        """
+
+        return (
+            entity_type.casefold(),
+            value if case_sensitive else value.casefold(),
+        )
+
+    @classmethod
+    def _deduplicate_candidates(
+        cls,
+        candidates: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """
+        Remove duplicate candidates while tracking mention counts.
+        """
+
+        seen: Dict[tuple, Dict[str, Any]] = {}
+        order: List[tuple] = []
+
+        for candidate in candidates:
+            value = str(
+                candidate.get("value", "")
+            ).strip()
+
+            entity_type = str(
+                candidate.get("type", "")
+            ).strip()
+
+            if not value or not entity_type:
+                continue
+
+            case_sensitive = (
+                entity_type == "BITCOIN_ADDRESS"
+            )
+
+            key = cls._dedupe_key(
+                entity_type,
+                value,
+                case_sensitive,
+            )
+
+            if key not in seen:
+                seen[key] = dict(candidate)
+                seen[key]["mention_count"] = 1
+                order.append(key)
+
+            else:
+                seen[key]["mention_count"] += 1
+
+                # Keep the highest model confidence if the same
+                # entity was detected multiple times.
+                existing_confidence = seen[key].get(
+                    "confidence"
+                )
+
+                new_confidence = candidate.get(
+                    "confidence"
+                )
+
+                if (
+                    new_confidence is not None
+                    and (
+                        existing_confidence is None
+                        or new_confidence > existing_confidence
+                    )
+                ):
+                    seen[key]["confidence"] = new_confidence
+
+        return [
+            seen[key]
+            for key in order
+        ]
+
+    # ------------------------------------------------------------------
+    # spaCy extraction
+    # ------------------------------------------------------------------
+
+    def _extract_with_spacy(
+        self,
+        text: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract general entities using spaCy.
+        """
+
+        if not self.model:
+            return []
+
+        if not text or not text.strip():
             return []
 
         candidates: List[Dict[str, Any]] = []
 
-        # ----------------------------------------------------------
-        # 1. spaCy NER
-        # ----------------------------------------------------------
-        if self.nlp:
-            try:
-                doc = self.nlp(text[:10000])
+        try:
+            model_text = text[:self.MAX_TEXT_LENGTH]
 
-                for ent in doc.ents:
-                    if ent.label_ in (
-                        "PERSON",
-                        "GPE",
-                        "ORG",
-                        "LOC",
-                    ):
-                        value = ent.text.strip()
+            doc = self.model(model_text)
 
-                        if not value:
-                            continue
-
-                        candidates.append(
-                            self._candidate(
-                                entity_type=ent.label_,
-                                value=value,
-                                source="spacy_ner",
-                            )
-                        )
-
-            except Exception as e:
-                logger.error(
-                    f"Error in spaCy NER processing: {e}"
+            for entity in doc.ents:
+                value = self._clean_entity_text(
+                    entity.text
                 )
 
-        # ----------------------------------------------------------
+                label = str(
+                    entity.label_
+                ).strip()
+
+                if not value or not label:
+                    continue
+
+                candidates.append(
+                    self._candidate(
+                        entity_type=label,
+                        value=value,
+                        source="spacy_ner",
+                        confidence=None,
+                    )
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error in spaCy NER processing: %s",
+                e,
+                exc_info=True,
+            )
+
+        return candidates
+
+    # ------------------------------------------------------------------
+    # GLiNER extraction
+    # ------------------------------------------------------------------
+
+    def _extract_with_gliner(
+        self,
+        text: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract domain-specific entities using GLiNER.
+        """
+
+        if not self.model:
+            return []
+
+        if not text or not text.strip():
+            return []
+
+        candidates: List[Dict[str, Any]] = []
+
+        try:
+            model_text = text[:self.MAX_TEXT_LENGTH]
+
+            entities = self.model.predict_entities(
+                model_text,
+                self.GLINER_LABELS,
+                threshold=self.GLINER_THRESHOLD,
+            )
+
+            for entity in entities:
+                value = self._clean_entity_text(
+                    str(entity.get("text", ""))
+                )
+
+                label = str(
+                    entity.get("label", "")
+                ).strip()
+
+                score = entity.get("score")
+
+                if not value or not label:
+                    continue
+
+                try:
+                    confidence = (
+                        float(score)
+                        if score is not None
+                        else None
+                    )
+                except (TypeError, ValueError):
+                    confidence = None
+
+                candidates.append(
+                    self._candidate(
+                        entity_type=self._normalise_gliner_label(
+                            label
+                        ),
+                        value=value,
+                        source="gliner_ner",
+                        confidence=confidence,
+                    )
+                )
+
+        except Exception as e:
+            logger.error(
+                "Error in GLiNER NER processing: %s",
+                e,
+                exc_info=True,
+            )
+
+        return candidates
+
+    @staticmethod
+    def _normalise_gliner_label(label: str) -> str:
+        """
+        Convert GLiNER labels into stable pipeline entity types.
+
+        Keeping these as readable uppercase identifiers makes the
+        output consistent with the existing regex-based candidates.
+        """
+
+        label_mapping = {
+            "person": "PERSON",
+            "organization": "ORGANIZATION",
+            "drug": "DRUG",
+            "drug quantity": "DRUG_QUANTITY",
+            "drug price": "DRUG_PRICE",
+            "vendor": "VENDOR",
+            "marketplace": "MARKETPLACE",
+            "messaging platform": "MESSAGING_PLATFORM",
+            "username": "USERNAME",
+            "cryptocurrency": "CRYPTOCURRENCY",
+            "cryptocurrency wallet": "CRYPTOCURRENCY_WALLET",
+            "location": "LOCATION",
+            "law enforcement agency": "LAW_ENFORCEMENT_AGENCY",
+            "email address": "EMAIL_ADDRESS",
+            "phone number": "PHONE_NUMBER",
+        }
+
+        return label_mapping.get(
+            label.casefold(),
+            label.upper().replace(" ", "_"),
+        )
+
+    # ------------------------------------------------------------------
+    # Main extraction
+    # ------------------------------------------------------------------
+
+    def extract(
+        self,
+        text: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract all candidate entities from text.
+
+        The selected NER engine handles semantic entities.
+
+        Regex handles deterministic entities such as wallet addresses
+        and phone numbers.
+        """
+
+        if not text or not text.strip():
+            return []
+
+        candidates: List[Dict[str, Any]] = []
+
+        # --------------------------------------------------------------
+        # 1. NER
+        # --------------------------------------------------------------
+
+        if self.extractor_type == "gliner":
+            candidates.extend(
+                self._extract_with_gliner(text)
+            )
+        else:
+            candidates.extend(
+                self._extract_with_spacy(text)
+            )
+
+        # --------------------------------------------------------------
         # 2. Bitcoin addresses
-        # ----------------------------------------------------------
-        seen_btc = set()
+        # --------------------------------------------------------------
 
         for btc in BTC_REGEX.findall(text):
-            if btc in seen_btc:
-                continue
-
-            seen_btc.add(btc)
-
             candidates.append(
                 self._candidate(
                     entity_type="BITCOIN_ADDRESS",
@@ -197,17 +556,11 @@ class EntityExtractor:
                 )
             )
 
-        # ----------------------------------------------------------
+        # --------------------------------------------------------------
         # 3. Ethereum addresses
-        # ----------------------------------------------------------
-        seen_eth = set()
+        # --------------------------------------------------------------
 
         for eth in ETH_REGEX.findall(text):
-            if eth in seen_eth:
-                continue
-
-            seen_eth.add(eth)
-
             candidates.append(
                 self._candidate(
                     entity_type="ETHEREUM_ADDRESS",
@@ -216,10 +569,11 @@ class EntityExtractor:
                 )
             )
 
-        # ----------------------------------------------------------
+        # --------------------------------------------------------------
         # 4. Phone numbers
-        # ----------------------------------------------------------
-        seen_phones = set()
+        # --------------------------------------------------------------
+
+        seen_phone_keys = set()
 
         for match in PHONE_REGEX.finditer(text):
             phone = self._normalise_phone(
@@ -229,10 +583,18 @@ class EntityExtractor:
             if not phone:
                 continue
 
-            if phone in seen_phones:
+            phone_key = re.sub(
+                r"\D",
+                "",
+                phone,
+            )
+
+            if phone_key in seen_phone_keys:
                 continue
 
-            digit_count = self._phone_digit_count(phone)
+            digit_count = self._phone_digit_count(
+                phone
+            )
 
             if digit_count < 10 or digit_count > 15:
                 continue
@@ -245,7 +607,7 @@ class EntityExtractor:
             ):
                 continue
 
-            seen_phones.add(phone)
+            seen_phone_keys.add(phone_key)
 
             candidates.append(
                 self._candidate(
@@ -254,5 +616,19 @@ class EntityExtractor:
                     source="phone_regex",
                 )
             )
+
+        # --------------------------------------------------------------
+        # 5. Deduplicate
+        # --------------------------------------------------------------
+
+        candidates = self._deduplicate_candidates(
+            candidates
+        )
+
+        logger.debug(
+            "Extracted %d candidate entities using %s.",
+            len(candidates),
+            self.extractor_type,
+        )
 
         return candidates

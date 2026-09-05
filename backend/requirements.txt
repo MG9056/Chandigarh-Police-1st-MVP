@@ -42,6 +42,7 @@ langdetect
 spacy
 python-dotenv
 google-genai
+gliner
 # ==== Testing (used by backend/tests/) ====
 pytest==8.3.4
 httpx
