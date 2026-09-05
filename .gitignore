@@ -1,5 +1,9 @@
 DATASETS
 backend/real_data_files/
 backend/real_data/cache/
-__pycache__/ 
-"*.pyc" 
+__pycache__/
+*.pyc
+backend/darknight.db
+.env
+backend/.env
+scratch/

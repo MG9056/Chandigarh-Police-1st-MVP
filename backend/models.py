@@ -164,7 +164,6 @@ class Suspect(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
 
-    # Relationships
     wallets = relationship("CryptoWallet", back_populates="suspect", cascade="all, delete-orphan")
     listings = relationship("DarknetListing", back_populates="suspect")
 
@@ -174,9 +173,9 @@ class CryptoWallet(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     address = Column(String, unique=True, nullable=False, index=True)
-    currency = Column(String, nullable=False, default="BTC", index=True) # BTC, XMR, ETH
+    currency = Column(String, nullable=False, default="BTC", index=True)
     balance = Column(String, nullable=True, default="0.0")
-    risk_level = Column(String, nullable=False, default="UNKNOWN", index=True) # ILLICIT, LICIT, UNKNOWN, SANCTIONED
+    risk_level = Column(String, nullable=False, default="UNKNOWN", index=True)
     associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
 
     suspect = relationship("Suspect", back_populates="wallets")
@@ -191,7 +190,7 @@ class CryptoTransaction(Base):
     tx_hash = Column(String, unique=True, nullable=False, index=True)
     from_address = Column(String, nullable=False, index=True)
     to_address = Column(String, nullable=False, index=True)
-    amount = Column(String, nullable=True, default="UNSPECIFIED") # Elliptic++ edges do not carry amounts
+    amount = Column(String, nullable=True, default="UNSPECIFIED")
     currency = Column(String, nullable=False, default="BTC", index=True)
     timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
 
@@ -203,10 +202,10 @@ class DarknetListing(Base):
     title = Column(String, nullable=False, index=True)
     description = Column(Text, nullable=True)
     vendor_alias = Column(String, nullable=False, index=True)
-    platform = Column(String, nullable=False, default="Agora", index=True) # Agora, Dread, SilkRoad, etc.
-    drug_category = Column(String, nullable=False, index=True) # Cannabis, Opioids, Stimulants, etc.
+    platform = Column(String, nullable=False, default="Agora", index=True)
+    drug_category = Column(String, nullable=False, index=True)
     price = Column(String, nullable=True)
-    currency = Column(String, nullable=True, default="BTC") # Matched to Agora dataset findings
+    currency = Column(String, nullable=True, default="BTC")
     location = Column(String, nullable=True, index=True)
     url = Column(String, nullable=True)
     scraped_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
@@ -234,8 +233,8 @@ class TelegramMessage(Base):
     channel_id = Column(Integer, ForeignKey("telegram_channels.id"), nullable=False, index=True)
     sender_handle = Column(String, nullable=False, index=True)
     message_text = Column(Text, nullable=False)
-    detected_wallets_json = Column(Text, nullable=True)   # JSON list of BTC/XMR regex matches
-    detected_keywords_json = Column(Text, nullable=True)  # JSON list of flagged drug keywords
+    detected_wallets_json = Column(Text, nullable=True)
+    detected_keywords_json = Column(Text, nullable=True)
     timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
 
     channel = relationship("TelegramChannel", back_populates="messages")
@@ -255,8 +254,40 @@ class NetworkTrafficFlow(Base):
     dst_port = Column(Integer, nullable=True)
     protocol = Column(String, nullable=True)
     timestamp_str = Column(String, nullable=True)
-    encapsulation_label = Column(String, nullable=True, index=True) # Tor, VPN, Non-Tor, ZERONET, I2P
-    application_label = Column(String, nullable=True, index=True)   # Chat, P2P, Browsing, File-Transfer
+    encapsulation_label = Column(String, nullable=True, index=True)
+    application_label = Column(String, nullable=True, index=True)
     is_encrypted = Column(Boolean, default=False, index=True)
-    source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
+    source_dataset = Column(String, nullable=False)
+
+
+# Import and expose crawler models for metadata creation
+from crawler.models import (
+    Source,
+    Keyword,
+    CaseKeyword,
+    CrawlerRun,
+    RawRecord,
+    RobotsCache,
+)
+
+__all__ = [
+    "User",
+    "RefreshSession",
+    "InvestigationAccessGrant",
+    "AuditLog",
+    "DataProvenance",
+    "Suspect",
+    "CryptoWallet",
+    "CryptoTransaction",
+    "DarknetListing",
+    "TelegramChannel",
+    "TelegramMessage",
+    "NetworkTrafficFlow",
+    "Source",
+    "Keyword",
+    "CaseKeyword",
+    "CrawlerRun",
+    "RawRecord",
+    "RobotsCache",
+]
 

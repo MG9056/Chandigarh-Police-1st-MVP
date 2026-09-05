@@ -37,6 +37,9 @@ from data.canonical_schema import (
 )
 import data.canonical_schema_extensions as extensions
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Logging setup
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("ingest_ai_router")
@@ -117,15 +120,21 @@ def log_identifier_collision(identifier: str, existing_id: str, source_file: str
 
 
 class HybridClassifier:
-    """Hybrid Classifier using Anthropic API when key is available, heuristic fallback otherwise."""
+    """Hybrid Classifier supporting Google Gemini API, Anthropic API fallback, and Heuristic rule fallback."""
 
     def __init__(self):
-        self.api_key = os.environ.get("ANTHROPIC_API_KEY")
-        self.use_ai = bool(self.api_key)
-        if self.use_ai:
-            logger.info("HybridClassifier: Anthropic API Key detected. Using LLM classification.")
+        self.gemini_key = os.environ.get("GEMINI_API_KEY")
+        self.anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+
+        if self.gemini_key:
+            self.active_mode = "gemini"
+            logger.info("[CLASSIFIER MODE] Using Gemini AI Classifier (Model: gemini-2.5-flash)")
+        elif self.anthropic_key:
+            self.active_mode = "anthropic"
+            logger.info("[CLASSIFIER MODE] GEMINI_API_KEY absent. Using Anthropic AI Classifier")
         else:
-            logger.info("HybridClassifier: ANTHROPIC_API_KEY absent. Using Heuristic Classifier fallback.")
+            self.active_mode = "heuristic"
+            logger.info("[CLASSIFIER MODE] GEMINI_API_KEY & ANTHROPIC_API_KEY absent. Using Heuristic Classifier fallback.")
 
     def classify_batch(self, batch_records: List[Dict[str, Any]], source_file: str) -> List[Tuple[str, Dict[str, Any]]]:
         """
@@ -133,11 +142,17 @@ class HybridClassifier:
         Returns list of tuples: (bucket_type, mapped_data)
         where bucket_type is 'entity', 'transaction', or 'observation'.
         """
-        if self.use_ai:
+        if self.active_mode == "gemini":
+            try:
+                return self._classify_with_gemini(batch_records, source_file)
+            except Exception as e:
+                logger.error(f"Gemini API classification failed ({e}). Falling back to heuristic classifier.", exc_info=True)
+
+        elif self.active_mode == "anthropic":
             try:
                 return self._classify_with_anthropic(batch_records, source_file)
             except Exception as e:
-                logger.error(f"Anthropic API call failed ({e}). Falling back to heuristic classifier.")
+                logger.error(f"Anthropic API classification failed ({e}). Falling back to heuristic classifier.", exc_info=True)
 
         return self._classify_with_heuristic(batch_records, source_file)
 
@@ -215,6 +230,86 @@ class HybridClassifier:
                 results.append(("entity", mapped))
 
         return results
+
+    def _classify_with_gemini(self, batch_records: List[Dict[str, Any]], source_file: str) -> List[Tuple[str, Dict[str, Any]]]:
+        import httpx
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={self.gemini_key}"
+        
+        prompt = f"""
+You are an expert law-enforcement data classification AI for the Dark Knight platform.
+Classify each record into one of three canonical buckets: 'entity', 'transaction', or 'observation'.
+
+Rules:
+1. 'entity': A person, suspect, crypto wallet, darknet listing, channel, account, drone, hardware node, or organization.
+2. 'transaction': A financial transfer, transaction hash, or relationship edge between two entities.
+3. 'observation': Timestamped telemetry event, message, location ping, or flow observation tied to an entity.
+
+For each input record, return a JSON array of items matching this exact schema:
+[
+  {{
+    "bucket": "entity|transaction|observation",
+    "mapped_data": {{
+      "id": "unique string identifier",
+      "type": "entity type string (e.g. suspect, wallet, listing, drone, account)",
+      "identifier": "unique primary identifier string",
+      "display_name": "human readable UI label",
+      "platform": "originating sensor or platform name",
+      "location": "location string or null",
+      "risk_score": 75,
+      "activity_type": "event type string if observation",
+      "entity_id": "target entity ID if observation",
+      "source_entity_id": "source ID if transaction",
+      "target_entity_id": "target ID if transaction",
+      "amount": 0.0,
+      "metadata": {{
+        "any_extra_domain_fields": "value"
+      }}
+    }}
+  }}
+]
+
+Input records to classify:
+{json.dumps(batch_records, indent=2)}
+"""
+
+        payload = {
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }],
+            "generationConfig": {
+                "responseMimeType": "application/json"
+            }
+        }
+
+        logger.info(f"[GEMINI AI REQUEST] Sending {len(batch_records)} records to Gemini API (gemini-2.5-flash)...")
+
+        res = httpx.post(url, json=payload, timeout=30.0)
+        if res.status_code == 200:
+            res_data = res.json()
+            raw_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+            logger.info(f"[GEMINI AI RESPONSE RECEIVED]\n{raw_text}")
+            
+            parsed = json.loads(raw_text)
+            results = []
+            for item in parsed:
+                bucket = item.get("bucket", "entity")
+                mapped = item.get("mapped_data", {})
+                mapped["metadata"] = mapped.get("metadata", {})
+                mapped["metadata"]["classified_by"] = "gemini_ai"
+                
+                # Check for dynamic novel categories
+                ent_type = mapped.get("type", "suspect")
+                if bucket == "entity" and ent_type not in [e.value for e in EntityType] and ent_type not in extensions.DYNAMIC_ENTITY_TYPES:
+                    log_new_category(ent_type, "EntityType", source_file)
+                
+                act_type = mapped.get("activity_type")
+                if bucket == "observation" and act_type and act_type not in extensions.DYNAMIC_ACTIVITY_TYPES:
+                    log_new_category(act_type, "ActivityType", source_file)
+
+                results.append((bucket, mapped))
+            return results
+        else:
+            raise RuntimeError(f"Gemini API error {res.status_code}: {res.text}")
 
     def _classify_with_anthropic(self, batch_records: List[Dict[str, Any]], source_file: str) -> List[Tuple[str, Dict[str, Any]]]:
         import httpx
@@ -466,7 +561,10 @@ def run_full_pipeline_scan():
 
     engine_instance = IngestionEngine()
     for file_path in target_files:
-        engine_instance.process_file(file_path)
+        try:
+            engine_instance.process_file(file_path)
+        except Exception as err:
+            logger.error(f"Error processing file '{file_path}': {err}")
         INGESTION_STATUS["files_processed"] += 1
 
     INGESTION_STATUS["status"] = "completed"
