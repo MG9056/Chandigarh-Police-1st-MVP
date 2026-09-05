@@ -1,9 +1,9 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import pytest
 from fastapi.testclient import TestClient
-
+import json as json_module
 from database import engine, Base, SessionLocal
 from main import app
 from models import User, RoleEnum, AccountStatusEnum
@@ -240,7 +240,7 @@ def test_end_to_end_crawl_flow(setup_db):
             name="Test Seed Source",
             source_type="DIRECT_SEED",
             config={"seed_urls": ["https://example.com/drugs"]},
-            poll_interval_minutes=30,
+            poll_interval_seconds=30,
             crawl_delay_seconds=0.5,
             is_active=True,
         )
@@ -272,7 +272,7 @@ def test_crawler_management_api(auth_headers, setup_db):
             "name": "API Test Source",
             "source_type": "DIRECT_SEED",
             "config": {"seed_urls": ["https://example.com"]},
-            "poll_interval_minutes": 60,
+            "poll_interval_seconds": 60,
             "crawl_delay_seconds": 1.0,
         },
         headers=auth_headers,
@@ -581,3 +581,149 @@ def test_google_discovery_run_crawl_integration(setup_db, monkeypatch):
             flows.DirectHTTPTransport = original_transport
 
     asyncio.run(_inner())
+
+def test_google_discovery_recursive_queue(monkeypatch):
+    monkeypatch.setenv(
+        "TAVILY_API_KEY",
+        "test-tavily-key",
+    )
+
+    collector = GoogleDiscoveryCollector()
+
+    source_config = {
+        "keywords": [
+            "tramadol",
+            "telegram",
+            "vendor",
+        ],
+        "seed_urls": [],
+    }
+
+    queries = []
+
+    class MockTransport:
+        async def post(self, url, json=None):
+            queries.append(json["query"])
+
+            return {
+                "status_code": 200,
+                "text": json_module.dumps({
+                    "results": [
+                        {
+                            "url": "https://example.com/page1",
+                            "title": "Example Tramadol Vendor",
+                            "content": (
+                                "A vendor offering tramadol "
+                                "through Telegram."
+                            ),
+                        },
+                        {
+                            "url": "https://example.org/page2",
+                            "title": "Example Marketplace",
+                            "content": (
+                                "Marketplace content involving "
+                                "tramadol."
+                            ),
+                        },
+                    ]
+                }),
+            }
+
+    transport = MockTransport()
+
+    first_records = asyncio.run(
+        collector.fetch(
+            source_config,
+            transport,
+        )
+    )
+
+    state = source_config["_discovery_state"]
+
+    assert len(first_records) == 2
+    assert len(queries) == 1
+
+    first_query = queries[0]
+
+    assert len(state["seen_urls"]) == 2
+    assert len(state["seen_queries"]) == 1
+    assert len(state["query_queue"]) > 0
+
+    second_records = asyncio.run(
+        collector.fetch(
+            source_config,
+            transport,
+        )
+    )
+
+    assert len(second_records) == 2
+    assert len(queries) == 2
+
+    second_query = queries[1]
+
+    assert second_query != first_query
+
+def test_google_discovery_revisits_url_after_cooldown(
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "TAVILY_API_KEY",
+        "test-tavily-key",
+    )
+
+    collector = GoogleDiscoveryCollector()
+
+    source_config = {
+        "keywords": [
+            "tramadol",
+        ],
+        "seed_urls": [],
+    }
+
+    class MockTransport:
+        async def post(self, url, json=None):
+            return {
+                "status_code": 200,
+                "text": json_module.dumps({
+                    "results": [
+                        {
+                            "url": "https://example.com/page1",
+                            "title": "Tramadol Page",
+                            "content": (
+                                "Example tramadol content."
+                            ),
+                        }
+                    ]
+                }),
+            }
+
+    transport = MockTransport()
+
+    first_records = asyncio.run(
+        collector.fetch(
+            source_config,
+            transport,
+        )
+    )
+
+    assert len(first_records) == 1
+
+    state = source_config["_discovery_state"]
+
+    old_time = (
+        datetime.now(timezone.utc)
+        - timedelta(seconds=61)
+    )
+
+    state["seen_url_times"][
+        "https://example.com/page1"
+    ] = old_time.isoformat()
+
+    second_records = asyncio.run(
+        collector.fetch(
+            source_config,
+            transport,
+        )
+    )
+
+    assert len(second_records) == 1
