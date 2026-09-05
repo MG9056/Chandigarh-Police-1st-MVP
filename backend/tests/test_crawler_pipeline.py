@@ -195,18 +195,76 @@ def test_prefilter_and_relevance_classification():
 
 def test_entity_extractor():
     extractor = EntityExtractor()
-    sample_text = "Vendor John in Chandigarh accepts Bitcoin 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa and Ethereum 0x71C7656EC7ab88b098defB751B7401B5f6d8976F. Contact +919876543210."
+
+    sample_text = (
+        "Vendor John in Chandigarh accepts Bitcoin "
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa and Ethereum "
+        "0x71C7656EC7ab88b098defB751B7401B5f6d8976F. "
+        "Contact +919876543210."
+    )
 
     candidates = extractor.extract(sample_text)
+
     types = [c["type"] for c in candidates]
     values = [c["value"] for c in candidates]
 
     assert "BITCOIN_ADDRESS" in types
-    assert "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" in values
-    assert "ETHEREUM_ADDRESS" in types
-    assert "0x71C7656EC7ab88b098defB751B7401B5f6d8976F" in values
-    assert "PHONE_NUMBER" in types
+    assert (
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        in values
+    )
 
+    assert "ETHEREUM_ADDRESS" in types
+    assert (
+        "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+        in values
+    )
+
+    assert "PHONE_NUMBER" in types
+    assert "+919876543210" in values
+def test_entity_extractor_rejects_numeric_false_positives():
+    extractor = EntityExtractor()
+
+    text = (
+        "Wikipedia statistics: "
+        "123.456.7890 "
+        "and 12.3456789 "
+        "and 2026.09.05. "
+        "No phone number is present here."
+    )
+
+    candidates = extractor.extract(text)
+
+    phone_values = [
+        c["value"]
+        for c in candidates
+        if c["type"] == "PHONE_NUMBER"
+    ]
+
+    assert phone_values == []
+def test_entity_extractor_accepts_common_phone_formats():
+    extractor = EntityExtractor()
+
+    text = (
+        "Contacts: "
+        "+91 9876543210, "
+        "+91-9876543210, "
+        "(202) 555-0123, "
+        "+1 202-555-0123."
+    )
+
+    candidates = extractor.extract(text)
+
+    phone_values = {
+        c["value"]
+        for c in candidates
+        if c["type"] == "PHONE_NUMBER"
+    }
+
+    assert "+91 9876543210" in phone_values
+    assert "+91-9876543210" in phone_values
+    assert "(202) 555-0123" in phone_values
+    assert "+1 202-555-0123" in phone_values
 
 # ----------------------------------------------------
 # C-10: Evidence Provenance Validation
@@ -727,3 +785,390 @@ def test_google_discovery_revisits_url_after_cooldown(
     )
 
     assert len(second_records) == 1
+
+def test_google_discovery_domain_exploration_control(
+    monkeypatch,
+):
+    monkeypatch.setenv(
+        "TAVILY_API_KEY",
+        "test-tavily-key",
+    )
+
+    collector = GoogleDiscoveryCollector()
+
+    source_config = {
+        "keywords": [
+            "tramadol",
+            "telegram",
+        ],
+        "seed_urls": [],
+    }
+
+    class MockTransport:
+        async def post(self, url, json=None):
+            return {
+                "status_code": 200,
+                "text": json_module.dumps({
+                    "results": [
+                        {
+                            "url": "https://site-a.com/page1",
+                            "title": "Site A One",
+                            "content": "Tramadol vendor.",
+                        },
+                        {
+                            "url": "https://site-a.com/page2",
+                            "title": "Site A Two",
+                            "content": "Telegram vendor.",
+                        },
+                        {
+                            "url": "https://site-a.com/page3",
+                            "title": "Site A Three",
+                            "content": "Another vendor.",
+                        },
+                        {
+                            "url": "https://site-b.com/page1",
+                            "title": "Site B One",
+                            "content": "Tramadol listing.",
+                        },
+                    ]
+                }),
+            }
+
+    transport = MockTransport()
+
+    records = asyncio.run(
+        collector.fetch(
+            source_config,
+            transport,
+        )
+    )
+
+    assert len(records) == 3
+
+    domains = [
+        collector._get_domain(record["url"])
+        for record in records
+    ]
+
+    assert domains.count("site-a.com") == 2
+    assert domains.count("site-b.com") == 1
+
+def test_llm_relevance_classifier_empty_text():
+    classifier = LLMRelevanceClassifier(
+        api_key="test-key",
+        model="gemini-3.6-flash",
+    )
+
+    result = asyncio.run(
+        classifier.classify("")
+    )
+
+    assert result.label == "unrelated"
+    assert result.confidence == 1.0
+    assert result.indicators == []
+
+def test_llm_relevance_classifier_gemini_response(
+    monkeypatch,
+):
+    classifier = LLMRelevanceClassifier(
+        api_key="test-key",
+        model="gemini-3.6-flash",
+    )
+
+    class MockResponse:
+        text = json_module.dumps(
+        {
+    "label": "relevant",
+    "confidence": 0.94,
+    "reasoning": (
+        "The content describes an illicit transaction."
+    ),
+    "indicators": [
+        "vendor",
+        "telegram",
+    ],
+    "entities": [
+        {
+            "type": "PERSON",
+            "value": "John Doe",
+            "role": "vendor",
+            "confidence": 0.91,
+        },
+        {
+            "type": "DRUG",
+            "value": "tramadol",
+            "role": "substance",
+            "confidence": 0.99,
+        },
+    ],
+    "relationships": [
+        {
+            "subject": "John Doe",
+            "relation": "OFFERS",
+            "object": "tramadol",
+            "confidence": 0.93,
+        },
+    ],
+})
+
+    class MockModels:
+        async def generate_content(
+            self,
+            model,
+            contents,
+            config,
+        ):
+            assert model == "gemini-3.6-flash"
+            assert "tramadol" in contents.lower()
+            assert "telegram" in contents.lower()
+
+            return MockResponse()
+
+    class MockAio:
+        def __init__(self):
+            self.models = MockModels()
+
+    classifier.client.aio = MockAio()
+
+    result = asyncio.run(
+    classifier.classify(
+        "A vendor offers tramadol through Telegram.",
+        ["tramadol", "telegram"],
+        [
+            {
+                "type": "PERSON",
+                "value": "John Doe",
+                "confidence": 0.85,
+            },
+            {
+                "type": "DRUG",
+                "value": "tramadol",
+                "confidence": 0.95,
+            },
+        ],
+    )
+)
+
+    assert result.label == "relevant"
+    assert result.confidence == 0.94
+    
+    assert result.reasoning == (
+        "The content describes an illicit transaction."
+    )
+    assert "vendor" in result.indicators
+    assert result.indicators == [
+        "vendor",
+        "telegram",
+    ]
+
+    assert result.structured_intelligence["entities"][0]["type"] == "PERSON"
+    assert result.structured_intelligence["entities"][0]["role"] == "vendor"
+
+    assert result.structured_intelligence["entities"][1]["type"] == "DRUG"
+    assert result.structured_intelligence["entities"][1]["value"] == "tramadol"
+
+    assert (
+        result.structured_intelligence["relationships"][0]["subject"]
+        == "John Doe"
+    )
+
+    assert (
+        result.structured_intelligence["relationships"][0]["relation"]
+        == "OFFERS"
+    )
+
+    assert (
+        result.structured_intelligence["relationships"][0]["object"]
+        == "tramadol"
+    )
+
+def test_llm_relevance_classifier_fallback_without_key():
+    classifier = LLMRelevanceClassifier(
+        api_key="",
+        model="gemini-3.6-flash",
+    )
+
+    result = asyncio.run(
+        classifier.classify(
+            "A vendor offers tramadol through Telegram.",
+            ["tramadol", "telegram"],
+        )
+    )
+
+    assert result.label == "relevant"
+    assert result.confidence < 0.8
+
+def test_llm_receives_extracted_candidates(monkeypatch):
+    monkeypatch.setenv(
+        "LLM_API_KEY",
+        "test-key",
+    )
+    monkeypatch.setenv(
+        "LLM_MODEL",
+        "gemini-3.6-flash",
+    )
+
+    classifier = LLMRelevanceClassifier(
+        api_key="test-key",
+        model="gemini-3.6-flash",
+    )
+
+    captured = {}
+
+    class MockResponse:
+        text = json_module.dumps({
+            "label": "relevant",
+            "confidence": 0.92,
+            "reasoning": "The source indicates illicit drug activity.",
+            "indicators": [
+                "vendor",
+                "telegram",
+            ],
+            "entities": [
+                {
+                    "type": "DRUG",
+                    "value": "tramadol",
+                    "role": "substance",
+                    "confidence": 0.98,
+                }
+            ],
+            "relationships": [],
+        })
+
+    class MockModels:
+        async def generate_content(
+            self,
+            model,
+            contents,
+            config,
+        ):
+            captured["prompt"] = contents
+            return MockResponse()
+
+    class MockAio:
+        def __init__(self):
+            self.models = MockModels()
+
+    classifier.client.aio = MockAio()
+
+    candidates = [
+        {
+            "type": "DRUG",
+            "value": "tramadol",
+            "confidence": 0.95,
+        },
+        {
+            "type": "PHONE_NUMBER",
+            "value": "+91 9876543210",
+            "confidence": 0.90,
+        },
+    ]
+
+    result = asyncio.run(
+        classifier.classify(
+            "A vendor offers tramadol through Telegram.",
+            ["tramadol", "telegram"],
+            candidates,
+        )
+    )
+
+    assert "Machine-extracted candidate entities" in captured["prompt"]
+    assert "tramadol" in captured["prompt"]
+    assert "+91 9876543210" in captured["prompt"]
+
+    assert result.label == "relevant"
+    assert result.confidence == 0.92
+    assert result.structured_intelligence["entities"][0]["type"] == "DRUG"
+
+def test_raw_record_stores_structured_intelligence(setup_db):
+    raw_record = RawRecord(
+        url="https://example.com/test",
+        fetched_at=datetime.now(timezone.utc),
+        raw_text="Test content",
+        cleaned_text="Test content",
+        content_hash="test-structured-intelligence-hash",
+        language="en",
+        matched_keywords=["tramadol"],
+        relevance_label="relevant",
+        relevance_confidence=0.95,
+        relevance_reasoning="Test reasoning.",
+        extracted_candidates=[],
+        structured_intelligence={
+            "entities": [
+                {
+                    "type": "DRUG",
+                    "value": "tramadol",
+                    "role": "substance",
+                    "confidence": 0.99,
+                }
+            ],
+            "relationships": [
+                {
+                    "subject": "Vendor A",
+                    "relation": "OFFERS",
+                    "object": "tramadol",
+                    "confidence": 0.91,
+                }
+            ],
+        },
+        status="pending_mapping",
+    )
+
+    setup_db.add(raw_record)
+    setup_db.commit()
+    setup_db.refresh(raw_record)
+
+    assert raw_record.structured_intelligence is not None
+    assert (
+        raw_record.structured_intelligence["entities"][0]["value"]
+        == "tramadol"
+    )
+    assert (
+        raw_record.structured_intelligence["relationships"][0]["relation"]
+        == "OFFERS"
+    )
+def test_entity_extractor():
+    extractor = EntityExtractor()
+
+    sample_text = (
+        "Vendor John in Chandigarh accepts Bitcoin "
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa and Ethereum "
+        "0x71C7656EC7ab88b098defB751B7401B5f6d8976F. "
+        "Contact +919876543210."
+    )
+
+    candidates = extractor.extract(sample_text)
+
+    types = [c["type"] for c in candidates]
+    values = [c["value"] for c in candidates]
+
+    assert "BITCOIN_ADDRESS" in types
+    assert (
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+        in values
+    )
+
+    assert "ETHEREUM_ADDRESS" in types
+    assert (
+        "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+        in values
+    )
+
+    assert "PHONE_NUMBER" in types
+    assert "+919876543210" in values
+
+    assert all(
+        candidate["confidence"] is None
+        for candidate in candidates
+    )
+
+    assert all(
+        candidate["confidence_source"]
+        in {
+            "spacy_ner",
+            "bitcoin_regex",
+            "ethereum_regex",
+            "phone_regex",
+        }
+        for candidate in candidates
+    )

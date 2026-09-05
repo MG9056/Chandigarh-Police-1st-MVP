@@ -49,6 +49,7 @@ def list_raw_records(
                 "relevance_confidence": float(r.relevance_confidence) if r.relevance_confidence else None,
                 "relevance_reasoning": r.relevance_reasoning,
                 "extracted_candidates": r.extracted_candidates,
+                "structured_intelligence": r.structured_intelligence,
                 "status": r.status,
                 "created_at": r.created_at.isoformat() if r.created_at else None,
             }
