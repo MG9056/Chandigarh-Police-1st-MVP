@@ -405,16 +405,9 @@ Important rules:
             )
 
         except Exception as exc:
-            logger.error(
-                f"Gemini relevance classification failed: {exc}",
-                exc_info=True,
-            )
-
-            return self._fallback_classify(
-                text,
-                matched_keywords,
-            )
-
+            logger.error(f"Gemini relevance classification failed: {exc}", exc_info=True)
+            return self._fallback_classify(text, matched_keywords)
+    
     @staticmethod
     def _build_prompt(
         text: str,
