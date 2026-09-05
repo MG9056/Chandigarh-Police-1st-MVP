@@ -21,7 +21,7 @@ from crawler.pipeline.entity_extractor import EntityExtractor
 from crawler.evidence.tagging import EvidenceTagger
 
 logger = logging.getLogger(__name__)
-
+extractor = EntityExtractor()
 
 async def run_crawl(
     source_id: str,
@@ -120,7 +120,6 @@ async def run_crawl(
         )
 
         classifier = LLMRelevanceClassifier()
-        extractor = EntityExtractor()
 
         # 5. Process each record through pipeline
         for rec in fetched_records:

@@ -1428,6 +1428,10 @@ def test_entity_extractor():
     types = [c["type"] for c in candidates]
     values = [c["value"] for c in candidates]
 
+    # --------------------------------------------------------------
+    # Deterministic regex entities
+    # --------------------------------------------------------------
+
     assert "BITCOIN_ADDRESS" in types
     assert (
         "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
@@ -1443,19 +1447,38 @@ def test_entity_extractor():
     assert "PHONE_NUMBER" in types
     assert "+919876543210" in values
 
-    assert all(
-        candidate["confidence"] is None
-        for candidate in candidates
-    )
+    # --------------------------------------------------------------
+    # GLiNER entities
+    # --------------------------------------------------------------
+
+    assert "PERSON" in types
+    assert "John" in values
+
+    assert "LOCATION" in types
+    assert "Chandigarh" in values
+
+    assert "CRYPTOCURRENCY" in types
+    assert "Bitcoin" in values
+
+    # --------------------------------------------------------------
+    # Confidence/source validation
+    # --------------------------------------------------------------
+
+    for candidate in candidates:
+        if candidate["confidence_source"] == "gliner_ner":
+            assert candidate["confidence"] is not None
+            assert 0.0 <= candidate["confidence"] <= 1.0
+
+        else:
+            assert candidate["confidence"] is None
 
     assert all(
         candidate["confidence_source"]
         in {
-            "spacy_ner",
+            "gliner_ner",
             "bitcoin_regex",
             "ethereum_regex",
             "phone_regex",
         }
         for candidate in candidates
     )
-
