@@ -387,15 +387,24 @@ class GoogleDiscoveryCollector(BaseCollector):
                                 f"results for query: {query}"
                             )
 
+                            domain_results_this_cycle = {}
+
                             for result in results:
                                 discovered_url = result.get("url")
 
                                 if not discovered_url:
                                     continue
 
-                                # Do not reprocess the exact same URL.
+                                domain = self._get_domain(discovered_url)
+
+                                if not domain:
+                                    continue
+
                                 now = datetime.now(timezone.utc)
 
+                                # ---------------------------------------------------------
+                                # URL-level revisit cooldown
+                                # ---------------------------------------------------------
                                 last_seen_raw = state.get(
                                     "seen_url_times",
                                     {}
@@ -422,14 +431,72 @@ class GoogleDiscoveryCollector(BaseCollector):
                                     except (ValueError, TypeError):
                                         pass
 
-                                state["seen_url_times"][discovered_url] = (
-                                    now.isoformat()
+                                # ---------------------------------------------------------
+                                # Domain-level revisit cooldown
+                                # ---------------------------------------------------------
+                                domain_last_seen_raw = state.get(
+                                    "domain_last_seen",
+                                    {}
+                                ).get(domain)
+
+                                if domain_last_seen_raw:
+                                    try:
+                                        domain_last_seen = datetime.fromisoformat(
+                                            domain_last_seen_raw
+                                        )
+
+                                        if domain_last_seen.tzinfo is None:
+                                            domain_last_seen = domain_last_seen.replace(
+                                                tzinfo=timezone.utc
+                                            )
+
+                                        domain_age_seconds = (
+                                            now - domain_last_seen
+                                        ).total_seconds()
+
+                                        if domain_age_seconds < self.DOMAIN_REVISIT_COOLDOWN_SECONDS:
+                                            continue
+
+                                    except (ValueError, TypeError):
+                                        pass
+
+                                # ---------------------------------------------------------
+                                # Limit results from one domain in this cycle
+                                # ---------------------------------------------------------
+                                domain_count = domain_results_this_cycle.get(
+                                    domain,
+                                    0
                                 )
+
+                                if domain_count >= self.MAX_RESULTS_PER_DOMAIN_PER_CYCLE:
+                                    continue
+
+                                # ---------------------------------------------------------
+                                # Accept this result
+                                # ---------------------------------------------------------
+                                state.setdefault(
+                                    "seen_url_times",
+                                    {}
+                                )[discovered_url] = now.isoformat()
+
+                                state.setdefault(
+                                    "domain_last_seen",
+                                    {}
+                                )[domain] = now.isoformat()
 
                                 if discovered_url not in state["seen_urls"]:
                                     state["seen_urls"].append(
                                         discovered_url
                                     )
+
+                                if domain not in state["seen_domains"]:
+                                    state["seen_domains"].append(
+                                        domain
+                                    )
+
+                                domain_results_this_cycle[domain] = (
+                                    domain_count + 1
+                                )
 
                                 title = result.get("title", "")
                                 content = result.get("content", "")
@@ -443,23 +510,19 @@ class GoogleDiscoveryCollector(BaseCollector):
                                         f"<p>{content}</p>"
                                         f"</body></html>"
                                     ),
-                                    "source": (
-                                        "tavily_recursive_discovery"
-                                    ),
+                                    "source": "tavily_recursive_discovery",
                                 }
 
                                 discovered_records.append(
                                     discovered_record
                                 )
 
-                                # Generate future searches based on
-                                # this newly discovered page.
+                                # Generate future discovery queries from this result.
                                 self._generate_follow_up_queries(
                                     state,
                                     result,
                                     keywords,
                                 )
-
                         else:
                             logger.warning(
                                 f"Tavily API returned status "
