@@ -25,7 +25,8 @@ class GoogleDiscoveryCollector(BaseCollector):
     4. Generates follow-up queries from newly discovered pages/domains.
     5. Persists the updated discovery state through source_config.
     """
-
+    DOMAIN_REVISIT_COOLDOWN_SECONDS = 60
+    MAX_RESULTS_PER_DOMAIN_PER_CYCLE = 2
     MAX_QUERY_QUEUE = 50
     MAX_SEEN_QUERIES = 500
     MAX_SEEN_URLS = 2000
@@ -253,6 +254,7 @@ class GoogleDiscoveryCollector(BaseCollector):
             "seen_urls": [],
             "seen_url_times": {},
             "seen_domains": [],
+            "domain_last_seen": {},
             "cycles": 0,
         }
         )
@@ -262,6 +264,7 @@ class GoogleDiscoveryCollector(BaseCollector):
         state.setdefault("seen_urls", [])
         state.setdefault("seen_url_times", {})
         state.setdefault("seen_domains", [])
+        state.setdefault("domain_last_seen", {})
         state.setdefault("cycles", 0)
 
         if not state["query_queue"] and not state["seen_queries"]:
