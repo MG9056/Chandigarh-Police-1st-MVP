@@ -4,11 +4,19 @@
 DATASETS/
 backend/real_data_files/
 backend/real_data/cache/
+.env
+backend/.env
+scratch/
 
 # ==============================
 # Environment / secrets
 # ==============================
 backend/.env
+backend/darknight.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # ==============================
 # Local database

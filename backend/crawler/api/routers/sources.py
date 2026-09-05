@@ -4,7 +4,10 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+
 from datetime import datetime, timezone
+
 
 from database import get_db
 from models import User
@@ -20,7 +23,11 @@ class SourceCreate(BaseModel):
     name: str
     source_type: str
     config: Dict[str, Any] = {}
+
+    poll_interval_minutes: int = 60
+
     poll_interval_seconds: int = 60
+
     crawl_delay_seconds: float = 1.0
     transport_type: str = "direct"
 

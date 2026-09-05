@@ -1458,3 +1458,4 @@ def test_entity_extractor():
         }
         for candidate in candidates
     )
+
