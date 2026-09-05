@@ -260,6 +260,105 @@ class NetworkTrafficFlow(Base):
 
     source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
 # Import and expose crawler models for metadata creation
+
+class Investigation(Base):
+    """
+    Core Investigation entity for Step 1.
+
+    Design notes:
+    - `investigation_id` (string) matches existing delegation system's investigation_id
+    - `id` (integer) is the primary key for FK relationships
+    - `unit` is a string (free-form) for now; Step 2 will add District/PoliceStation FKs
+    - `status` is one of: OPEN, ACTIVE, CLOSED
+    - `priority` is 1-4: Low, Medium, High, Critical
+
+    Future Steps 2-3 will add relationships to:
+    - Keywords (via investigation-specific keyword association)
+    - Sources/Crawlers (via source assignment)
+    - Raw Intelligence Records (via evidence/findings)
+    - Audit Activity Timeline (via audit system integration)
+    - Entity Graph (via entity correlation)
+    - Geographic Hotspots (via geo signals)
+    """
+    __tablename__ = "investigations"
+
+    # Identifier & Metadata
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(String, unique=True, index=True, nullable=False)  # User-facing case number
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    case_type = Column(String, nullable=True)  # E.g., "Drug Trafficking", "Financial Crime"
+
+    # Status & Priority
+    status = Column(String, nullable=False, default="OPEN")  # OPEN, ACTIVE, CLOSED
+    priority = Column(Integer, nullable=False, default=2)  # 1=Low, 2=Medium, 3=High, 4=Critical
+
+    # Personnel
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    lead_investigator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    closed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Jurisdiction (Step 1: just string to match User.unit; Step 2+ will add FK to District/PoliceStation)
+    unit = Column(String, nullable=True)  # Free-form unit/district string, matches User.unit
+
+    # Lifecycle
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    closure_reason = Column(String, nullable=True)
+    closure_notes = Column(Text, nullable=True)
+
+    # Relationships
+    created_by = relationship("User", foreign_keys=[created_by_id], lazy="joined")
+    lead_investigator = relationship("User", foreign_keys=[lead_investigator_id], lazy="joined")
+    closed_by = relationship("User", foreign_keys=[closed_by_id], lazy="joined")
+    assignments = relationship("InvestigationAssignment", back_populates="investigation", cascade="all, delete-orphan", lazy="joined")
+
+    __table_args__ = (
+        Index("idx_investigation_status_priority", "status", "priority"),
+        Index("idx_investigation_lead", "lead_investigator_id"),
+        Index("idx_investigation_unit", "unit"),
+    )
+
+    def __str__(self):
+        return f"Investigation({self.investigation_id}: {self.title})"
+
+
+class InvestigationAssignment(Base):
+    """
+    Tracks investigator assignments to investigations.
+
+    Supports:
+    - Multiple investigators assigned to one investigation
+    - Audit trail of who assigned whom and when
+    - Removal of investigators (soft-delete via removed_at)
+
+    Step 1 only tracks assignments. Step 3 will integrate with activity timeline.
+    """
+    __tablename__ = "investigation_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    assigned_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    removed_at = Column(DateTime(timezone=True), nullable=True)  # Soft-delete
+
+    # Relationships
+    investigation = relationship("Investigation", back_populates="assignments")
+    assigned_to = relationship("User", foreign_keys=[assigned_to_id], lazy="joined")
+    assigned_by = relationship("User", foreign_keys=[assigned_by_id], lazy="joined")
+
+    __table_args__ = (
+        Index("idx_assignment_investigation_user", "investigation_id", "assigned_to_id"),
+        Index("idx_assignment_active", "investigation_id", "removed_at"),
+    )
+
+    def __str__(self):
+        return f"Assignment({self.assigned_to_id} -> Investigation {self.investigation_id})"
+
+
+# Import and expose crawler models so Base.metadata.create_all() creates their tables
 from crawler.models import (
     Source,
     Keyword,
@@ -270,6 +369,7 @@ from crawler.models import (
 )
 
 __all__ = [
+    # Core application models
     "User",
     "RefreshSession",
     "InvestigationAccessGrant",
@@ -282,6 +382,10 @@ __all__ = [
     "TelegramChannel",
     "TelegramMessage",
     "NetworkTrafficFlow",
+    # Investigation management models (Step 1)
+    "Investigation",
+    "InvestigationAssignment",
+    # Crawler subsystem models
     "Source",
     "Keyword",
     "CaseKeyword",
@@ -289,4 +393,3 @@ __all__ = [
     "RawRecord",
     "RobotsCache",
 ]
-

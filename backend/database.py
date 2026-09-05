@@ -29,7 +29,9 @@ def get_db():
 
 def init_db():
     """
-    Creates all database tables defined in models.py, canonical_schema.py, and crawler models, and seeds initial accounts.
+
+    Creates all database tables defined in the application and crawler models,
+    then seeds the initial DGP admin, Inspector, and IGP accounts.
     """
     
     import models  # Ensures existing application models are registered with Base
@@ -38,7 +40,7 @@ def init_db():
 
     Base.metadata.create_all(bind=engine)
 
-    # Seed initial DGP Super Admin & Inspector accounts if not present
+    # Seed/upsert DGP Admin, Inspector, and IGP accounts
     db = SessionLocal()
     try:
         from models import User, RoleEnum, AccountStatusEnum
@@ -108,3 +110,28 @@ def init_db():
     finally:
         db.close()
 
+    # Seed sample investigation for testing (investigation management step 1)
+    db = SessionLocal()
+    try:
+        from models import User, Investigation
+        dgp_user = db.query(User).filter(User.email == "dgp@chandigarhpolice.gov.in").first()
+        sample_inv = db.query(Investigation).filter(Investigation.investigation_id == "TEST-2026-001").first()
+        if not sample_inv and dgp_user:
+            sample_inv = Investigation(
+                investigation_id="TEST-2026-001",
+                title="Sample Investigation (For Testing)",
+                description="This is a test investigation created during database initialization.",
+                case_type="Testing",
+                status="OPEN",
+                priority=2,
+                created_by_id=dgp_user.id,
+                lead_investigator_id=dgp_user.id,
+                unit="All"
+            )
+            db.add(sample_inv)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print("Sample investigation seed error:", e)
+    finally:
+        db.close()

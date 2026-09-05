@@ -29,12 +29,14 @@ from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
+from routers.investigation_router import router as investigation_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
 crawler_scheduler = CrawlerScheduler()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -81,7 +83,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     return response
 
-# Include Routers
+# Include Routers — Security & Investigation (our branch)
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(reauth_router)
@@ -89,6 +91,9 @@ app.include_router(delegation_router)
 app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
 app.include_router(search_router)
+app.include_router(investigation_router)
+
+# Include Routers — Crawler subsystem (upstream/main branch)
 app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)

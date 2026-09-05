@@ -12,6 +12,11 @@ scratch/
 # Environment / secrets
 # ==============================
 backend/.env
+backend/darknight.db
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # ==============================
 # Local database
