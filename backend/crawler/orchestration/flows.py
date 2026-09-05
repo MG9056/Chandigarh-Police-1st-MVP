@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 import logging
 import uuid
 from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from crawler.models.source import Source
@@ -60,7 +59,6 @@ async def run_crawl(
         started_at=datetime.now(timezone.utc),
         triggered_by=triggered_by,
     )
-
     db.add(run)
     db.commit()
 
@@ -318,69 +316,3 @@ async def run_crawl(
 
     return run
 
-def test_google_discovery_domain_exploration_control(
-    monkeypatch,
-):
-    monkeypatch.setenv(
-        "TAVILY_API_KEY",
-        "test-tavily-key",
-    )
-
-    collector = GoogleDiscoveryCollector()
-
-    source_config = {
-        "keywords": [
-            "tramadol",
-            "telegram",
-        ],
-        "seed_urls": [],
-    }
-
-    class MockTransport:
-        async def post(self, url, json=None):
-            return {
-                "status_code": 200,
-                "text": json_module.dumps({
-                    "results": [
-                        {
-                            "url": "https://site-a.com/page1",
-                            "title": "Site A One",
-                            "content": "Tramadol vendor.",
-                        },
-                        {
-                            "url": "https://site-a.com/page2",
-                            "title": "Site A Two",
-                            "content": "Telegram vendor.",
-                        },
-                        {
-                            "url": "https://site-a.com/page3",
-                            "title": "Site A Three",
-                            "content": "Another vendor.",
-                        },
-                        {
-                            "url": "https://site-b.com/page1",
-                            "title": "Site B One",
-                            "content": "Tramadol listing.",
-                        },
-                    ]
-                }),
-            }
-
-    transport = MockTransport()
-
-    records = asyncio.run(
-        collector.fetch(
-            source_config,
-            transport,
-        )
-    )
-
-    assert len(records) == 3
-
-    domains = [
-        collector._get_domain(record["url"])
-        for record in records
-    ]
-
-    assert domains.count("site-a.com") == 2
-    assert domains.count("site-b.com") == 1

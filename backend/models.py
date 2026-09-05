@@ -135,7 +135,230 @@ class DataProvenance(Base):
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
 
+# --- Helper Functions ---
+
+def time_step_to_timestamp(time_step: int) -> datetime:
+    """
+    Maps Elliptic++ discrete time_step integers (1..49) to concrete UTC datetimes.
+    Formula: Base epoch (2019-01-01T00:00:00Z) + (time_step - 1) * 2 weeks.
+    (Elliptic dataset timesteps represent ~2-week observation windows starting early 2019).
+    """
+    from datetime import timedelta
+    base_epoch = datetime(2019, 1, 1, tzinfo=timezone.utc)
+    step = max(1, time_step)
+    return base_epoch + timedelta(weeks=2 * (step - 1))
+
+# --- Domain & Intelligence Models for Project Dark Knight ---
+
+class Suspect(Base):
+    __tablename__ = "suspects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    primary_alias = Column(String, nullable=False, index=True)
+    aliases_json = Column(Text, nullable=True)          # JSON list of known handles/aliases
+    pgp_fingerprint = Column(String, nullable=True, index=True)
+    phone_number = Column(String, nullable=True, index=True)
+    telegram_handle = Column(String, nullable=True, index=True)
+    risk_score = Column(Integer, default=50, index=True) # Risk score (0-100)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+    wallets = relationship("CryptoWallet", back_populates="suspect", cascade="all, delete-orphan")
+    listings = relationship("DarknetListing", back_populates="suspect")
+
+
+class CryptoWallet(Base):
+    __tablename__ = "crypto_wallets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    address = Column(String, unique=True, nullable=False, index=True)
+    currency = Column(String, nullable=False, default="BTC", index=True)
+    balance = Column(String, nullable=True, default="0.0")
+    risk_level = Column(String, nullable=False, default="UNKNOWN", index=True)
+    associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
+
+    suspect = relationship("Suspect", back_populates="wallets")
+    outgoing_txs = relationship("CryptoTransaction", foreign_keys="[CryptoTransaction.from_address]", primaryjoin="CryptoWallet.address==CryptoTransaction.from_address")
+    incoming_txs = relationship("CryptoTransaction", foreign_keys="[CryptoTransaction.to_address]", primaryjoin="CryptoWallet.address==CryptoTransaction.to_address")
+
+
+class CryptoTransaction(Base):
+    __tablename__ = "crypto_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tx_hash = Column(String, unique=True, nullable=False, index=True)
+    from_address = Column(String, nullable=False, index=True)
+    to_address = Column(String, nullable=False, index=True)
+    amount = Column(String, nullable=True, default="UNSPECIFIED")
+    currency = Column(String, nullable=False, default="BTC", index=True)
+    timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+
+
+class DarknetListing(Base):
+    __tablename__ = "darknet_listings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    vendor_alias = Column(String, nullable=False, index=True)
+    platform = Column(String, nullable=False, default="Agora", index=True)
+    drug_category = Column(String, nullable=False, index=True)
+    price = Column(String, nullable=True)
+    currency = Column(String, nullable=True, default="BTC")
+    location = Column(String, nullable=True, index=True)
+    url = Column(String, nullable=True)
+    scraped_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+    associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
+
+    suspect = relationship("Suspect", back_populates="listings")
+
+
+class TelegramChannel(Base):
+    __tablename__ = "telegram_channels"
+
+    id = Column(Integer, primary_key=True, index=True)
+    channel_id = Column(String, unique=True, nullable=False, index=True)
+    channel_name = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    member_count = Column(Integer, default=0)
+
+    messages = relationship("TelegramMessage", back_populates="channel", cascade="all, delete-orphan")
+
+
+class TelegramMessage(Base):
+    __tablename__ = "telegram_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    channel_id = Column(Integer, ForeignKey("telegram_channels.id"), nullable=False, index=True)
+    sender_handle = Column(String, nullable=False, index=True)
+    message_text = Column(Text, nullable=False)
+    detected_wallets_json = Column(Text, nullable=True)
+    detected_keywords_json = Column(Text, nullable=True)
+    timestamp = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
+
+    channel = relationship("TelegramChannel", back_populates="messages")
+
+
+class NetworkTrafficFlow(Base):
+    """
+    Stores ingested flow analytics from Daksh's dataset collection (Darknet.CSV, Binary, MultiTotal).
+    """
+    __tablename__ = "network_traffic_flows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    flow_id = Column(String, nullable=False, index=True)
+    src_ip = Column(String, nullable=False, index=True)
+    src_port = Column(Integer, nullable=True)
+    dst_ip = Column(String, nullable=False, index=True)
+    dst_port = Column(Integer, nullable=True)
+    protocol = Column(String, nullable=True)
+    timestamp_str = Column(String, nullable=True)
+    encapsulation_label = Column(String, nullable=True, index=True)
+    application_label = Column(String, nullable=True, index=True)
+    is_encrypted = Column(Boolean, default=False, index=True)
+
+    source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
 # Import and expose crawler models for metadata creation
+
+class Investigation(Base):
+    """
+    Core Investigation entity for Step 1.
+
+    Design notes:
+    - `investigation_id` (string) matches existing delegation system's investigation_id
+    - `id` (integer) is the primary key for FK relationships
+    - `unit` is a string (free-form) for now; Step 2 will add District/PoliceStation FKs
+    - `status` is one of: OPEN, ACTIVE, CLOSED
+    - `priority` is 1-4: Low, Medium, High, Critical
+
+    Future Steps 2-3 will add relationships to:
+    - Keywords (via investigation-specific keyword association)
+    - Sources/Crawlers (via source assignment)
+    - Raw Intelligence Records (via evidence/findings)
+    - Audit Activity Timeline (via audit system integration)
+    - Entity Graph (via entity correlation)
+    - Geographic Hotspots (via geo signals)
+    """
+    __tablename__ = "investigations"
+
+    # Identifier & Metadata
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(String, unique=True, index=True, nullable=False)  # User-facing case number
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    case_type = Column(String, nullable=True)  # E.g., "Drug Trafficking", "Financial Crime"
+
+    # Status & Priority
+    status = Column(String, nullable=False, default="OPEN")  # OPEN, ACTIVE, CLOSED
+    priority = Column(Integer, nullable=False, default=2)  # 1=Low, 2=Medium, 3=High, 4=Critical
+
+    # Personnel
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    lead_investigator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    closed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Jurisdiction (Step 1: just string to match User.unit; Step 2+ will add FK to District/PoliceStation)
+    unit = Column(String, nullable=True)  # Free-form unit/district string, matches User.unit
+
+    # Lifecycle
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    closure_reason = Column(String, nullable=True)
+    closure_notes = Column(Text, nullable=True)
+
+    # Relationships
+    created_by = relationship("User", foreign_keys=[created_by_id], lazy="joined")
+    lead_investigator = relationship("User", foreign_keys=[lead_investigator_id], lazy="joined")
+    closed_by = relationship("User", foreign_keys=[closed_by_id], lazy="joined")
+    assignments = relationship("InvestigationAssignment", back_populates="investigation", cascade="all, delete-orphan", lazy="joined")
+
+    __table_args__ = (
+        Index("idx_investigation_status_priority", "status", "priority"),
+        Index("idx_investigation_lead", "lead_investigator_id"),
+        Index("idx_investigation_unit", "unit"),
+    )
+
+    def __str__(self):
+        return f"Investigation({self.investigation_id}: {self.title})"
+
+
+class InvestigationAssignment(Base):
+    """
+    Tracks investigator assignments to investigations.
+
+    Supports:
+    - Multiple investigators assigned to one investigation
+    - Audit trail of who assigned whom and when
+    - Removal of investigators (soft-delete via removed_at)
+
+    Step 1 only tracks assignments. Step 3 will integrate with activity timeline.
+    """
+    __tablename__ = "investigation_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    assigned_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    removed_at = Column(DateTime(timezone=True), nullable=True)  # Soft-delete
+
+    # Relationships
+    investigation = relationship("Investigation", back_populates="assignments")
+    assigned_to = relationship("User", foreign_keys=[assigned_to_id], lazy="joined")
+    assigned_by = relationship("User", foreign_keys=[assigned_by_id], lazy="joined")
+
+    __table_args__ = (
+        Index("idx_assignment_investigation_user", "investigation_id", "assigned_to_id"),
+        Index("idx_assignment_active", "investigation_id", "removed_at"),
+    )
+
+    def __str__(self):
+        return f"Assignment({self.assigned_to_id} -> Investigation {self.investigation_id})"
+
+
+# Import and expose crawler models so Base.metadata.create_all() creates their tables
 from crawler.models import (
     Source,
     Keyword,
@@ -146,11 +369,23 @@ from crawler.models import (
 )
 
 __all__ = [
+    # Core application models
     "User",
     "RefreshSession",
     "InvestigationAccessGrant",
     "AuditLog",
     "DataProvenance",
+    "Suspect",
+    "CryptoWallet",
+    "CryptoTransaction",
+    "DarknetListing",
+    "TelegramChannel",
+    "TelegramMessage",
+    "NetworkTrafficFlow",
+    # Investigation management models (Step 1)
+    "Investigation",
+    "InvestigationAssignment",
+    # Crawler subsystem models
     "Source",
     "Keyword",
     "CaseKeyword",
@@ -158,4 +393,3 @@ __all__ = [
     "RawRecord",
     "RobotsCache",
 ]
-
