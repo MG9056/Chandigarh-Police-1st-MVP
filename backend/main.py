@@ -1,31 +1,66 @@
-from fastapi import FastAPI, Request, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-
-load_dotenv()
+import asyncio
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 
-from database import init_db
-from models import User
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+load_dotenv()
+
+from database import init_db, get_db
+from models import (
+    User,
+    Suspect,
+    CryptoWallet,
+    DarknetListing,
+    TelegramMessage,
+    TelegramChannel,
+    NetworkTrafficFlow,
+)
+from crawler.orchestration.scheduler import CrawlerScheduler
+from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+
 from routers.auth_router import router as auth_router, get_current_user
 from routers.admin_router import router as admin_router
 from routers.reauth_router import router as reauth_router
 from routers.delegation_router import router as delegation_router
 from routers.audit_router import router as audit_router
 from routers.evidence_provenance_router import router as evidence_provenance_router
+from routers.search_router import router as search_router
+from routers.investigation_router import router as investigation_router
+from routers.alerts_router import router as alerts_router
+
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
-from routers.alerts_router import router as alerts_router
+
+crawler_scheduler = CrawlerScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    yield
+
+    asyncio.create_task(start_background_ingestion_task())
+
+    scheduler_task = asyncio.create_task(
+        crawler_scheduler.start()
+    )
+
+    try:
+        yield
+    finally:
+        crawler_scheduler.stop()
+        scheduler_task.cancel()
+
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(
     title="DarKnight API",
@@ -52,17 +87,23 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     return response
 
-# Include Routers
+# Include Routers — Security & Investigation
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(reauth_router)
 app.include_router(delegation_router)
 app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
+app.include_router(search_router)
+app.include_router(investigation_router)
+
+# Include Routers — Crawler subsystem
 app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
+
+# Include Routers — Alerts & Suspicious Activity
 app.include_router(alerts_router)
 
 
@@ -77,12 +118,33 @@ def load_db():
 def read_root():
     return {"status": "ok", "message": "Welcome to DarKnight API"}
 
+@app.get("/api/ingestion-status")
+def get_ingestion_status(current_user: User = Depends(get_current_user)):
+    from pipelines.ingest_ai_router import INGESTION_STATUS
+    return INGESTION_STATUS
+
 @app.get("/api/dashboard/summary")
-def get_dashboard_summary(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    summary = db.get("dashboard_summary", {})
-    summary["last_update"] = datetime.now().isoformat()
-    return summary
+def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    total_suspects = db.query(Suspect).count()
+    critical_alerts = db.query(Suspect).filter(Suspect.risk_score >= 80).count()
+    total_wallets = db.query(CryptoWallet).count()
+    total_listings = db.query(DarknetListing).count()
+    total_messages = db.query(TelegramMessage).count()
+    total_channels = db.query(TelegramChannel).count()
+    total_flows = db.query(NetworkTrafficFlow).count()
+
+    return {
+        "active_investigations": total_suspects,
+        "critical_alerts": critical_alerts,
+        "sources_monitored": 4,
+        "total_suspects": total_suspects,
+        "total_wallets": total_wallets,
+        "total_listings": total_listings,
+        "total_telegram_messages": total_messages,
+        "total_telegram_channels": total_channels,
+        "total_network_traffic_flows": total_flows,
+        "last_update": datetime.now(timezone.utc).isoformat()
+    }
 
 @app.get("/api/data-sources")
 @app.get("/api/data-collection/status")

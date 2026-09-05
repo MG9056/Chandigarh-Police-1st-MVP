@@ -139,7 +139,7 @@ id                  UUID PRIMARY KEY DEFAULT gen_random_uuid()
 name                TEXT NOT NULL
 source_type         TEXT NOT NULL            -- matches Source Types table
 config              JSONB NOT NULL           -- query terms, base_url, api params, etc.
-poll_interval_minutes INTEGER NOT NULL DEFAULT 60
+poll_interval_seconds INTEGER NOT NULL DEFAULT 60
 crawl_delay_seconds  NUMERIC DEFAULT 1.0      -- per-domain adjustable crawl intensity
 is_active           BOOLEAN DEFAULT true
 transport_type      TEXT DEFAULT 'direct'    -- 'direct' | 'tor_proxy' (future)
@@ -378,7 +378,7 @@ ttl_hours   INTEGER DEFAULT 24
 
 **Build:**
 - Prefect flow `run_crawl(source_id, case_id)` — resolves the right collector via `CollectorRegistry`, pulls active keywords for `case_id`, runs fetch → clean → dedup → relevance filter → classify → extract → tag, writes `raw_records`
-- Scheduler triggers flows per `source.poll_interval_minutes`, one flow instance per active `(source, case)` pairing
+- Scheduler triggers flows per `source.poll_interval_seconds`, one flow instance per active `(source, case)` pairing
 - Manual trigger via API creates a flow run outside the schedule, tagged `triggered_by`
 
 **Test:** Assert two concurrent flow runs for different cases don't leak keyword scope into each other's queries. Assert a manually triggered run is correctly tagged and doesn't duplicate a concurrently scheduled run for the same source/case.
