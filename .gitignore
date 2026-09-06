@@ -2,9 +2,17 @@
 # Dataset / real data
 # ==============================
 DATASETS/
-backend/real_data_files/
 backend/real_data/cache/
 scratch/
+
+# ==============================
+# Stray root-level crawler output (path bug artifact, kept locally, not tracked)
+# ==============================
+/real_data_files/
+
+# Stray local debug artifacts
+netstat
+startup_err.log
 
 # ==============================
 # Environment / secrets
@@ -47,3 +55,5 @@ Thumbs.db
 
 .idea/
 .vscode/
+
+backend/identifier_collisions.log

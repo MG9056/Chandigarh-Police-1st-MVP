@@ -46,6 +46,15 @@ def ingest_agora_sample(db: Session) -> int:
             created_suspects += 1
         vendor_suspect_map[v_alias] = suspect.id
 
+    # Deduplication: load existing (vendor_alias, title) pairs so repeated
+    # runs of this function (triggered by db_sync.py) never create duplicates.
+    existing_keys: set[tuple[str, str]] = set(
+        db.query(DarknetListing.vendor_alias, DarknetListing.title)
+        .filter(DarknetListing.platform == "Agora")
+        .all()
+    )
+    print(f"[ingest_agora] {len(existing_keys)} Agora listings already in DB — will skip those.")
+
     listings = []
     for idx, row in df.iterrows():
         vendor = str(row.get("Vendor", "UnknownVendor")).strip()
@@ -53,6 +62,10 @@ def ingest_agora_sample(db: Session) -> int:
         title = str(row.get("Item", f"Listing #{idx+1}")).strip()
         price = str(row.get("Price", "0.0 BTC")).strip()
         location = str(row.get("Origin", "Worldwide")).strip()
+
+        # Skip if this (vendor_alias, title) pair is already in DB
+        if (vendor, title) in existing_keys:
+            continue
 
         suspect_id = vendor_suspect_map.get(vendor)
 
@@ -69,8 +82,10 @@ def ingest_agora_sample(db: Session) -> int:
             scraped_at=utc_now(),
             associated_suspect_id=suspect_id
         ))
+        existing_keys.add((vendor, title))  # prevent intra-batch duplicates too
 
-    db.bulk_save_objects(listings)
+    if listings:
+        db.bulk_save_objects(listings)
 
     prov = DataProvenance(
         source_type="Darknet Marketplace",
@@ -83,7 +98,7 @@ def ingest_agora_sample(db: Session) -> int:
     db.add(prov)
     db.commit()
 
-    print(f"[ingest_agora] Successfully ingested {len(listings)} DarknetListing records into database (linked to {created_suspects} vendor Suspects).")
+    print(f"[ingest_agora] Successfully ingested {len(listings)} new DarknetListing records (linked to {created_suspects} new vendor Suspects).")
     return len(listings)
 
 def run_ingestion(db: Session = None):

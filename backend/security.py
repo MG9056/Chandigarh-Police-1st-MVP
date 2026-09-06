@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-import jwt
+import jwt  # PyJWT — jwt/ directory is installed by the PyJWT package
 import hashlib
 import secrets
 import string

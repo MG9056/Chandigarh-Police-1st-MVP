@@ -1,42 +1,28 @@
 # ==== Web framework / server ====
-fastapi==0.135.2
-uvicorn[standard]==0.42.0
-pydantic==2.12.5
-email-validator==2.3.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+email-validator>=2.2.0
 
 # Database and Security
-SQLAlchemy==2.0.48
-alembic==1.19.1
-passlib==1.7.4
-bcrypt==5.0.0
-PyJWT==2.13.0
-pyotp==2.10.0
-
-email-validator==2.2.0        # needed for pydantic's EmailStr (used in signup/login schemas)
-fastapi
-uvicorn[standard]
-pydantic
-
-# Database and Security
-SQLAlchemy
-alembic
-passlib
-bcrypt
-PyJWT
-pyotp
-email-validator
-
+SQLAlchemy>=2.0.0
+alembic>=1.13.0
+passlib>=1.7.4
+bcrypt>=4.0.0
+PyJWT>=2.8.0
+pyotp>=2.9.0
 
 # AI / Ingestion Engine
-google-generativeai==0.8.6
-requests==2.33.0
+google-generativeai>=0.8.0
+requests>=2.31.0
 
-# Real-data pipeline (backend/real_data/)
+# ==== Real-data pipeline (backend/real_data/) ====
 pandas
 pyarrow
 networkx
+rapidfuzz
 
-# Crawler Pipeline (specs/crawler-pipeline-prd.md)
+# ==== Crawler Pipeline ====
 trafilatura
 langdetect
 spacy
@@ -44,5 +30,8 @@ python-dotenv
 google-genai
 gliner
 # ==== Testing (used by backend/tests/) ====
-pytest==8.3.4
+pytest>=8.0.0
 httpx
+
+# ==== Testing ====
+pytest==8.3.4

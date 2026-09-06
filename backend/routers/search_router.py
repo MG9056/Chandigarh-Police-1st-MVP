@@ -11,6 +11,20 @@ from entity_resolution import username_similarity
 
 router = APIRouter(prefix="/api", tags=["Search & Intelligence Domain"])
 
+
+def _platform_mentions(suspect: Suspect) -> list:
+    if not suspect.platform_mentions:
+        return []
+    try:
+        parsed = json.loads(suspect.platform_mentions)
+        return parsed if isinstance(parsed, list) else [str(parsed)]
+    except json.JSONDecodeError:
+        return [suspect.platform_mentions]
+
+
+def _data_origin(suspect: Suspect) -> str:
+    return suspect.data_origin or "base_dataset"
+
 @router.get("/search/universal")
 def universal_search(
     q: str = Query("", description="Search query string"),
@@ -49,6 +63,12 @@ def universal_search(
             match_reason = "Telegram Handle Match"
         elif s.pgp_fingerprint and q_lower in s.pgp_fingerprint.lower():
             match_reason = "PGP Fingerprint Match"
+        elif s.phone_number and q_lower in s.phone_number.lower():
+            match_reason = "Phone Number Match"
+        elif s.last_known_location and q_lower in s.last_known_location.lower():
+            match_reason = "Location Match"
+        elif s.platform_mentions and q_lower in s.platform_mentions.lower():
+            match_reason = "Platform Mention Match"
         else:
             # Fuzzy match check
             sim = username_similarity(query_str, s.primary_alias)
@@ -64,6 +84,13 @@ def universal_search(
                 "aliases": aliases_list,
                 "telegram_handle": s.telegram_handle,
                 "pgp_fingerprint": s.pgp_fingerprint,
+                "phone_number": s.phone_number,
+                "last_known_location": s.last_known_location,
+                "platform_mentions": _platform_mentions(s),
+                "enrichment_summary": s.enrichment_summary,
+                "enrichment_source_count": s.enrichment_source_count or 0,
+                "last_enriched_at": s.last_enriched_at.isoformat() if s.last_enriched_at else None,
+                "data_origin": _data_origin(s),
                 "risk_score": s.risk_score,
                 "risk_level": risk_lvl,
                 "notes": s.notes,
@@ -206,7 +233,11 @@ def list_suspects(
         query = query.filter(
             (Suspect.primary_alias.ilike(f"%{q_clean}%")) |
             (Suspect.aliases_json.ilike(f"%{q_clean}%")) |
-            (Suspect.telegram_handle.ilike(f"%{q_clean}%"))
+            (Suspect.telegram_handle.ilike(f"%{q_clean}%")) |
+            (Suspect.phone_number.ilike(f"%{q_clean}%")) |
+            (Suspect.last_known_location.ilike(f"%{q_clean}%")) |
+            (Suspect.platform_mentions.ilike(f"%{q_clean}%")) |
+            (Suspect.enrichment_summary.ilike(f"%{q_clean}%"))
         )
 
     total = query.count()
@@ -229,6 +260,13 @@ def list_suspects(
             "aliases": aliases_list,
             "telegram_handle": s.telegram_handle,
             "pgp_fingerprint": s.pgp_fingerprint,
+            "phone_number": s.phone_number,
+            "last_known_location": s.last_known_location,
+            "platform_mentions": _platform_mentions(s),
+            "enrichment_summary": s.enrichment_summary,
+            "enrichment_source_count": s.enrichment_source_count or 0,
+            "last_enriched_at": s.last_enriched_at.isoformat() if s.last_enriched_at else None,
+            "data_origin": _data_origin(s),
             "risk_score": s.risk_score,
             "risk_level": risk_lvl,
             "notes": s.notes or "Monitored threat actor entity.",
@@ -307,6 +345,12 @@ def get_suspect_detail(
         "telegram_handle": suspect.telegram_handle,
         "pgp_fingerprint": suspect.pgp_fingerprint,
         "phone_number": suspect.phone_number,
+        "last_known_location": suspect.last_known_location,
+        "platform_mentions": _platform_mentions(suspect),
+        "enrichment_summary": suspect.enrichment_summary,
+        "enrichment_source_count": suspect.enrichment_source_count or 0,
+        "last_enriched_at": suspect.last_enriched_at.isoformat() if suspect.last_enriched_at else None,
+        "data_origin": _data_origin(suspect),
         "risk_score": suspect.risk_score,
         "risk_level": risk_lvl,
         "notes": suspect.notes or "Monitored threat actor entity.",

@@ -31,21 +31,29 @@ from routers.delegation_router import router as delegation_router
 from routers.audit_router import router as audit_router
 from routers.evidence_provenance_router import router as evidence_provenance_router
 from routers.search_router import router as search_router
+from crawler_to_dataset_updater import start_crawler_dataset_updater
 from routers.investigation_router import router as investigation_router
 from routers.alerts_router import router as alerts_router
+from routers.investigation_sources_router import router as investigation_sources_router
+from routers.investigation_intelligence_router import router as investigation_intelligence_router
+from routers.investigation_keywords_router import router as investigation_keywords_router
 
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
+
+
 crawler_scheduler = CrawlerScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # --- Startup ---
     init_db()
 
-    asyncio.create_task(start_background_ingestion_task())
+
+    asyncio.create_task(start_crawler_dataset_updater(poll_interval_seconds=60))
 
     scheduler_task = asyncio.create_task(
         crawler_scheduler.start()
@@ -96,15 +104,17 @@ app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
 app.include_router(search_router)
 app.include_router(investigation_router)
+app.include_router(alerts_router)
+app.include_router(investigation_sources_router)
+app.include_router(investigation_intelligence_router)
+app.include_router(investigation_keywords_router)
+
 
 # Include Routers — Crawler subsystem
 app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
-
-# Include Routers — Alerts & Suspicious Activity
-app.include_router(alerts_router)
 
 
 def load_db():
