@@ -190,3 +190,24 @@ def check_investigation_assignment_authority(user: User, investigation: Investig
             return True
 
     return False
+
+
+def can_review_investigation_intelligence(user: User, investigation: Investigation, db: Session) -> bool:
+    """Wrapper around check_investigation_modification_access_v2 for review operations."""
+    return check_investigation_modification_access_v2(user, investigation, db)
+
+
+def can_manage_investigation_sources(user: User, investigation: Investigation, db: Session) -> bool:
+    """Wrapper around check_investigation_modification_access_v2 for source management."""
+    return check_investigation_modification_access_v2(user, investigation, db)
+
+
+def can_manage_investigation_keywords(user: User, investigation: Investigation, db: Session) -> bool:
+    """Wrapper around check_investigation_modification_access_v2 for keyword management."""
+    return check_investigation_modification_access_v2(user, investigation, db)
+
+
+def can_trigger_investigation_source(user: User, investigation: Investigation, db: Session) -> bool:
+    """Wrapper around check_investigation_modification_access_v2 for crawl triggering."""
+    return check_investigation_modification_access_v2(user, investigation, db)
+

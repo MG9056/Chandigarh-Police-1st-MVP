@@ -53,7 +53,7 @@ export default function SearchInvestigation() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('Search by BTC address, vendor alias, handle, drug category, or keyword (e.g. Alpha, SUEX, bc1, opioids)...')}
+            placeholder={t('Search by alias, phone, location, platform handle, BTC address, vendor, or keyword...')}
             className="w-full pl-10 pr-4 py-3 rounded-lg border bg-card text-card-foreground shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-xs font-mono"
           />
         </div>
@@ -105,6 +105,9 @@ export default function SearchInvestigation() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-foreground">{s.primary_alias}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${s.data_origin?.includes('crawler_enriched') ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                          {s.data_origin?.includes('crawler_enriched') ? 'Crawler enriched' : 'Base dataset'}
+                        </span>
                         {s.telegram_handle && <span className="text-[10px] bg-cyan-500/10 text-cyan-500 px-2 py-0.5 rounded-full font-mono">{s.telegram_handle}</span>}
                       </div>
                       <p className="text-[11px] text-muted-foreground">{s.notes}</p>
@@ -115,6 +118,7 @@ export default function SearchInvestigation() {
                         Risk: {s.risk_score} ({s.risk_level})
                       </span>
                       <p className="text-[10px] text-muted-foreground mt-1">Wallets: {s.wallets_count} | Listings: {s.listings_count}</p>
+                      {s.enrichment_source_count > 0 && <p className="text-[10px] text-emerald-400 mt-1">Enriched from {s.enrichment_source_count} crawler source{s.enrichment_source_count === 1 ? '' : 's'}</p>}
                     </div>
                   </div>
                 ))}

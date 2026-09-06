@@ -43,7 +43,6 @@ def setup_senior_officer():
     yield officer
 
     db.close()
-    Base.metadata.drop_all(bind=engine)
 
 def test_audit_metadata_sanitization():
     raw_meta = {
