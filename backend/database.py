@@ -40,6 +40,8 @@ def init_db():
 
     Base.metadata.create_all(bind=engine)
     _migrate_suspect_enrichment_columns()
+    _migrate_data_provenances_columns()
+    _migrate_darknet_listing_columns()
 
     # Seed/upsert DGP Admin, Inspector, and IGP accounts
     db = SessionLocal()
@@ -110,6 +112,40 @@ def init_db():
 
     finally:
         db.close()
+
+
+def _migrate_data_provenances_columns():
+    """Add Step 3 evidence promotion columns to data_provenances without dropping existing table."""
+    inspector = inspect(engine)
+    if "data_provenances" not in inspector.get_table_names():
+        return
+
+    existing = {column["name"] for column in inspector.get_columns("data_provenances")}
+    columns = {
+        "finding_id": "INTEGER",
+        "raw_record_id": "VARCHAR",
+        "promoted_by_id": "INTEGER",
+        "promoted_at": "DATETIME",
+    }
+    with engine.begin() as connection:
+        for name, definition in columns.items():
+            if name not in existing:
+                connection.execute(text(f"ALTER TABLE data_provenances ADD COLUMN {name} {definition}"))
+
+
+def _migrate_darknet_listing_columns():
+    """Add listing fields to databases created before the listing refactor."""
+    inspector = inspect(engine)
+    if "darknet_listings" not in inspector.get_table_names():
+        return
+
+    existing = {column["name"] for column in inspector.get_columns("darknet_listings")}
+    with engine.begin() as connection:
+        if "listing_id" not in existing:
+            connection.execute(text("ALTER TABLE darknet_listings ADD COLUMN listing_id VARCHAR"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_darknet_listings_listing_id ON darknet_listings (listing_id)"))
+        if "description" not in existing:
+            connection.execute(text("ALTER TABLE darknet_listings ADD COLUMN description TEXT"))
 
 
 def _migrate_suspect_enrichment_columns():
