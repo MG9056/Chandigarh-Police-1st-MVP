@@ -90,6 +90,18 @@ class RawRecord(Base):
         nullable=True,
     )
 
+    # Structured output produced by the LLM.
+    #
+    # Example:
+    # {
+    #     "entities": [...],
+    #     "relationships": [...]
+    # }
+    structured_intelligence: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
     status: Mapped[str] = mapped_column(
         String,
         nullable=False,

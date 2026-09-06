@@ -38,6 +38,17 @@ class AccountStatusEnum:
     SUSPENDED = "SUSPENDED"
     REJECTED = "REJECTED"
 
+class InvestigationFindingStatus:
+    """Valid review statuses for InvestigationFinding."""
+    PENDING_REVIEW = "PENDING_REVIEW"
+    RELEVANT = "RELEVANT"
+    DISMISSED = "DISMISSED"
+
+    @classmethod
+    def all_values(cls):
+        return [cls.PENDING_REVIEW, cls.RELEVANT, cls.DISMISSED]
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -364,6 +375,71 @@ class InvestigationAssignment(Base):
         return f"Assignment({self.assigned_to_id} -> Investigation {self.investigation_id})"
 
 
+class InvestigationSource(Base):
+    """
+    Association table: which global Source objects are attached to which Investigation.
+
+    Allows investigations to reuse sources without making sources investigation-specific.
+    Soft-deleted via removed_at to preserve audit trail.
+    """
+    __tablename__ = "investigation_sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    source_id = Column(String, nullable=False, index=True)  # UUID string matching Source.id
+    added_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    added_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    removed_at = Column(DateTime(timezone=True), nullable=True)  # Soft-delete: when detached
+
+    # Relationships
+    investigation = relationship("Investigation", lazy="joined")
+    added_by = relationship("User", foreign_keys=[added_by_id], lazy="joined")
+
+    __table_args__ = (
+        Index("idx_investigation_source", "investigation_id", "source_id"),
+        Index("idx_investigation_sources_active", "investigation_id", "removed_at"),
+    )
+
+    def __str__(self):
+        return f"InvestigationSource({self.investigation_id} -> {self.source_id})"
+
+
+class InvestigationFinding(Base):
+    """
+    Investigator review decision on a RawRecord within an investigation.
+
+    One row per (investigation, raw_record) pair.
+    Upsert on review: if finding already exists, update status+notes.
+
+    Important: RawRecord is immutable crawler output.
+    Finding is investigator's decision (can be changed).
+    """
+    __tablename__ = "investigation_findings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    raw_record_id = Column(String, nullable=False, index=True)  # RawRecord.id (UUID string)
+    review_status = Column(String, nullable=False, default="PENDING_REVIEW")
+    # VALID VALUES: "PENDING_REVIEW", "RELEVANT", "DISMISSED"
+    review_notes = Column(Text, nullable=True)
+    reviewed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+    # Relationships
+    investigation = relationship("Investigation", lazy="joined")
+    reviewed_by = relationship("User", foreign_keys=[reviewed_by_id], lazy="joined")
+
+    __table_args__ = (
+        Index("idx_investigation_finding", "investigation_id", "raw_record_id"),
+        Index("idx_investigation_findings_status", "investigation_id", "review_status"),
+    )
+
+    def __str__(self):
+        return f"InvestigationFinding({self.investigation_id} / {self.raw_record_id} -> {self.review_status})"
+
+
 # Import and expose crawler models so Base.metadata.create_all() creates their tables
 from crawler.models import (
     Source,
@@ -388,9 +464,12 @@ __all__ = [
     "TelegramChannel",
     "TelegramMessage",
     "NetworkTrafficFlow",
-    # Investigation management models (Step 1)
+    # Investigation management models (Step 1 & Step 2)
     "Investigation",
     "InvestigationAssignment",
+    "InvestigationFindingStatus",
+    "InvestigationSource",
+    "InvestigationFinding",
     # Crawler subsystem models
     "Source",
     "Keyword",
@@ -399,3 +478,4 @@ __all__ = [
     "RawRecord",
     "RobotsCache",
 ]
+

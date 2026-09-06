@@ -23,12 +23,17 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from crawler_to_dataset_updater import start_crawler_dataset_updater
 from pipelines.ingest_ai_router import INGESTION_STATUS
+
+from routers.investigation_router import router as investigation_router
+from routers.investigation_sources_router import router as investigation_sources_router
+from routers.investigation_intelligence_router import router as investigation_intelligence_router
+from routers.investigation_keywords_router import router as investigation_keywords_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
-from routers.investigation_router import router as investigation_router
+
 
 crawler_scheduler = CrawlerScheduler()
 
@@ -36,16 +41,24 @@ crawler_scheduler = CrawlerScheduler()
 async def lifespan(app: FastAPI):
     # --- Startup ---
     init_db()
-    scheduler_task = asyncio.create_task(crawler_scheduler.start())
+
+
     asyncio.create_task(start_crawler_dataset_updater(poll_interval_seconds=60))
-    yield
-    # --- Shutdown ---
-    crawler_scheduler.stop()
-    scheduler_task.cancel()
+
+    scheduler_task = asyncio.create_task(
+        crawler_scheduler.start()
+    )
+
     try:
-        await scheduler_task
-    except asyncio.CancelledError:
-        pass
+        yield
+    finally:
+        crawler_scheduler.stop()
+        scheduler_task.cancel()
+
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(
     title="DarKnight API",
@@ -81,6 +94,10 @@ app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
 app.include_router(search_router)
 app.include_router(investigation_router)
+app.include_router(investigation_sources_router)
+app.include_router(investigation_intelligence_router)
+app.include_router(investigation_keywords_router)
+
 
 # Include Routers — Crawler subsystem (upstream/main branch)
 app.include_router(sources_router)
