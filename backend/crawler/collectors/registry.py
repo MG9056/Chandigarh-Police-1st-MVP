@@ -5,6 +5,7 @@ from .direct_seed import DirectSeedCollector
 from .bitcoin import BitcoinChainCollector
 from .telegram import TelegramPublicCollector
 from .tor_stub import TorStubCollector
+from .police_api import PoliceAPICollector
 
 
 class CollectorRegistry:
@@ -19,6 +20,7 @@ class CollectorRegistry:
         "BITCOIN_CHAIN": BitcoinChainCollector,
         "TELEGRAM_PUBLIC": TelegramPublicCollector,
         "TOR_STUB": TorStubCollector,
+        "POLICE_API": PoliceAPICollector,
     }
 
     @classmethod
