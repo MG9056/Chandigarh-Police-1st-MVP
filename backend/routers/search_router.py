@@ -8,6 +8,7 @@ from database import get_db
 from models import User, Suspect, CryptoWallet, DarknetListing, TelegramMessage, TelegramChannel
 from routers.auth_router import get_current_user
 from entity_resolution import username_similarity
+from semantic_search import SemanticIndex
 
 router = APIRouter(prefix="/api", tags=["Search & Intelligence Domain"])
 
@@ -24,6 +25,92 @@ def _platform_mentions(suspect: Suspect) -> list:
 
 def _data_origin(suspect: Suspect) -> str:
     return suspect.data_origin or "base_dataset"
+
+
+def _semantic_matches(query_str: str, category: str, db: Session) -> list[dict]:
+    category_types = {
+        "suspects": {"suspect"},
+        "wallets": {"wallet"},
+        "listings": {"listing"},
+        "telegram": {"telegram"},
+        "all": {"suspect", "wallet", "listing", "telegram"},
+    }
+    try:
+        return SemanticIndex().search(
+            query_str,
+            source_types=category_types.get(category.lower(), category_types["all"]),
+            top_k=50,
+        )
+    except Exception:
+        # Search must remain available when an optional AI provider is down.
+        return []
+
+
+def _append_semantic_matches(query_str: str, category: str, db: Session,
+                             suspects_results: list, wallets_results: list,
+                             listings_results: list, telegram_results: list) -> None:
+    existing = {
+        ("suspect", str(item["id"])) for item in suspects_results
+    } | {
+        ("wallet", str(item["id"])) for item in wallets_results
+    } | {
+        ("listing", str(item["id"])) for item in listings_results
+    } | {
+        ("telegram", str(item["id"])) for item in telegram_results
+    }
+    minimum_score = float(__import__("os").environ.get("SEMANTIC_SEARCH_MIN_SCORE", "0.65"))
+
+    for match in _semantic_matches(query_str, category, db):
+        if match["score"] < minimum_score or (match["source_type"], match["source_id"]) in existing:
+            continue
+        source_type = match["source_type"]
+        source_id = int(match["source_id"])
+        reason = f"Semantic similarity ({int(match['score'] * 100)}%)"
+        if source_type == "suspect":
+            record = db.query(Suspect).filter(Suspect.id == source_id).first()
+            if record:
+                aliases = json.loads(record.aliases_json) if record.aliases_json else [record.primary_alias]
+                suspects_results.append({"id": record.id, "primary_alias": record.primary_alias,
+                    "aliases": aliases, "telegram_handle": record.telegram_handle,
+                    "pgp_fingerprint": record.pgp_fingerprint, "phone_number": record.phone_number,
+                    "last_known_location": record.last_known_location, "platform_mentions": _platform_mentions(record),
+                    "enrichment_summary": record.enrichment_summary, "enrichment_source_count": record.enrichment_source_count or 0,
+                    "last_enriched_at": record.last_enriched_at.isoformat() if record.last_enriched_at else None,
+                    "data_origin": _data_origin(record), "risk_score": record.risk_score,
+                    "risk_level": "Critical" if record.risk_score >= 80 else ("High" if record.risk_score >= 70 else "Medium"),
+                    "notes": record.notes, "match_reason": reason,
+                    "wallets_count": len(record.wallets) if record.wallets else 0,
+                    "listings_count": len(record.listings) if record.listings else 0})
+        elif source_type == "wallet":
+            record = db.query(CryptoWallet).filter(CryptoWallet.id == source_id).first()
+            if record:
+                wallets_results.append({"id": record.id, "address": record.address, "currency": record.currency,
+                    "balance": record.balance, "risk_level": record.risk_level,
+                    "associated_suspect_id": record.associated_suspect_id,
+                    "associated_suspect_alias": record.suspect.primary_alias if record.suspect else None,
+                    "outgoing_txs_count": len(record.outgoing_txs) if record.outgoing_txs else 0,
+                    "incoming_txs_count": len(record.incoming_txs) if record.incoming_txs else 0,
+                    "match_reason": reason})
+        elif source_type == "listing":
+            record = db.query(DarknetListing).filter(DarknetListing.id == source_id).first()
+            if record:
+                listings_results.append({"id": record.id, "title": record.title, "vendor_alias": record.vendor_alias,
+                    "platform": record.platform, "drug_category": record.drug_category, "price": record.price,
+                    "currency": record.currency, "location": record.location,
+                    "associated_suspect_id": record.associated_suspect_id,
+                    "scraped_at": record.scraped_at.isoformat() if record.scraped_at else None,
+                    "match_reason": reason})
+        elif source_type == "telegram":
+            record = db.query(TelegramMessage).filter(TelegramMessage.id == source_id).first()
+            if record:
+                wallets = json.loads(record.detected_wallets_json) if record.detected_wallets_json else []
+                keywords = json.loads(record.detected_keywords_json) if record.detected_keywords_json else []
+                telegram_results.append({"id": record.id, "channel_id": record.channel_id,
+                    "channel_name": record.channel.channel_name if record.channel else f"Channel #{record.channel_id}",
+                    "sender_handle": record.sender_handle, "message_text": record.message_text,
+                    "detected_wallets": wallets, "detected_keywords": keywords,
+                    "timestamp": record.timestamp.isoformat() if record.timestamp else None,
+                    "match_reason": reason})
 
 @router.get("/search/universal")
 def universal_search(
@@ -188,6 +275,11 @@ def universal_search(
                 "timestamp": m.timestamp.isoformat() if m.timestamp else None,
                 "match_reason": match_reason
             })
+
+    _append_semantic_matches(
+        query_str, category or "all", db,
+        suspects_results, wallets_results, listings_results, telegram_results,
+    )
 
     cat_lower = (category or "all").lower()
     if cat_lower == "suspects":

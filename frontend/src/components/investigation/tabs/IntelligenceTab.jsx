@@ -3,6 +3,7 @@ import { listInvestigationIntelligence, getIntelligenceDetail, reviewIntelligenc
 import { Button } from '../../ui/button';
 import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, Eye, ThumbsUp, ThumbsDown, ArrowLeft, RefreshCw, FileText } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function IntelligenceTab({ investigationId, canManage }) {
   const { triggerReAuth } = useAuth();
@@ -14,19 +15,26 @@ export default function IntelligenceTab({ investigationId, canManage }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [viewMode, setViewMode] = useState('all'); // all, RELEVANT, DISMISSED, PENDING_REVIEW
+  const [intelligenceQuery, setIntelligenceQuery] = useState('');
+  const [activeQuery, setActiveQuery] = useState('');
   const [reviewNotes, setReviewNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadIntelligence();
-  }, [investigationId, viewMode]);
+  }, [investigationId, viewMode, activeQuery]);
+
+  const handleIntelligenceSearch = (event) => {
+    event.preventDefault();
+    setActiveQuery(intelligenceQuery);
+  };
 
   const loadIntelligence = async () => {
     setLoading(true);
     setError('');
     try {
       const statusFilter = viewMode !== 'all' ? viewMode : null;
-      const data = await listInvestigationIntelligence(investigationId, statusFilter);
+      const data = await listInvestigationIntelligence(investigationId, statusFilter, 0, 50, activeQuery);
       setRecords(data.records || []);
     } catch (err) {
       setError(err.message);
@@ -200,6 +208,19 @@ export default function IntelligenceTab({ investigationId, canManage }) {
       </div>
 
       <div className="flex gap-1.5 flex-wrap">
+
+              <form onSubmit={handleIntelligenceSearch} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input
+                    value={intelligenceQuery}
+                    onChange={(event) => setIntelligenceQuery(event.target.value)}
+                    placeholder="Search this investigation by meaning or exact text..."
+                    className="w-full bg-background border border-border/60 rounded px-8 py-1.5 text-xs"
+                  />
+                </div>
+                <Button type="submit" size="sm" className="h-8 text-xs">Search</Button>
+              </form>
         {['all', 'PENDING_REVIEW', 'RELEVANT', 'DISMISSED'].map((st) => (
           <Button
             key={st}
