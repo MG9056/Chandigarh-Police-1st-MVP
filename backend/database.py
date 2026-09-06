@@ -41,7 +41,9 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     _migrate_suspect_enrichment_columns()
     _migrate_data_provenances_columns()
+
     _migrate_darknet_listing_columns()
+
 
     # Seed/upsert DGP Admin, Inspector, and IGP accounts
     db = SessionLocal()
@@ -146,6 +148,8 @@ def _migrate_darknet_listing_columns():
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_darknet_listings_listing_id ON darknet_listings (listing_id)"))
         if "description" not in existing:
             connection.execute(text("ALTER TABLE darknet_listings ADD COLUMN description TEXT"))
+
+
 
 
 def _migrate_suspect_enrichment_columns():

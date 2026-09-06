@@ -4,8 +4,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User
-from rbac import require_permission, Permission, check_investigation_modification_access
+from models import User, Investigation
+from rbac import require_permission, Permission, check_investigation_modification_access, check_investigation_modification_access_v2
 from crawler.models.keyword import Keyword
 from crawler.models.case_keyword import CaseKeyword
 from crawler.keywords.service import KeywordService
@@ -66,12 +66,32 @@ def add_case_keyword(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission(Permission.UPDATE)),
 ):
-    # Permission check for investigation scoping
-    if not check_investigation_modification_access(current_user, case_id, db):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"User unauthorized to modify case keywords for case '{case_id}'",
-        )
+    """
+    Add a case-specific keyword override.
+
+    Authorization strategy (Problem A fix):
+    - If case_id maps to a formal Investigation in the new table → use v2 RBAC
+      (lead/assigned/SP-in-unit/IGP/DGP), which is tighter and investigation-aware.
+    - If no matching Investigation exists (legacy / orphan case_id) → fall back to the
+      original check_investigation_modification_access for backward compatibility.
+    """
+    investigation = db.query(Investigation).filter(
+        Investigation.investigation_id == case_id
+    ).first()
+
+    if investigation:
+        if not check_investigation_modification_access_v2(current_user, investigation, db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User unauthorized to modify case keywords for investigation '{case_id}'",
+            )
+    else:
+        # Backward-compatible path: legacy case_id with no formal Investigation record
+        if not check_investigation_modification_access(current_user, case_id, db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User unauthorized to modify case keywords for case '{case_id}'",
+            )
 
     ck = KeywordService.add_case_keyword(db, case_id=case_id, keyword_id=keyword_id, added_by=current_user.id)
     return {"message": "Case keyword override added", "case_id": case_id, "keyword_id": keyword_id, "is_active": ck.is_active}
@@ -84,11 +104,27 @@ def remove_case_keyword(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission(Permission.UPDATE)),
 ):
-    if not check_investigation_modification_access(current_user, case_id, db):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"User unauthorized to modify case keywords for case '{case_id}'",
-        )
+    """
+    Remove a case-specific keyword override.
+
+    Same authorization strategy as add_case_keyword: v2 if Investigation exists, legacy otherwise.
+    """
+    investigation = db.query(Investigation).filter(
+        Investigation.investigation_id == case_id
+    ).first()
+
+    if investigation:
+        if not check_investigation_modification_access_v2(current_user, investigation, db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User unauthorized to modify case keywords for investigation '{case_id}'",
+            )
+    else:
+        if not check_investigation_modification_access(current_user, case_id, db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"User unauthorized to modify case keywords for case '{case_id}'",
+            )
 
     KeywordService.remove_case_keyword(db, case_id=case_id, keyword_id=keyword_id)
     return {"message": "Case keyword override removed", "case_id": case_id, "keyword_id": keyword_id}

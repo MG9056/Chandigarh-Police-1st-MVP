@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Index, JSON, Numeric
+
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy import Uuid
 from uuid import uuid4
@@ -134,6 +135,12 @@ class DataProvenance(Base):
     """
     Intelligence data provenance metadata to retain source origin, collection method,
     integrity hash, and original record reference.
+
+    Extended for evidence promotion (Step 3):
+    - finding_id: FK to InvestigationFinding when promoted from a human review decision
+    - raw_record_id: UUID string of the source RawRecord (denormalised for fast lookup)
+    - promoted_by_id: FK to User who performed the promotion
+    - promoted_at: timestamp of promotion action
     """
     __tablename__ = "data_provenances"
 
@@ -147,6 +154,69 @@ class DataProvenance(Base):
     investigation_id = Column(String, nullable=True, index=True)
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
+
+
+class SuspiciousActivityStatusEnum:
+    OPEN = "open"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+class AlertStatusEnum:
+    ACTIVE = "active"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+
+class SuspiciousActivity(Base):
+    """
+    Detected suspicious pattern/event derived from a RawRecord.
+    Preserves the distinction between original collected data (RawRecord)
+    and derived detection/AI analysis (this model).
+    """
+    __tablename__ = "suspicious_activities"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    raw_record_id = Column(Uuid(as_uuid=True), ForeignKey("raw_records.id"), nullable=True, index=True)
+    case_id = Column(String, nullable=True, index=True)
+    activity_type = Column(String, nullable=False, index=True)  # high_relevance, keyword_burst, entity_indicator, combined_signal
+    description = Column(Text, nullable=False)
+    confidence = Column(Numeric, nullable=False)  # Detection/risk confidence score 0.0–1.0
+    evidence_summary = Column(JSON, nullable=True)  # Explainable reasons array
+    status = Column(String, nullable=False, default=SuspiciousActivityStatusEnum.OPEN)
+    detected_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    alerts = relationship("Alert", back_populates="suspicious_activity")
+
+    __table_args__ = (
+        Index("idx_sa_raw_record_type", "raw_record_id", "activity_type"),
+    )
+
+class Alert(Base):
+    """
+    Actionable notification generated from a suspicious activity detection.
+    Uses dedup_key to prevent duplicate alerts for the same underlying detection.
+    """
+    __tablename__ = "alerts"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    suspicious_activity_id = Column(Uuid(as_uuid=True), ForeignKey("suspicious_activities.id"), nullable=True, index=True)
+    raw_record_id = Column(Uuid(as_uuid=True), ForeignKey("raw_records.id"), nullable=True, index=True)
+    case_id = Column(String, nullable=True, index=True)
+    severity = Column(String, nullable=False)  # "red", "yellow", "green"
+    message = Column(Text, nullable=False)
+    status = Column(String, nullable=False, default=AlertStatusEnum.ACTIVE)
+    dedup_key = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    suspicious_activity = relationship("SuspiciousActivity", back_populates="alerts")
+
+    # Evidence promotion fields (Step 3) — all nullable for backward compatibility
+    finding_id = Column(Integer, ForeignKey("investigation_findings.id"), nullable=True, index=True)
+      # RawRecord.id as string (UUID)
+    promoted_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    promoted_at = Column(DateTime(timezone=True), nullable=True)
+
 
 # --- Helper Functions ---
 
@@ -222,7 +292,9 @@ class DarknetListing(Base):
     title = Column(String, nullable=False, index=True)
     vendor_name = Column(String, nullable=False, index=True)
     marketplace = Column(String, nullable=False, index=True)
+
     description = Column(Text, nullable=True)
+
     drug_category = Column(String, nullable=False, index=True)
     price = Column(String, nullable=True)
     currency = Column(String, nullable=True, default="BTC")
@@ -282,7 +354,7 @@ class NetworkTrafficFlow(Base):
     is_encrypted = Column(Boolean, default=False, index=True)
 
     source_dataset = Column(String, nullable=False)                 # Darknet.CSV, Binary, MultiTotal
-# Import and expose crawler models for metadata creation
+
 
 class Investigation(Base):
     """
@@ -456,6 +528,53 @@ from crawler.models import (
     RobotsCache,
 )
 
+
+class InvestigationAlertStatus:
+    """Valid status values for InvestigationAlert."""
+    OPEN = "OPEN"
+    ACKNOWLEDGED = "ACKNOWLEDGED"
+    RESOLVED = "RESOLVED"
+
+    @classmethod
+    def all_values(cls):
+        return [cls.OPEN, cls.ACKNOWLEDGED, cls.RESOLVED]
+
+
+class InvestigationAlert(Base):
+    """
+    Alert raised against an investigation, optionally linked to a RawRecord or Finding.
+
+    Severity levels: LOW, MEDIUM, HIGH, CRITICAL
+    Status lifecycle: OPEN → ACKNOWLEDGED → RESOLVED
+
+    Global read: anyone with READ permission can view alerts.
+    Global mutation (resolve/delete): DGP/IGP only (can_manage_global_alerts).
+    Investigation-scoped mutation (create/resolve own): v2 modification access + reauth.
+    """
+    __tablename__ = "investigation_alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    investigation_id = Column(Integer, ForeignKey("investigations.id"), nullable=False, index=True)
+    raw_record_id = Column(String, nullable=True, index=True)  # optional link to RawRecord
+    finding_id = Column(Integer, ForeignKey("investigation_findings.id"), nullable=True)
+    severity = Column(String, nullable=False, default="MEDIUM")  # LOW, MEDIUM, HIGH, CRITICAL
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String, nullable=False, default=InvestigationAlertStatus.OPEN)
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    resolved_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_alert_investigation_status", "investigation_id", "status"),
+    )
+
+    def __str__(self):
+        return f"InvestigationAlert({self.id}: [{self.severity}] {self.title} → {self.status})"
+
+
+
 __all__ = [
     # Core application models
     "User",
@@ -463,6 +582,12 @@ __all__ = [
     "InvestigationAccessGrant",
     "AuditLog",
     "DataProvenance",
+    # Alerts & Suspicious Activity
+    "SuspiciousActivity",
+    "SuspiciousActivityStatusEnum",
+    "Alert",
+    "AlertStatusEnum",
+    # Domain & Intelligence Models
     "Suspect",
     "CryptoWallet",
     "CryptoTransaction",
@@ -470,12 +595,14 @@ __all__ = [
     "TelegramChannel",
     "TelegramMessage",
     "NetworkTrafficFlow",
-    # Investigation management models (Step 1 & Step 2)
+    # Investigation management models (Step 1, 2 & 3)
     "Investigation",
     "InvestigationAssignment",
     "InvestigationFindingStatus",
     "InvestigationSource",
     "InvestigationFinding",
+    "InvestigationAlertStatus",
+    "InvestigationAlert",
     # Crawler subsystem models
     "Source",
     "Keyword",
@@ -484,4 +611,5 @@ __all__ = [
     "RawRecord",
     "RobotsCache",
 ]
+
 

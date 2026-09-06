@@ -8,10 +8,16 @@ import {
 } from '../../api/investigationApi';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
-import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft, Layers, Hash, Database, FileText } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft, Layers, Hash, Database, FileText, ShieldCheck, Bell, Network, MapPin, Clock, SearchCode } from 'lucide-react';
 import SourcesTab from './tabs/SourcesTab';
 import KeywordsTab from './tabs/KeywordsTab';
 import IntelligenceTab from './tabs/IntelligenceTab';
+import FindingsTab from './tabs/FindingsTab';
+import EvidenceTab from './tabs/EvidenceTab';
+import AlertsTab from './tabs/AlertsTab';
+import NetworkTab from './tabs/NetworkTab';
+import GeographyTab from './tabs/GeographyTab';
+import ActivityTab from './tabs/ActivityTab';
 
 
 const PRIORITY_LABELS = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
@@ -203,39 +209,29 @@ export default function InvestigationDetail({ investigationId, onBack }) {
       )}
 
       {/* Tab Navigation Bar */}
-      <div className="flex gap-2 border-b border-border/40 pb-2 font-mono">
-        <Button
-          size="sm"
-          variant={activeTab === 'overview' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('overview')}
-          className="h-7 gap-1 text-xs uppercase"
-        >
-          <Layers className="w-3.5 h-3.5" /> Overview
-        </Button>
-        <Button
-          size="sm"
-          variant={activeTab === 'sources' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('sources')}
-          className="h-7 gap-1 text-xs uppercase"
-        >
-          <Database className="w-3.5 h-3.5" /> Sources
-        </Button>
-        <Button
-          size="sm"
-          variant={activeTab === 'keywords' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('keywords')}
-          className="h-7 gap-1 text-xs uppercase"
-        >
-          <Hash className="w-3.5 h-3.5" /> Keywords
-        </Button>
-        <Button
-          size="sm"
-          variant={activeTab === 'intelligence' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('intelligence')}
-          className="h-7 gap-1 text-xs uppercase"
-        >
-          <FileText className="w-3.5 h-3.5" /> Intelligence
-        </Button>
+      <div className="flex flex-wrap gap-1.5 border-b border-border/40 pb-2 font-mono">
+        {[
+          { key: 'overview', icon: <Layers className="w-3.5 h-3.5" />, label: 'Overview' },
+          { key: 'sources', icon: <Database className="w-3.5 h-3.5" />, label: 'Sources' },
+          { key: 'keywords', icon: <Hash className="w-3.5 h-3.5" />, label: 'Keywords' },
+          { key: 'intelligence', icon: <FileText className="w-3.5 h-3.5" />, label: 'Intelligence' },
+          { key: 'findings', icon: <SearchCode className="w-3.5 h-3.5" />, label: 'Findings' },
+          { key: 'evidence', icon: <ShieldCheck className="w-3.5 h-3.5" />, label: 'Evidence' },
+          { key: 'alerts', icon: <Bell className="w-3.5 h-3.5" />, label: 'Alerts' },
+          { key: 'network', icon: <Network className="w-3.5 h-3.5" />, label: 'Network' },
+          { key: 'geography', icon: <MapPin className="w-3.5 h-3.5" />, label: 'Geography' },
+          { key: 'activity', icon: <Clock className="w-3.5 h-3.5" />, label: 'Activity' },
+        ].map(({ key, icon, label }) => (
+          <Button
+            key={key}
+            size="sm"
+            variant={activeTab === key ? 'default' : 'ghost'}
+            onClick={() => setActiveTab(key)}
+            className="h-7 gap-1 text-xs uppercase"
+          >
+            {icon} {label}
+          </Button>
+        ))}
       </div>
 
       {/* Tab Body */}
@@ -247,6 +243,24 @@ export default function InvestigationDetail({ investigationId, onBack }) {
       )}
       {activeTab === 'intelligence' && (
         <IntelligenceTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+      {activeTab === 'findings' && (
+        <FindingsTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+      {activeTab === 'evidence' && (
+        <EvidenceTab investigationId={investigation.investigation_id} />
+      )}
+      {activeTab === 'alerts' && (
+        <AlertsTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
+      )}
+      {activeTab === 'network' && (
+        <NetworkTab investigationId={investigation.investigation_id} />
+      )}
+      {activeTab === 'geography' && (
+        <GeographyTab investigationId={investigation.investigation_id} />
+      )}
+      {activeTab === 'activity' && (
+        <ActivityTab investigationId={investigation.investigation_id} />
       )}
 
       {activeTab === 'overview' && (

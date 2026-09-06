@@ -3,8 +3,6 @@
 # ==============================
 DATASETS/
 backend/real_data/cache/
-.env
-backend/.env
 scratch/
 
 # ==============================
@@ -19,12 +17,8 @@ startup_err.log
 # ==============================
 # Environment / secrets
 # ==============================
+.env
 backend/.env
-backend/darknight.db
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
 
 # ==============================
 # Local database
