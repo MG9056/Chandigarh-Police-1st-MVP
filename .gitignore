@@ -53,3 +53,5 @@ Thumbs.db
 
 .idea/
 .vscode/
+
+backend/identifier_collisions.log
