@@ -201,7 +201,7 @@ export default function SuspectProfiles() {
                               {detail.telegram_messages?.length > 0 && (
                                 <div>
                                   <span className="text-cyan-400 uppercase text-[10px] tracking-widest flex items-center gap-1 mb-1.5 font-bold">
-                                    <MessageSquare className="w-3.5 h-3.5" /> Linked Telegram Messages ({detail.telegram_messages.length})
+                                    <MessageSquare className="w-3.5 h-3.5" /> Internet Activity (Telegram and other social media) Messages ({detail.telegram_messages.length})
                                   </span>
                                   <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                                     {detail.telegram_messages.slice(0, 3).map(m => (
