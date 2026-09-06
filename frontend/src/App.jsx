@@ -23,6 +23,7 @@ import SuspectProfiles from './components/views/SuspectProfiles';
 import InvestigationList from './components/investigation/InvestigationList';
 import InvestigationDetail from './components/investigation/InvestigationDetail';
 import InvestigationCreate from './components/investigation/InvestigationCreate';
+import AIAssistant from './components/ai/AIAssistant';
 
 function InvestigationView() {
   const [selectedInvestigation, setSelectedInvestigation] = useState(null);
@@ -179,6 +180,7 @@ function Dashboard() {
         </main>
       </div>
       <ReAuthModal />
+      <AIAssistant activeView={activeView} />
     </div>
   );
 }
