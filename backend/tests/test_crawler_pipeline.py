@@ -52,7 +52,6 @@ def setup_db():
     yield db
 
     db.close()
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture

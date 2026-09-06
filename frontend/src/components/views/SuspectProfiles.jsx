@@ -80,6 +80,9 @@ export default function SuspectProfiles() {
                     <div>
                       <div className="flex items-center gap-3">
                         <h3 className="font-bold text-lg text-foreground tracking-wide">{suspect.label}</h3>
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${suspect.data_origin?.includes('crawler_enriched') ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                          {suspect.data_origin?.includes('crawler_enriched') ? 'Crawler enriched' : 'Base dataset'}
+                        </span>
                         {suspect.telegram_handle && (
                           <span className="text-xs bg-cyan-500/10 text-cyan-500 px-2 py-0.5 rounded font-mono">{suspect.telegram_handle}</span>
                         )}
@@ -122,6 +125,24 @@ export default function SuspectProfiles() {
                                 </span>
                               ))}
                             </div>
+                          </div>
+                          <div className="border-t border-border/20 pt-3 space-y-2">
+                            <span className="text-emerald-400 uppercase text-[10px] tracking-widest block">Crawler Enrichment</span>
+                            {detail ? (
+                              detail.enrichment_source_count > 0 ? (
+                                <div className="space-y-2 text-[11px]">
+                                  <div><span className="text-muted-foreground">Phone:</span> {detail.phone_number || 'Not observed'}</div>
+                                  <div><span className="text-muted-foreground">Last known location:</span> {detail.last_known_location || 'Not observed'}</div>
+                                  <div><span className="text-muted-foreground">Platform mentions:</span> {detail.platform_mentions?.length ? detail.platform_mentions.join(', ') : 'None observed'}</div>
+                                  <p className="text-foreground bg-muted/20 p-2 rounded leading-relaxed">{detail.enrichment_summary || 'No additional intelligence gathered yet'}</p>
+                                  <div className="text-muted-foreground">Enriched from {detail.enrichment_source_count} crawler source{detail.enrichment_source_count === 1 ? '' : 's'}{detail.last_enriched_at ? `, last updated ${new Date(detail.last_enriched_at).toLocaleString()}` : ''}.</div>
+                                </div>
+                              ) : (
+                                <p className="text-muted-foreground text-[11px]">No additional intelligence gathered yet</p>
+                              )
+                            ) : (
+                              <p className="text-muted-foreground text-[11px] animate-pulse">Loading enrichment details...</p>
+                            )}
                           </div>
                           <div className="flex justify-between text-[11px] text-muted-foreground pt-2 border-t border-border/20">
                             <span>{t('Record ID')}: #{suspect.id}</span>

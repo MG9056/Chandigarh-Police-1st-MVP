@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 
@@ -39,6 +39,7 @@ def init_db():
     import data.canonical_schema
 
     Base.metadata.create_all(bind=engine)
+    _migrate_suspect_enrichment_columns()
 
     # Seed/upsert DGP Admin, Inspector, and IGP accounts
     db = SessionLocal()
@@ -109,6 +110,27 @@ def init_db():
 
     finally:
         db.close()
+
+
+def _migrate_suspect_enrichment_columns():
+    """Add enrichment fields without rewriting existing suspect records."""
+    inspector = inspect(engine)
+    if "suspects" not in inspector.get_table_names():
+        return
+
+    existing = {column["name"] for column in inspector.get_columns("suspects")}
+    columns = {
+        "last_known_location": "VARCHAR",
+        "platform_mentions": "TEXT",
+        "enrichment_summary": "TEXT",
+        "enrichment_source_count": "INTEGER",
+        "last_enriched_at": "DATETIME",
+        "data_origin": "VARCHAR",
+    }
+    with engine.begin() as connection:
+        for name, definition in columns.items():
+            if name not in existing:
+                connection.execute(text(f"ALTER TABLE suspects ADD COLUMN {name} {definition}"))
 
     # Seed sample investigation for testing (investigation management step 1)
     db = SessionLocal()

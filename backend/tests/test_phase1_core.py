@@ -23,7 +23,6 @@ def db_session():
     session = SessionLocal()
     yield session
     session.close()
-    Base.metadata.drop_all(bind=engine)
 
 def test_password_hashing():
     password = "SuperSecretPassword123!"

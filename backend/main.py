@@ -21,13 +21,8 @@ from routers.evidence_provenance_router import router as evidence_provenance_rou
 from routers.search_router import router as search_router
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
-
-import asyncio
-from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
-from crawler.api.routers.sources import router as sources_router
-from crawler.api.routers.keywords import router as keywords_router
-from crawler.api.routers.raw_records import router as raw_records_router
-from crawler.api.routers.activity import router as activity_router
+from crawler_to_dataset_updater import start_crawler_dataset_updater
+from pipelines.ingest_ai_router import INGESTION_STATUS
 
 from routers.investigation_router import router as investigation_router
 from routers.investigation_sources_router import router as investigation_sources_router
@@ -39,13 +34,16 @@ from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
 
+
 crawler_scheduler = CrawlerScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # --- Startup ---
     init_db()
 
-    asyncio.create_task(start_background_ingestion_task())
+
+    asyncio.create_task(start_crawler_dataset_updater(poll_interval_seconds=60))
 
     scheduler_task = asyncio.create_task(
         crawler_scheduler.start()
@@ -61,6 +59,7 @@ async def lifespan(app: FastAPI):
             await scheduler_task
         except asyncio.CancelledError:
             pass
+
 app = FastAPI(
     title="DarKnight API",
     description="Security-enforced API for Chandigarh Police Intelligence Platform",
