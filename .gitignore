@@ -24,6 +24,7 @@ backend/.env
 # Local database
 # ==============================
 backend/darknight.db
+backend/.semantic_index.json
 
 # ==============================
 # Python

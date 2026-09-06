@@ -22,6 +22,7 @@ from rbac import can_review_investigation_intelligence, require_permission, Perm
 from routers.auth_router import get_current_user
 from routers.reauth_router import require_recent_reauth
 from security import get_client_ip
+from semantic_search import SemanticIndex
 
 router = APIRouter(prefix="/api/investigations/{investigation_id}/intelligence", tags=["Investigation Intelligence"])
 
@@ -56,6 +57,7 @@ def get_findings_map(investigation_id: int, db: Session) -> dict:
 def list_investigation_intelligence(
     investigation_id: str,
     status_filter: Optional[str] = Query(None, alias="status"),
+    q: Optional[str] = Query(None, description="Optional exact or semantic intelligence search"),
     skip: int = Query(0),
     limit: int = Query(50),
     current_user: User = Depends(require_permission(Permission.READ)),
@@ -75,6 +77,25 @@ def list_investigation_intelligence(
 
     # Base query: RawRecords for this case
     query = db.query(RawRecord).filter(RawRecord.case_id == investigation.investigation_id)
+    semantic_scores = {}
+    query_text = (q or "").strip()
+    if query_text:
+        try:
+            semantic_matches = SemanticIndex().search(query_text, {"raw_record"}, investigation.investigation_id, 100)
+        except Exception:
+            semantic_matches = []
+        semantic_scores = {match["source_id"]: match["score"] for match in semantic_matches}
+        exact_filter = or_(
+            RawRecord.url.ilike(f"%{query_text}%"),
+            RawRecord.raw_text.ilike(f"%{query_text}%"),
+            RawRecord.cleaned_text.ilike(f"%{query_text}%"),
+            RawRecord.relevance_reasoning.ilike(f"%{query_text}%"),
+        )
+        if semantic_scores:
+            semantic_record_ids = [uuid.UUID(record_id) for record_id in semantic_scores]
+            query = query.filter(or_(exact_filter, RawRecord.id.in_(semantic_record_ids)))
+        else:
+            query = query.filter(exact_filter)
 
     # If filtering by status, JOIN with InvestigationFinding
     if status_filter:
@@ -101,6 +122,8 @@ def list_investigation_intelligence(
 
     total = query.count()
     raw_records = query.order_by(RawRecord.fetched_at.desc()).offset(skip).limit(limit).all()
+    if semantic_scores:
+        raw_records.sort(key=lambda record: semantic_scores.get(str(record.id), 0), reverse=True)
 
     # Fetch all findings for this investigation ONCE
     findings_map = get_findings_map(investigation.id, db)
@@ -111,7 +134,7 @@ def list_investigation_intelligence(
         finding = findings_map.get(rec_id_str)
         review_status = finding.review_status if finding else InvestigationFindingStatus.PENDING_REVIEW
 
-        results.append({
+        result = {
             "id": rec_id_str,
             "raw_record_id": rec_id_str,
             "source_url": record.url,
@@ -125,13 +148,18 @@ def list_investigation_intelligence(
             "review_notes": finding.review_notes if finding else None,
             "reviewed_by_email": finding.reviewed_by.email if (finding and finding.reviewed_by) else None,
             "reviewed_at": finding.reviewed_at.isoformat() if (finding and finding.reviewed_at) else None
-        })
+        }
+        if query_text and rec_id_str in semantic_scores:
+            result["match_reason"] = f"Semantic similarity ({int(semantic_scores[rec_id_str] * 100)}%)"
+            result["semantic_score"] = semantic_scores[rec_id_str]
+        results.append(result)
 
     return {
         "investigation_id": investigation_id,
         "total": total,
         "skip": skip,
         "limit": limit,
+        "query": query_text or None,
         "records": results
     }
 

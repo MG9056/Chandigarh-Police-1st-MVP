@@ -1,11 +1,12 @@
 import { apiFetch } from '../lib/apiClient';
 import API_BASE_URL from '../config/api';
 
-export async function listInvestigationIntelligence(investigationId, statusFilter = null, skip = 0, limit = 50) {
+export async function listInvestigationIntelligence(investigationId, statusFilter = null, skip = 0, limit = 50, query = null) {
   const params = new URLSearchParams();
   if (statusFilter) params.append('status', statusFilter);
   params.append('skip', skip);
   params.append('limit', limit);
+  if (query?.trim()) params.append('q', query.trim());
 
   const response = await apiFetch(`${API_BASE_URL}/investigations/${investigationId}/intelligence?${params.toString()}`, {
     credentials: 'include',

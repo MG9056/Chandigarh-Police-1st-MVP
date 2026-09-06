@@ -25,3 +25,21 @@ This project requires Python 3.14+ (or the virtual environment located at `backe
    ```
 
 > **Note**: Always use `python -m uvicorn main:app` instead of bare `uvicorn main:app` to guarantee uvicorn runs under the exact Python environment where dependencies were installed.
+
+## Semantic Search
+
+Semantic search uses a local multilingual embedding model. It does not require
+an LLM API key and does not change source records, CSV files, ingestion,
+crawler behavior, or database synchronization.
+
+After the database contains the records to search, build the separate local
+index from `backend`:
+
+```bash
+python -m semantic_search
+```
+
+The first run downloads the model once and stores it in the local model cache.
+The index is stored in `backend/.semantic_index.json` and is ignored by Git.
+If the model or index is unavailable, existing exact and fuzzy search behavior
+remains available.
