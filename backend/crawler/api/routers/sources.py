@@ -106,7 +106,7 @@ def list_sources(
 def create_source(
     payload: SourceCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.CREATE)),
+    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
 ):
     source_type = payload.source_type.upper()
 
@@ -165,7 +165,7 @@ def update_source(
     source_id: str,
     payload: SourceUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.UPDATE)),
+    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -216,7 +216,7 @@ async def trigger_source_run(
     source_id: str,
     case_id: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.UPDATE)),
+    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -260,7 +260,7 @@ async def trigger_source_run(
 def stop_source_run(
     source_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.UPDATE)),
+    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -324,7 +324,7 @@ def stop_source_run(
 def delete_source(
     source_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.UPDATE)),
+    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
 ):
     source_uuid = (
         uuid.UUID(source_id)

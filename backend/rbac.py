@@ -211,3 +211,19 @@ def can_trigger_investigation_source(user: User, investigation: Investigation, d
     """Wrapper around check_investigation_modification_access_v2 for crawl triggering."""
     return check_investigation_modification_access_v2(user, investigation, db)
 
+
+def can_manage_global_data_sources(user: User) -> bool:
+    """
+    Global write scope: source / keyword / crawler administration.
+    DGP (SUPER_ADMIN) + IGP only — enforced at the backend; the frontend mirrors this as UX clarity.
+    Thin readability wrapper around has_permission + MANAGE_DATA_SOURCES.
+    """
+    return has_permission(user.role, Permission.MANAGE_DATA_SOURCES)
+
+
+def can_manage_global_alerts(user: User) -> bool:
+    """
+    Global alert mutation scope (hard-delete any investigation's alert).
+    Restricted to DGP/IGP — they have system-wide administrative authority.
+    """
+    return user.role in [RoleEnum.SUPER_ADMIN, RoleEnum.IGP]

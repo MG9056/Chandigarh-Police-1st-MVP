@@ -28,6 +28,9 @@ from routers.investigation_router import router as investigation_router
 from routers.investigation_sources_router import router as investigation_sources_router
 from routers.investigation_intelligence_router import router as investigation_intelligence_router
 from routers.investigation_keywords_router import router as investigation_keywords_router
+from routers.investigation_evidence_router import router as investigation_evidence_router
+from routers.investigation_alerts_router import router as investigation_alerts_router
+from routers.investigation_alerts_router import global_alerts_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
@@ -97,6 +100,9 @@ app.include_router(investigation_router)
 app.include_router(investigation_sources_router)
 app.include_router(investigation_intelligence_router)
 app.include_router(investigation_keywords_router)
+app.include_router(investigation_evidence_router)
+app.include_router(investigation_alerts_router)
+app.include_router(global_alerts_router)
 
 
 # Include Routers — Crawler subsystem (upstream/main branch)
@@ -104,6 +110,37 @@ app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
+
+
+@app.get("/api/global/entities", tags=["Global Intelligence"])
+def get_global_entities(
+    limit_records: int = 500,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Global entity co-occurrence graph — all investigations, all RawRecords.
+    CO_OCCURRENCE edges are observational only; not confirmed relationships.
+    Feeds the global Network view (separate from the Elliptic++/Dread demo dataset).
+    """
+    from crawler.pipeline.entity_aggregation import aggregate_entities
+    return aggregate_entities(db, case_id=None, limit_records=limit_records)
+
+
+@app.get("/api/global/geography", tags=["Global Intelligence"])
+def get_global_geography(
+    limit_records: int = 500,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Global geographic hotspot map — all investigations, all RawRecords.
+    Resolves LOCATION entities against the India gazetteer.
+    Feeds the global Geography view (separate from the geo_signals/Dread demo dataset).
+    """
+    from crawler.pipeline.entity_aggregation import aggregate_geography
+    return aggregate_geography(db, case_id=None, limit_records=limit_records)
+
 
 def load_db():
     db_path = os.path.join(os.path.dirname(__file__), "mock_db.json")
