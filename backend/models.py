@@ -155,6 +155,12 @@ class DataProvenance(Base):
     original_record_reference = Column(String, nullable=True)
     integrity_hash = Column(String, nullable=True)  # SHA-256 hash of original raw data/file
 
+    # Evidence promotion fields (Step 3)
+    finding_id = Column(Integer, ForeignKey("investigation_findings.id"), nullable=True, index=True)
+    raw_record_id = Column(String, nullable=True, index=True)
+    promoted_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    promoted_at = Column(DateTime(timezone=True), nullable=True)
+
 
 class SuspiciousActivityStatusEnum:
     OPEN = "open"

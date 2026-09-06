@@ -41,6 +41,7 @@ from routers.investigation_keywords_router import router as investigation_keywor
 from routers.investigation_evidence_router import router as investigation_evidence_router
 from routers.investigation_alerts_router import router as investigation_alerts_router
 from routers.investigation_alerts_router import global_alerts_router
+from routers.ai_router import router as ai_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
@@ -114,6 +115,7 @@ app.include_router(investigation_keywords_router)
 app.include_router(investigation_evidence_router)
 app.include_router(investigation_alerts_router)
 app.include_router(global_alerts_router)
+app.include_router(ai_router)
 
 
 # Include Routers — Crawler subsystem
