@@ -1,17 +1,29 @@
-from fastapi import FastAPI, Request, Depends
 import asyncio
-from crawler.orchestration.scheduler import CrawlerScheduler
-from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-
-load_dotenv()
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+load_dotenv()
+
 from database import init_db, get_db
-from models import User, Suspect, CryptoWallet, DarknetListing, TelegramMessage, TelegramChannel, NetworkTrafficFlow
+from models import (
+    User,
+    Suspect,
+    CryptoWallet,
+    DarknetListing,
+    TelegramMessage,
+    TelegramChannel,
+    NetworkTrafficFlow,
+)
+from crawler.orchestration.scheduler import CrawlerScheduler
+from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+
 from routers.auth_router import router as auth_router, get_current_user
 from routers.admin_router import router as admin_router
 from routers.reauth_router import router as reauth_router
@@ -19,15 +31,13 @@ from routers.delegation_router import router as delegation_router
 from routers.audit_router import router as audit_router
 from routers.evidence_provenance_router import router as evidence_provenance_router
 from routers.search_router import router as search_router
-from sqlalchemy.orm import Session
-from datetime import datetime, timezone
 from crawler_to_dataset_updater import start_crawler_dataset_updater
-from pipelines.ingest_ai_router import INGESTION_STATUS
-
 from routers.investigation_router import router as investigation_router
+from routers.alerts_router import router as alerts_router
 from routers.investigation_sources_router import router as investigation_sources_router
 from routers.investigation_intelligence_router import router as investigation_intelligence_router
 from routers.investigation_keywords_router import router as investigation_keywords_router
+
 from routers.investigation_evidence_router import router as investigation_evidence_router
 from routers.investigation_alerts_router import router as investigation_alerts_router
 from routers.investigation_alerts_router import global_alerts_router
@@ -88,7 +98,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:;"
     return response
 
-# Include Routers — Security & Investigation (our branch)
+# Include Routers — Security & Investigation
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(reauth_router)
@@ -97,6 +107,7 @@ app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
 app.include_router(search_router)
 app.include_router(investigation_router)
+app.include_router(alerts_router)
 app.include_router(investigation_sources_router)
 app.include_router(investigation_intelligence_router)
 app.include_router(investigation_keywords_router)
@@ -105,11 +116,12 @@ app.include_router(investigation_alerts_router)
 app.include_router(global_alerts_router)
 
 
-# Include Routers — Crawler subsystem (upstream/main branch)
+# Include Routers — Crawler subsystem
 app.include_router(sources_router)
 app.include_router(keywords_router)
 app.include_router(raw_records_router)
 app.include_router(activity_router)
+
 
 
 @app.get("/api/global/entities", tags=["Global Intelligence"])
@@ -181,10 +193,28 @@ def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Se
         "last_update": datetime.now(timezone.utc).isoformat()
     }
 
-@app.get("/api/alerts/suspicious")
-def get_suspicious_activity(current_user: User = Depends(get_current_user)):
+@app.get("/api/data-sources")
+@app.get("/api/data-collection/status")
+def get_data_sources(current_user: User = Depends(get_current_user)):
     db = load_db()
-    return db.get("suspicious_activity", [])
+    return db.get("data_sources", [])
+
+# /api/alerts — now served by routers/alerts_router.py (DB-backed)
+
+@app.get("/api/network/data")
+def get_network_data(current_user: User = Depends(get_current_user)):
+    db = load_db()
+    return db.get("network_data", {"nodes": [], "links": []})
+
+@app.get("/api/search")
+def search_entities(q: str = "", current_user: User = Depends(get_current_user)):
+    db = load_db()
+    results = db.get("search_entities", [])
+    if q:
+        results = [r for r in results if q.lower() in r["identifier"].lower()]
+    return {"results": results}
+
+# /api/alerts/suspicious — now served by routers/alerts_router.py (DB-backed)
 
 @app.get("/api/reports")
 def get_reports(current_user: User = Depends(get_current_user)):
