@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Index, JSON, Numeric
-from sqlalchemy.orm import relationship
+
+from sqlalchemy.orm import relationship, synonym
 from sqlalchemy import Uuid
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -291,6 +292,9 @@ class DarknetListing(Base):
     title = Column(String, nullable=False, index=True)
     vendor_name = Column(String, nullable=False, index=True)
     marketplace = Column(String, nullable=False, index=True)
+
+    description = Column(Text, nullable=True)
+
     drug_category = Column(String, nullable=False, index=True)
     price = Column(String, nullable=True)
     currency = Column(String, nullable=True, default="BTC")
@@ -298,6 +302,9 @@ class DarknetListing(Base):
     url = Column(String, nullable=True)
     scraped_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
     associated_suspect_id = Column(Integer, ForeignKey("suspects.id"), nullable=True, index=True)
+
+    vendor_alias = synonym("vendor_name")
+    platform = synonym("marketplace")
 
     suspect = relationship("Suspect", back_populates="listings")
 

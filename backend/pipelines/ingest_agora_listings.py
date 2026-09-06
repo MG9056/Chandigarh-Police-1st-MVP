@@ -49,8 +49,8 @@ def ingest_agora_sample(db: Session) -> int:
     # Deduplication: load existing (vendor_alias, title) pairs so repeated
     # runs of this function (triggered by db_sync.py) never create duplicates.
     existing_keys: set[tuple[str, str]] = set(
-        db.query(DarknetListing.vendor_alias, DarknetListing.title)
-        .filter(DarknetListing.platform == "Agora")
+        db.query(DarknetListing.vendor_name, DarknetListing.title)
+        .filter(DarknetListing.marketplace == "Agora")
         .all()
     )
     print(f"[ingest_agora] {len(existing_keys)} Agora listings already in DB — will skip those.")
@@ -70,10 +70,11 @@ def ingest_agora_sample(db: Session) -> int:
         suspect_id = vendor_suspect_map.get(vendor)
 
         listings.append(DarknetListing(
+            listing_id=f"agora-{idx + 1000}",
             title=title,
             description=f"Agora darknet listing by vendor {vendor}. Category: {category}. Shipping from {location}.",
-            vendor_alias=vendor,
-            platform="Agora",
+            vendor_name=vendor,
+            marketplace="Agora",
             drug_category=category,
             price=price,
             currency="BTC",
