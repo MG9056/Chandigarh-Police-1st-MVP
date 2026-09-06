@@ -23,7 +23,7 @@ from models import (
 )
 from crawler.orchestration.scheduler import CrawlerScheduler
 from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
-
+from crawler.models.source import Source
 from routers.auth_router import router as auth_router, get_current_user
 from routers.admin_router import router as admin_router
 from routers.reauth_router import router as reauth_router
@@ -181,11 +181,12 @@ def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Se
     total_messages = db.query(TelegramMessage).count()
     total_channels = db.query(TelegramChannel).count()
     total_flows = db.query(NetworkTrafficFlow).count()
+    total_sources = db.query(Source).count()
 
     return {
         "active_investigations": total_suspects,
         "critical_alerts": critical_alerts,
-        "sources_monitored": 4,
+        "sources_monitored": total_sources,
         "total_suspects": total_suspects,
         "total_wallets": total_wallets,
         "total_listings": total_listings,
