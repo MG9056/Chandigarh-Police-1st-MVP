@@ -28,7 +28,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function DataCollectionStatus() {
   const { t } = useTranslation();
-  const { triggerReAuth } = useAuth();
+  const { triggerReAuth, user } = useAuth();
   const [activeTab, setActiveTab] = useState('sources');
 
   // Data states
@@ -75,7 +75,8 @@ export default function DataCollectionStatus() {
     category: 'substance',
   });
 
-  const [caseIdInput, setCaseIdInput] = useState('');
+  // Raw records status filter (replaces hardcoded pending_mapping)
+  const [rawRecordStatus, setRawRecordStatus] = useState('pending_mapping');
 
   // Fetch Sources
   const fetchSources = async () => {
@@ -91,14 +92,10 @@ export default function DataCollectionStatus() {
     }
   };
 
-  // Fetch Keywords
+  // Fetch Keywords (always global — case-specific keywords managed inside each Investigation's Keywords tab)
   const fetchKeywords = async () => {
     try {
-      const url = caseIdInput
-        ? `/api/keywords?case_id=${encodeURIComponent(caseIdInput)}`
-        : '/api/keywords';
-
-      const res = await apiFetch(url);
+      const res = await apiFetch('/api/keywords');
 
       if (res.ok) {
         const data = await res.json();
@@ -128,8 +125,9 @@ export default function DataCollectionStatus() {
   // Fetch Raw Records
   const fetchRawRecords = async () => {
     try {
+      const statusParam = rawRecordStatus !== 'all' ? `status=${rawRecordStatus}&` : '';
       const res = await apiFetch(
-        '/api/raw-records?status=pending_mapping&limit=30'
+        `/api/raw-records?${statusParam}limit=30`
       );
 
       if (res.ok) {
@@ -579,13 +577,15 @@ export default function DataCollectionStatus() {
             {t('Sync Pipeline')}
           </Button>
 
-          <Button
-            onClick={() => setShowAddSourceModal(true)}
-            className="gap-2 font-mono text-xs font-bold"
-          >
-            <Plus className="w-4 h-4" />
-            {t('New Crawler Target')}
-          </Button>
+          {(user?.role === 'SUPER ADMIN / DGP' || user?.role === 'IGP') && (
+            <Button
+              onClick={() => setShowAddSourceModal(true)}
+              className="gap-2 font-mono text-xs font-bold"
+            >
+              <Plus className="w-4 h-4" />
+              {t('New Crawler Target')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -652,7 +652,7 @@ export default function DataCollectionStatus() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          {t('Raw Intelligence Handoff')} (
+          {t('Global Intelligence')} (
           {rawRecords.total})
         </button>
       </div>
@@ -720,28 +720,32 @@ export default function DataCollectionStatus() {
                       : 'DISABLED'}
                   </button>
 
-                  <button
-                    onClick={() =>
-                      openEditModal(src)
-                    }
-                    title="Edit Target (Requires Re-Auth)"
-                    className="p-1.5 rounded hover:bg-muted text-slate-400 hover:text-emerald-400 transition-colors"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
+                  {(user?.role === 'SUPER ADMIN / DGP' || user?.role === 'IGP') && (
+                    <>
+                      <button
+                        onClick={() =>
+                          openEditModal(src)
+                        }
+                        title="Edit Target (Requires Re-Auth)"
+                        className="p-1.5 rounded hover:bg-muted text-slate-400 hover:text-emerald-400 transition-colors"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
 
-                  <button
-                    onClick={() =>
-                      handleDeleteSource(
-                        src.id,
-                        src.name
-                      )
-                    }
-                    title="Delete Target (Requires Re-Auth)"
-                    className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                      <button
+                        onClick={() =>
+                          handleDeleteSource(
+                            src.id,
+                            src.name
+                          )
+                        }
+                        title="Delete Target (Requires Re-Auth)"
+                        className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -827,8 +831,7 @@ export default function DataCollectionStatus() {
 
                 <div className="flex items-center gap-1.5">
 
-                  {src.last_run?.status ===
-                    'RUNNING' && (
+                  {(user?.role === 'SUPER ADMIN / DGP' || user?.role === 'IGP') && src.last_run?.status === 'RUNNING' && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -845,29 +848,31 @@ export default function DataCollectionStatus() {
                     </Button>
                   )}
 
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      handleTriggerRun(src.id)
-                    }
-                    disabled={
-                      triggeringId === src.id
-                    }
-                    className="gap-1.5 text-xs font-mono border-emerald-800/60 hover:border-emerald-500 text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40"
-                  >
-                    <Play
-                      className={`w-3 h-3 ${
+                  {(user?.role === 'SUPER ADMIN / DGP' || user?.role === 'IGP') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        handleTriggerRun(src.id)
+                      }
+                      disabled={
                         triggeringId === src.id
-                          ? 'animate-spin'
-                          : ''
-                      }`}
-                    />
+                      }
+                      className="gap-1.5 text-xs font-mono border-emerald-800/60 hover:border-emerald-500 text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40"
+                    >
+                      <Play
+                        className={`w-3 h-3 ${
+                          triggeringId === src.id
+                            ? 'animate-spin'
+                            : ''
+                        }`}
+                      />
 
-                    {triggeringId === src.id
-                      ? 'Running...'
-                      : 'Run Now'}
-                  </Button>
+                      {triggeringId === src.id
+                        ? 'Running...'
+                        : 'Run Now'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -881,38 +886,22 @@ export default function DataCollectionStatus() {
 
           <div className="flex flex-wrap justify-between items-center gap-4 bg-card p-4 rounded-xl border border-border">
 
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs text-muted-foreground">
+              Global watchlist keywords. Case-specific keyword overrides are managed inside each Investigation's Keywords tab.
+            </p>
 
-              <input
-                type="text"
-                placeholder="Filter by Case ID (e.g. CASE-101)..."
-                value={caseIdInput}
-                onChange={(e) =>
-                  setCaseIdInput(e.target.value)
-                }
-                className="bg-background border border-border rounded px-3 py-1.5 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:border-emerald-500 w-64"
-              />
-
+            {(user?.role === 'SUPER ADMIN / DGP' || user?.role === 'IGP') && (
               <Button
-                onClick={fetchKeywords}
+                onClick={() =>
+                  setShowAddKeywordModal(true)
+                }
                 size="sm"
-                className="bg-emerald-800 hover:bg-emerald-700 text-xs font-mono"
+                className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs"
               >
-                Load Case Scope
+                <Plus className="w-3.5 h-3.5" />
+                Add Global Term
               </Button>
-            </div>
-
-            <Button
-              onClick={() =>
-                setShowAddKeywordModal(true)
-              }
-              size="sm"
-              className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add Global Term
-            </Button>
+            )}
           </div>
 
           {/* Active Merged Keywords */}
@@ -1103,18 +1092,29 @@ export default function DataCollectionStatus() {
       {activeTab === 'raw_records' && (
         <div className="space-y-4">
 
-          <div className="p-4 rounded-xl border border-border bg-card flex justify-between items-center">
+          <div className="p-4 rounded-xl border border-border bg-card flex flex-wrap justify-between items-center gap-3">
             <h3 className="text-sm font-bold uppercase text-foreground">
-              Raw Records Output Contract (
-              <span className="text-emerald-400">
-                pending_mapping
-              </span>
-              )
+              Global Intelligence Records
             </h3>
 
-            <span className="text-xs text-muted-foreground">
-              Items: {rawRecords.total}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Status:</span>
+              <select
+                value={rawRecordStatus}
+                onChange={(e) => {
+                  setRawRecordStatus(e.target.value);
+                  // Trigger refetch when status changes
+                  setTimeout(() => fetchRawRecords(), 0);
+                }}
+                className="bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground font-mono"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending_mapping">Pending Mapping</option>
+                <option value="discarded">Discarded</option>
+                <option value="review_queue">Review Queue</option>
+              </select>
+              <span className="text-xs text-muted-foreground">Total: {rawRecords.total}</span>
+            </div>
           </div>
 
           <div className="space-y-3">
