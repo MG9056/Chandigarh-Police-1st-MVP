@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import hashlib
 import json
 import logging
 import os
@@ -530,6 +531,48 @@ def _append_ofac_json(rows: list[dict]) -> None:
         json.dump(combined, f, indent=2)
 
 
+def _populate_telegram_tables(db: Session, rec) -> None:
+    """Project each non-empty crawler raw record into the existing Telegram tables."""
+    from models import TelegramChannel, TelegramMessage
+
+    raw_text = (rec.raw_text or "").strip()
+    if not raw_text:
+        return
+
+    source_key = str(rec.source_id or "unknown")
+    synthetic_channel_id = f"crawler-source-{source_key}"
+    channel = db.query(TelegramChannel).filter(
+        TelegramChannel.channel_id == synthetic_channel_id
+    ).first()
+    if channel is None:
+        channel = TelegramChannel(
+            channel_id=synthetic_channel_id,
+            channel_name="Crawler Imported Intelligence",
+            description="Synthetic channel populated from crawler raw records.",
+            member_count=0,
+        )
+        db.add(channel)
+        db.flush()
+
+    content_key = rec.content_hash or hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
+    sender_handle = f"crawler_record_{content_key[:16]}"
+    duplicate = db.query(TelegramMessage).filter(
+        TelegramMessage.channel_id == channel.id,
+        TelegramMessage.sender_handle == sender_handle,
+        TelegramMessage.message_text == raw_text,
+    ).first()
+    if duplicate is None:
+        db.add(TelegramMessage(
+            channel_id=channel.id,
+            sender_handle=sender_handle,
+            message_text=raw_text,
+            detected_wallets_json="[]",
+            detected_keywords_json="[]",
+            timestamp=datetime.now(timezone.utc),
+        ))
+    db.commit()
+
+
 # ---------------------------------------------------------------------------
 # Core processor
 # ---------------------------------------------------------------------------
@@ -543,6 +586,19 @@ def process_pending_records(db: Session) -> int:
     Returns the number of records processed.
     """
     from crawler.models.raw_record import RawRecord
+
+    all_raw_records = db.query(RawRecord).all()
+    for raw_record in all_raw_records:
+        try:
+            _populate_telegram_tables(db, raw_record)
+        except Exception as exc:
+            db.rollback()
+            logger.error(
+                "[crawler_updater] Telegram table population failed for record %s: %s",
+                raw_record.id,
+                exc,
+                exc_info=True,
+            )
 
     pending = (
         db.query(RawRecord)

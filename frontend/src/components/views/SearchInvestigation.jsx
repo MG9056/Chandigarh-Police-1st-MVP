@@ -43,7 +43,7 @@ export default function SearchInvestigation() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full flex flex-col font-mono">
       <div className="mb-6">
         <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase">{t('Universal Intelligence Search')}</h2>
-        <p className="text-muted-foreground text-xs">{t('Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Telegram communications.')}</p>
+        <p className="text-muted-foreground text-xs">{t('Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Internet Activity (Telegram and other social media).')}</p>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -78,7 +78,7 @@ export default function SearchInvestigation() {
             {cat === 'wallets' && <Wallet className="w-3.5 h-3.5" />}
             {cat === 'listings' && <ShoppingBag className="w-3.5 h-3.5" />}
             {cat === 'telegram' && <MessageSquare className="w-3.5 h-3.5" />}
-            {t(cat)}
+            {cat === 'telegram' ? 'Internet Activity (Telegram and other social media)' : t(cat)}
           </button>
         ))}
       </div>
@@ -173,7 +173,7 @@ export default function SearchInvestigation() {
             {telegramMsgs.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-semibold text-xs uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" /> {t('Telegram Communications')} ({telegramMsgs.length})
+                  <MessageSquare className="w-4 h-4" /> Internet Activity (Telegram and other social media) ({telegramMsgs.length})
                 </h3>
                 {telegramMsgs.map(m => (
                   <div key={`telegram-${m.id}`} className="p-4 rounded-xl border bg-card hover:bg-muted/20 transition-colors text-xs space-y-2">
@@ -198,7 +198,7 @@ export default function SearchInvestigation() {
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl p-8">
             <History className="w-12 h-12 mb-4 opacity-20" />
             <p className="text-sm">{t('Enter a query to search intelligence database records.')}</p>
-            <p className="text-xs mt-1 opacity-70">{t('Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Telegram messages.')}</p>
+            <p className="text-xs mt-1 opacity-70">{t('Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Internet Activity (Telegram and other social media) messages.')}</p>
           </div>
         )}
       </div>

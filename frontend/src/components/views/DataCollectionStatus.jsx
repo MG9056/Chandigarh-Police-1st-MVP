@@ -1451,7 +1451,7 @@ export default function DataCollectionStatus() {
                   </option>
 
                   <option value="TELEGRAM_PUBLIC">
-                    TELEGRAM_PUBLIC (Public Channels)
+                    Internet Activity (Telegram and other social media)
                   </option>
 
                   <option value="TOR_STUB">
