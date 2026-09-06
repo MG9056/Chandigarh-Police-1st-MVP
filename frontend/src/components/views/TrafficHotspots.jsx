@@ -98,6 +98,9 @@ export default function TrafficHotspots() {
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-2 uppercase text-foreground">{t('Traffic Hotspots')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs mb-2">{t('Real place-name mentions scanned from the full Dread forum archive.')}</p>
+          <div className="p-2 mb-2 bg-blue-950/60 border border-blue-700/50 rounded text-[10px] text-blue-300 font-mono inline-block max-w-xl">
+            <strong>Demo Dataset (Elliptic++ / Dread Archive)</strong> — not connected to live case data.
+          </div>
           {geoActivity && !loadError && (
             <p className="text-muted-foreground/70 font-mono tracking-wider text-[10px] max-w-md">
               {t('Marker size/color reflects real mention counts — a volume proxy, not precise geolocation. A vendor writing "ships to Mumbai" is counted under Mumbai regardless of where they actually are.')}

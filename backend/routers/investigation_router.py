@@ -547,3 +547,112 @@ def list_assignments(
         ]
     }
 
+
+# ============================================================================
+# Activity, Entity Graph, and Geography Endpoints (Step 3)
+# ============================================================================
+
+@router.get("/{investigation_id}/activity")
+def get_investigation_activity(
+    investigation_id: str,
+    skip: int = 0,
+    limit: int = 50,
+    current_user: User = Depends(require_permission(Permission.READ)),
+    db: Session = Depends(get_db),
+):
+    """
+    Investigation activity feed — all AuditLog entries for this investigation.
+
+    Uses broad Permission.READ (no reauth). This is a friendlier, investigation-scoped
+    feed vs the full privileged audit export in /api/audit-logs (VIEW_AUDIT_LOGS + reauth).
+    """
+    from models import AuditLog
+
+    investigation = db.query(Investigation).filter(
+        Investigation.investigation_id == investigation_id
+    ).first()
+    if not investigation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Investigation '{investigation_id}' not found.",
+        )
+
+    query = db.query(AuditLog).filter(
+        AuditLog.resource_type == "INVESTIGATION",
+        AuditLog.resource_id == investigation.investigation_id,
+    ).order_by(AuditLog.timestamp.desc())
+
+    total = query.count()
+    entries = query.offset(skip).limit(limit).all()
+
+    return {
+        "investigation_id": investigation_id,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "activity": [
+            {
+                "id": e.id,
+                "timestamp": e.timestamp.isoformat() if e.timestamp else None,
+                "user_id": e.user_id,
+                "role": e.role,
+                "action": e.action,
+                "result": e.result,
+            }
+            for e in entries
+        ],
+    }
+
+
+@router.get("/{investigation_id}/entities")
+def get_investigation_entities(
+    investigation_id: str,
+    limit_records: int = 500,
+    current_user: User = Depends(require_permission(Permission.READ)),
+    db: Session = Depends(get_db),
+):
+    """
+    Entity co-occurrence graph derived from crawler RawRecords for this investigation.
+
+    Returns nodes (entities) and links (CO_OCCURRENCE edges — observational only).
+    No new tables; reads directly from RawRecord.extracted_candidates + .structured_intelligence.
+    """
+    from crawler.pipeline.entity_aggregation import aggregate_entities
+
+    investigation = db.query(Investigation).filter(
+        Investigation.investigation_id == investigation_id
+    ).first()
+    if not investigation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Investigation '{investigation_id}' not found.",
+        )
+
+    return aggregate_entities(db, case_id=investigation.investigation_id, limit_records=limit_records)
+
+
+@router.get("/{investigation_id}/geography")
+def get_investigation_geography(
+    investigation_id: str,
+    limit_records: int = 500,
+    current_user: User = Depends(require_permission(Permission.READ)),
+    db: Session = Depends(get_db),
+):
+    """
+    Geographic hotspot map derived from LOCATION entities in crawler RawRecords.
+
+    Resolves place names against the India gazetteer (PLACES + ALIASES).
+    No new tables; reads directly from RawRecord.extracted_candidates.
+    """
+    from crawler.pipeline.entity_aggregation import aggregate_geography
+
+    investigation = db.query(Investigation).filter(
+        Investigation.investigation_id == investigation_id
+    ).first()
+    if not investigation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Investigation '{investigation_id}' not found.",
+        )
+
+    return aggregate_geography(db, case_id=investigation.investigation_id, limit_records=limit_records)
