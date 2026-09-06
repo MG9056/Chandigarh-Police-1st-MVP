@@ -30,10 +30,14 @@ from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
 from routers.investigation_router import router as investigation_router
+from routers.investigation_sources_router import router as investigation_sources_router
+from routers.investigation_intelligence_router import router as investigation_intelligence_router
+from routers.investigation_keywords_router import router as investigation_keywords_router
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
+
 
 crawler_scheduler = CrawlerScheduler()
 
@@ -91,6 +95,10 @@ app.include_router(audit_router)
 app.include_router(evidence_provenance_router)
 app.include_router(search_router)
 app.include_router(investigation_router)
+app.include_router(investigation_sources_router)
+app.include_router(investigation_intelligence_router)
+app.include_router(investigation_keywords_router)
+
 
 # Include Routers — Crawler subsystem (upstream/main branch)
 app.include_router(sources_router)
