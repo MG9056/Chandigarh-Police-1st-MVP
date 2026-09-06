@@ -4,7 +4,6 @@ import {
   Sparkles,
   X,
   Send,
-  Trash2,
   AlertCircle,
   ShieldCheck,
   ChevronDown,
@@ -119,7 +118,6 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
     errorMessage,
     quickPrompts,
     sendMessage,
-    clearChat,
     isStreaming,
   } = useAI(currentContext);
 
@@ -214,26 +212,12 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                   <h3 className="text-xs font-bold tracking-[0.15em] text-primary uppercase font-mono text-glow">
                     DarKnight AI
                   </h3>
-                  <span className="px-1.5 py-0.2 text-[9px] font-mono bg-primary/20 text-primary border border-primary/40 rounded uppercase font-bold">
-                    Phase 1
-                  </span>
                 </div>
                 <span className="text-[10px] text-muted-foreground font-mono">Your investigative copilot</span>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              {messages.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearChat}
-                  title="Clear Conversation"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 size="icon"
