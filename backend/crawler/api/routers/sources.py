@@ -173,6 +173,24 @@ def stop_source_run(
         r.error_summary = "Crawl stopped by operator."
 
     db.commit()
+
+    # Trigger B: final catch-up sync so DB reflects any CSVs written
+    # during this crawl session before the operator navigates away.
+    try:
+        from db_sync import run_dataset_sync
+        import logging
+        _log = logging.getLogger("sources_router")
+        _log.info(
+            "[sources_router] Crawl stopped for source %s — triggering final DB sync.",
+            source_id,
+        )
+        run_dataset_sync(db, reason="crawler_stopped")
+    except Exception as sync_exc:
+        import logging
+        logging.getLogger("sources_router").error(
+            "[sources_router] Post-stop DB sync failed (non-fatal): %s", sync_exc, exc_info=True
+        )
+
     return {"message": f"Source '{source.name}' stopped and deactivated.", "source_id": str(source.id)}
 
 

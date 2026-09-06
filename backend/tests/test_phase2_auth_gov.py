@@ -28,7 +28,6 @@ def client():
     Base.metadata.create_all(bind=engine)
     with TestClient(app) as c:
         yield c
-    Base.metadata.drop_all(bind=engine)
 
 def test_signup_password_policy(client):
     # Test short password rejection (< 12 chars)

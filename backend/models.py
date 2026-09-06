@@ -158,6 +158,12 @@ class Suspect(Base):
     aliases_json = Column(Text, nullable=True)          # JSON list of known handles/aliases
     pgp_fingerprint = Column(String, nullable=True, index=True)
     phone_number = Column(String, nullable=True, index=True)
+    last_known_location = Column(String, nullable=True, index=True)
+    platform_mentions = Column(Text, nullable=True)
+    enrichment_summary = Column(Text, nullable=True)
+    enrichment_source_count = Column(Integer, nullable=True, default=0)
+    last_enriched_at = Column(DateTime(timezone=True), nullable=True)
+    data_origin = Column(String, nullable=True, index=True)
     telegram_handle = Column(String, nullable=True, index=True)
     risk_score = Column(Integer, default=50, index=True) # Risk score (0-100)
     notes = Column(Text, nullable=True)

@@ -21,42 +21,31 @@ from routers.evidence_provenance_router import router as evidence_provenance_rou
 from routers.search_router import router as search_router
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
-
-import asyncio
-from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
+from crawler_to_dataset_updater import start_crawler_dataset_updater
+from pipelines.ingest_ai_router import INGESTION_STATUS
 from crawler.api.routers.sources import router as sources_router
 from crawler.api.routers.keywords import router as keywords_router
 from crawler.api.routers.raw_records import router as raw_records_router
 from crawler.api.routers.activity import router as activity_router
 
 from routers.investigation_router import router as investigation_router
-from crawler.api.routers.sources import router as sources_router
-from crawler.api.routers.keywords import router as keywords_router
-from crawler.api.routers.raw_records import router as raw_records_router
-from crawler.api.routers.activity import router as activity_router
 
 crawler_scheduler = CrawlerScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # --- Startup ---
     init_db()
-    asyncio.create_task(start_background_ingestion_task())
+    scheduler_task = asyncio.create_task(crawler_scheduler.start())
+    asyncio.create_task(start_crawler_dataset_updater(poll_interval_seconds=60))
     yield
-
-    scheduler_task = asyncio.create_task(
-        crawler_scheduler.start()
-    )
-
+    # --- Shutdown ---
+    crawler_scheduler.stop()
+    scheduler_task.cancel()
     try:
-        yield
-    finally:
-        crawler_scheduler.stop()
-        scheduler_task.cancel()
-
-        try:
-            await scheduler_task
-        except asyncio.CancelledError:
-            pass
+        await scheduler_task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(
     title="DarKnight API",

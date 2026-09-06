@@ -62,7 +62,6 @@ def setup_users():
     yield {"sp": sp, "inv": inv, "constable": constable}
 
     db.close()
-    Base.metadata.drop_all(bind=engine)
 
 def test_rbac_permission_matrix():
     assert has_permission(RoleEnum.CONSTABLE, Permission.READ) is True
