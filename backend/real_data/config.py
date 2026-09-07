@@ -31,10 +31,10 @@ UNKNOWN_CLASS = 3
 # well before it stops being computable — these keep the default view
 # legible; the underlying real dataset is never truncated on disk, only
 # the rendered subgraph is).
-MAX_ELLIPTIC_NODES = 120
-MAX_DREAD_ACCOUNT_NODES = 80
-MAX_MARKET_NODES = 20
-MAX_TOTAL_LINKS = 600
+MAX_ELLIPTIC_NODES = 1000
+MAX_DREAD_ACCOUNT_NODES = 1000
+MAX_MARKET_NODES = 1000
+MAX_TOTAL_LINKS = 1000
 
 # --- Correlation confidence (inferred links only — observed links from
 # real transactions/replies never carry a confidence score, matching the
