@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getInvestigation,
   updateInvestigation,
@@ -28,6 +29,7 @@ const STATUS_COLORS = {
 };
 
 export default function InvestigationDetail({ investigationId, onBack }) {
+  const { t } = useTranslation();
   const { user, triggerReAuth } = useAuth();
   const [investigation, setInvestigation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -163,7 +165,7 @@ export default function InvestigationDetail({ investigationId, onBack }) {
   if (loading) {
     return (
       <div className="text-xs text-muted-foreground font-mono p-8 text-center animate-pulse">
-        Loading investigation...
+        {t('Loading investigation...')}
       </div>
     );
   }
@@ -171,7 +173,7 @@ export default function InvestigationDetail({ investigationId, onBack }) {
   if (!investigation) {
     return (
       <div className="text-destructive text-xs font-mono p-8 text-center">
-        {error || 'Investigation not found'}
+        {error || t('Investigation not found')}
       </div>
     );
   }
@@ -190,7 +192,7 @@ export default function InvestigationDetail({ investigationId, onBack }) {
           <p className="text-sm text-foreground mt-0.5">{investigation.title}</p>
         </div>
         <Button size="sm" variant="ghost" onClick={onBack} className="h-7 gap-1 text-xs flex-shrink-0">
-          <ArrowLeft className="w-3 h-3" /> Back
+          <ArrowLeft className="w-3 h-3" /> {t('Back')}
         </Button>
       </div>
 
@@ -229,7 +231,7 @@ export default function InvestigationDetail({ investigationId, onBack }) {
             onClick={() => setActiveTab(key)}
             className="h-7 gap-1 text-xs uppercase"
           >
-            {icon} {label}
+            {icon} {t(label)}
           </Button>
         ))}
       </div>

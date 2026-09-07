@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../lib/apiClient';
 import { AlertCircle, RefreshCw, Clock } from 'lucide-react';
 import { Button } from '../../ui/button';
@@ -19,6 +20,7 @@ const ACTION_COLORS = {
 };
 
 export default function ActivityTab({ investigationId }) {
+  const { t } = useTranslation();
   const [activity, setActivity] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function ActivityTab({ investigationId }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="w-3.5 h-3.5" />
-          <span>{total} activity entries</span>
+          <span>{total} {t('activity entries')}</span>
         </div>
         <Button size="sm" variant="ghost" onClick={loadActivity} disabled={loading} className="h-7 gap-1 text-xs">
           <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
@@ -66,9 +68,9 @@ export default function ActivityTab({ investigationId }) {
       )}
 
       {loading ? (
-        <p className="text-xs text-muted-foreground animate-pulse">Loading activity...</p>
+        <p className="text-xs text-muted-foreground animate-pulse">{t('Loading activity...')}</p>
       ) : activity.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No activity recorded yet for this investigation.</p>
+        <p className="text-xs text-muted-foreground">{t('No activity recorded yet for this investigation.')}</p>
       ) : (
         <div className="relative border-l-2 border-border/40 ml-2 space-y-0">
           {activity.map((entry) => {

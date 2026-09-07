@@ -45,7 +45,7 @@ export default function DashboardOverview({ setActiveView }) {
       
       <div className="grid grid-cols-3 gap-6 mb-10">
         <div 
-          onClick={() => setActiveView && setActiveView('search')}
+          onClick={() => setActiveView && setActiveView('investigations')}
           className="p-6 bracket-border bg-transparent flex flex-col gap-2 hover:bg-primary/5 transition-colors cursor-pointer group"
         >
           <span className="text-xs font-mono tracking-widest uppercase text-muted-foreground flex items-center gap-2 group-hover:text-primary transition-colors">

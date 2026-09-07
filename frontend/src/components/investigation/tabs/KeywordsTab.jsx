@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigationKeywords, addKeywordToInvestigation, removeKeywordFromInvestigation } from '../../../api/investigationKeywordsApi';
 import { Button } from '../../ui/button';
 import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, Plus, Trash2, RefreshCw, Hash } from 'lucide-react';
 
 export default function KeywordsTab({ investigationId, canManage }) {
+  const { t } = useTranslation();
   const { triggerReAuth } = useAuth();
   const [keywords, setKeywords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +81,7 @@ export default function KeywordsTab({ investigationId, canManage }) {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/40 pb-2">
         <h3 className="font-bold text-sm font-mono uppercase tracking-wider text-muted-foreground">
-          Case-Specific Keywords
+          {t('Case-Specific Keywords')}
         </h3>
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={loadKeywords} className="h-6 w-6 p-0 text-xs">
@@ -92,7 +94,7 @@ export default function KeywordsTab({ investigationId, canManage }) {
               onClick={() => { setShowAddForm(!showAddForm); setError(''); }}
               className="h-6 gap-1 text-xs"
             >
-              <Plus className="w-3 h-3" /> {showAddForm ? 'Cancel' : 'Add Keyword'}
+              <Plus className="w-3 h-3" /> {showAddForm ? t('Cancel') : t('Add Keyword')}
             </Button>
           )}
         </div>
@@ -135,11 +137,11 @@ export default function KeywordsTab({ investigationId, canManage }) {
       {/* Keyword List */}
       {loading ? (
         <div className="text-xs text-muted-foreground font-mono p-4 text-center animate-pulse">
-          Loading keywords...
+          {t('Loading keywords...')}
         </div>
       ) : keywords.length === 0 ? (
         <div className="text-xs text-muted-foreground font-mono p-6 text-center border border-dashed border-border/40 rounded">
-          No case-specific keywords added yet. Keywords guide crawler intelligence filtering.
+          {t('No case-specific keywords added yet. Keywords guide crawler intelligence filtering.')}
         </div>
       ) : (
         <div className="space-y-1.5 font-mono">

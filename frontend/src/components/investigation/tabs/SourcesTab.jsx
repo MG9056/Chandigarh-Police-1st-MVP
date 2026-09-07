@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigationSources, attachSource, detachSource, triggerSourceForInvestigation } from '../../../api/investigationSourcesApi';
 import { Button } from '../../ui/button';
 import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, Play, Trash2, Plus, RefreshCw } from 'lucide-react';
 
 export default function SourcesTab({ investigationId, canManage }) {
+  const { t } = useTranslation();
   const { triggerReAuth } = useAuth();
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function SourcesTab({ investigationId, canManage }) {
       {/* Tab Sub-Header */}
       <div className="flex items-center justify-between border-b border-border/40 pb-2">
         <h3 className="font-bold text-sm font-mono uppercase tracking-wider text-muted-foreground">
-          Attached Crawler Sources
+          {t('Attached Crawler Sources')}
         </h3>
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={loadSources} className="h-6 w-6 p-0 text-xs">
@@ -108,7 +110,7 @@ export default function SourcesTab({ investigationId, canManage }) {
               onClick={() => { setShowAttachForm(!showAttachForm); setError(''); }}
               className="h-6 gap-1 text-xs"
             >
-              <Plus className="w-3 h-3" /> {showAttachForm ? 'Cancel' : 'Attach Source'}
+              <Plus className="w-3 h-3" /> {showAttachForm ? t('Cancel') : t('Attach Source')}
             </Button>
           )}
         </div>
@@ -151,11 +153,11 @@ export default function SourcesTab({ investigationId, canManage }) {
       {/* Source List */}
       {loading ? (
         <div className="text-xs text-muted-foreground font-mono p-4 text-center animate-pulse">
-          Loading sources...
+          {t('Loading sources...')}
         </div>
       ) : sources.length === 0 ? (
         <div className="text-xs text-muted-foreground font-mono p-6 text-center border border-dashed border-border/40 rounded">
-          No sources attached to this investigation yet.
+          {t('No sources attached to this investigation yet.')}
           {canManage && (
             <span
               className="text-primary cursor-pointer ml-1 hover:underline"

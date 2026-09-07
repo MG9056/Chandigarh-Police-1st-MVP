@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigationFindings } from '../../../api/investigationFindingsApi';
 import { listInvestigationEvidence, promoteToEvidence } from '../../../api/investigationEvidenceApi';
 import { Button } from '../../ui/button';
@@ -12,6 +13,7 @@ const STATUS_COLORS = {
 };
 
 export default function FindingsTab({ investigationId, canManage }) {
+  const { t } = useTranslation();
   const { triggerReAuth } = useAuth();
   const [findings, setFindings] = useState([]);
   const [promotedFindingIds, setPromotedFindingIds] = useState(new Set());
@@ -75,7 +77,7 @@ export default function FindingsTab({ investigationId, canManage }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Filter className="w-3.5 h-3.5" />
-          <span>Status:</span>
+          <span>{t('Status')}:</span>
           {['all', 'RELEVANT', 'DISMISSED', 'PENDING_REVIEW'].map((s) => (
             <button
               key={s}
@@ -86,7 +88,7 @@ export default function FindingsTab({ investigationId, canManage }) {
                   : 'text-muted-foreground border-border hover:border-foreground'
               }`}
             >
-              {s === 'all' ? 'All' : s.replace('_', ' ')}
+              {s === 'all' ? t('All') : s.replace('_', ' ')}
             </button>
           ))}
         </div>
@@ -109,9 +111,9 @@ export default function FindingsTab({ investigationId, canManage }) {
 
       {/* Findings List */}
       {loading ? (
-        <p className="text-xs text-muted-foreground animate-pulse">Loading findings...</p>
+        <p className="text-xs text-muted-foreground animate-pulse">{t('Loading findings...')}</p>
       ) : findings.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No findings match the selected filter.</p>
+        <p className="text-xs text-muted-foreground">{t('No findings match the selected filter.')}</p>
       ) : (
         <div className="space-y-2">
           {findings.map((f) => {

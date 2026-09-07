@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createInvestigation } from '../../api/investigationApi';
 import { Button } from '../ui/button';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function InvestigationCreate({ onSuccess, onCancel }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     investigation_id: '',
@@ -55,7 +57,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-base font-mono tracking-wider uppercase text-primary">
-            New Investigation
+            {t('New Investigation')}
           </h2>
           <Button size="sm" variant="ghost" onClick={onCancel} className="h-7 w-7 p-0">
             <X className="w-4 h-4" />
@@ -80,7 +82,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
         <div className="space-y-3">
           <div>
             <label className="text-[10px] font-mono uppercase text-muted-foreground">
-              Investigation ID <span className="text-destructive">*</span>
+              {t('Investigation ID')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -93,7 +95,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
 
           <div>
             <label className="text-[10px] font-mono uppercase text-muted-foreground">
-              Title <span className="text-destructive">*</span>
+              {t('Title')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -105,7 +107,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
           </div>
 
           <div>
-            <label className="text-[10px] font-mono uppercase text-muted-foreground">Description</label>
+            <label className="text-[10px] font-mono uppercase text-muted-foreground">{t('Description')}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -116,7 +118,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-mono uppercase text-muted-foreground">Case Type</label>
+              <label className="text-[10px] font-mono uppercase text-muted-foreground">{t('Case Type')}</label>
               <input
                 type="text"
                 value={formData.case_type}
@@ -126,22 +128,22 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
               />
             </div>
             <div>
-              <label className="text-[10px] font-mono uppercase text-muted-foreground">Priority</label>
+              <label className="text-[10px] font-mono uppercase text-muted-foreground">{t('Priority')}</label>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })}
                 className="w-full mt-1 bg-card border border-border/60 rounded px-3 py-2 text-xs"
               >
-                <option value={1}>1 — Low</option>
-                <option value={2}>2 — Medium</option>
-                <option value={3}>3 — High</option>
-                <option value={4}>4 — Critical</option>
+                <option value={1}>1 — {t('Low')}</option>
+                <option value={2}>2 — {t('Medium')}</option>
+                <option value={3}>3 — {t('High')}</option>
+                <option value={4}>4 — {t('Critical')}</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-mono uppercase text-muted-foreground">Unit / Jurisdiction</label>
+            <label className="text-[10px] font-mono uppercase text-muted-foreground">{t('Unit / Jurisdiction')}</label>
             <input
               type="text"
               value={formData.unit}
@@ -160,7 +162,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
             disabled={loading || !!success}
             className="flex-1 text-xs"
           >
-            {loading ? 'Creating...' : 'Create Investigation'}
+            {loading ? t('Creating...') : t('Create Investigation')}
           </Button>
           <Button
             size="sm"
@@ -169,7 +171,7 @@ export default function InvestigationCreate({ onSuccess, onCancel }) {
             disabled={loading}
             className="flex-1 text-xs"
           >
-            Cancel
+            {t('Cancel')}
           </Button>
         </div>
       </div>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigationEvidence } from '../../../api/investigationEvidenceApi';
 import { Button } from '../../ui/button';
 import { AlertCircle, RefreshCw, ShieldCheck, Database } from 'lucide-react';
 
 export default function EvidenceTab({ investigationId }) {
+  const { t } = useTranslation();
   const [evidence, setEvidence] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function EvidenceTab({ investigationId }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Database className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="font-bold text-foreground">{total}</span> evidence records
+          <span className="font-bold text-foreground">{total}</span> {t('evidence records')}
         </div>
         <Button size="sm" variant="ghost" onClick={loadEvidence} disabled={loading} className="h-7 gap-1 text-xs">
           <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
@@ -46,11 +48,11 @@ export default function EvidenceTab({ investigationId }) {
       )}
 
       {loading ? (
-        <p className="text-xs text-muted-foreground animate-pulse">Loading evidence...</p>
+        <p className="text-xs text-muted-foreground animate-pulse">{t('Loading evidence...')}</p>
       ) : evidence.length === 0 ? (
         <div className="p-6 text-center text-xs text-muted-foreground border border-border/40 rounded bg-card/30">
           <ShieldCheck className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-          No evidence promoted yet. Mark findings as RELEVANT in the Intelligence or Findings tabs, then promote them here.
+          {t('No evidence promoted yet. Mark findings as RELEVANT in the Intelligence or Findings tabs, then promote them here.')}
         </div>
       ) : (
         <div className="space-y-2">
