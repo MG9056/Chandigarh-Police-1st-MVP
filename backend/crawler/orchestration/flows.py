@@ -19,6 +19,7 @@ from crawler.pipeline.relevance_filter import KeywordMatcher
 from crawler.pipeline.relevance_classifier import LLMRelevanceClassifier
 from crawler.pipeline.entity_extractor import EntityExtractor
 from crawler.evidence.tagging import EvidenceTagger
+from services.detection_pipeline import process_raw_records
 
 logger = logging.getLogger(__name__)
 extractor = EntityExtractor()
@@ -232,6 +233,7 @@ async def run_crawl(
                 run.records_produced += 1
 
                 db.commit()
+                process_raw_records(db, [raw_rec.id])
                 continue
 
             # Entity extraction happens before LLM classification so the LLM
@@ -293,6 +295,7 @@ async def run_crawl(
             # Commit after each processed record so the frontend
             # can see activity while the crawl is still running.
             db.commit()
+            process_raw_records(db, [raw_rec.id])
 
         # 6. Crawl completed
         run.status = "COMPLETED"
