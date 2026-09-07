@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Server,
@@ -76,7 +76,8 @@ export default function DataCollectionStatus() {
   });
 
   // Raw records status filter (replaces hardcoded pending_mapping)
-  const [rawRecordStatus, setRawRecordStatus] = useState('pending_mapping');
+  const [rawRecordRelevance, setRawRecordRelevance] = useState('all');
+  const rawRecordsRequestId = useRef(0);
 
   // Fetch Sources
   const fetchSources = async () => {
@@ -123,21 +124,29 @@ export default function DataCollectionStatus() {
   };
 
   // Fetch Raw Records
-  const fetchRawRecords = async () => {
-    try {
-      const statusParam = rawRecordStatus !== 'all' ? `status=${rawRecordStatus}&` : '';
-      const res = await apiFetch(
-        `/api/raw-records?${statusParam}limit=30`
-      );
+  const fetchRawRecords = async (
+  relevanceOverride = rawRecordRelevance
+) => {
+  const requestId = ++rawRecordsRequestId.current;
 
-      if (res.ok) {
-        const data = await res.json();
-        setRawRecords(data);
-      }
-    } catch (err) {
-      console.error('Error fetching raw records:', err);
+  try {
+    const relevanceParam =
+      relevanceOverride !== 'all'
+        ? `relevance=${relevanceOverride}&`
+        : '';
+
+    const res = await apiFetch(
+      `/api/raw-records?${relevanceParam}limit=100`
+    );
+
+    if (res.ok && requestId === rawRecordsRequestId.current) {
+      const data = await res.json();
+      setRawRecords(data);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching raw records:', err);
+  }
+};
 
   const reloadAllData = async () => {
     setLoading(true);
@@ -158,6 +167,8 @@ export default function DataCollectionStatus() {
   }, []);
 
   useEffect(() => {
+    fetchRawRecords();
+
     const intervalId = setInterval(() => {
       Promise.all([
         fetchSources(),
@@ -169,7 +180,7 @@ export default function DataCollectionStatus() {
     }, 2000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [rawRecordRelevance]);
 
   // Trigger Source Run
   const handleTriggerRun = async (sourceId) => {
@@ -1100,18 +1111,14 @@ export default function DataCollectionStatus() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Status:</span>
               <select
-                value={rawRecordStatus}
+                value={rawRecordRelevance}
                 onChange={(e) => {
-                  setRawRecordStatus(e.target.value);
-                  // Trigger refetch when status changes
-                  setTimeout(() => fetchRawRecords(), 0);
+                  setRawRecordRelevance(e.target.value);
                 }}
-                className="bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground font-mono"
               >
-                <option value="all">All Statuses</option>
-                <option value="pending_mapping">Pending Mapping</option>
-                <option value="discarded">Discarded</option>
-                <option value="review_queue">Review Queue</option>
+                <option value="all">All Records</option>
+                <option value="relevant">Relevant</option>
+                <option value="irrelevant">Irrelevant</option>
               </select>
               <span className="text-xs text-muted-foreground">Total: {rawRecords.total}</span>
             </div>
