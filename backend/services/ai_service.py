@@ -187,6 +187,52 @@ class AIService:
             yield f"data: {{\"text\": {self._json_dumps(err_msg)}}}\n\n"
             yield "data: [DONE]\n\n"
 
+    def generate_text(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        temperature: float = 0.2,
+    ) -> tuple[str, str]:
+        """
+        Non-streaming text generation reusing dynamic get_client() and model fallbacks.
+
+        Returns:
+            Tuple of (generated_text, model_name_used).
+
+        Raises:
+            RuntimeError if client is unconfigured or all model generations fail.
+        """
+        client = self.get_client()
+        if not client:
+            raise RuntimeError("LLM_API_KEY_NOT_CONFIGURED")
+
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=temperature,
+        )
+
+        models_to_try = [self.model, "gemini-2.5-flash", "gemini-1.5-flash"]
+        # Deduplicate preserving order
+        models_to_try = list(dict.fromkeys(models_to_try))
+
+        last_error = None
+        for model_name in models_to_try:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config,
+                )
+                if response and response.text:
+                    return response.text, model_name
+            except Exception as model_err:
+                last_error = model_err
+                logger.warning(f"Failed non-streaming generation with model '{model_name}': {model_err}")
+
+        if last_error:
+            raise last_error
+        raise RuntimeError("Failed to obtain response from GenAI API.")
+
     @staticmethod
     def _json_dumps(text: str) -> str:
         import json
