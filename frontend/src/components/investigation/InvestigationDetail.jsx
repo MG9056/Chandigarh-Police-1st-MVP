@@ -8,7 +8,7 @@ import {
 } from '../../api/investigationApi';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
-import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft, Layers, Hash, Database, FileText, ShieldCheck, Bell, Network, MapPin, Clock, SearchCode } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Save, X, UserPlus, Trash2, ArrowLeft, Layers, Hash, Database, FileText, ShieldCheck, Bell, Network, MapPin, Clock, SearchCode, ScrollText } from 'lucide-react';
 import SourcesTab from './tabs/SourcesTab';
 import KeywordsTab from './tabs/KeywordsTab';
 import IntelligenceTab from './tabs/IntelligenceTab';
@@ -18,6 +18,7 @@ import AlertsTab from './tabs/AlertsTab';
 import NetworkTab from './tabs/NetworkTab';
 import GeographyTab from './tabs/GeographyTab';
 import ActivityTab from './tabs/ActivityTab';
+import ReportsTab from './tabs/ReportsTab';
 
 
 const PRIORITY_LABELS = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
@@ -221,6 +222,7 @@ export default function InvestigationDetail({ investigationId, onBack }) {
           { key: 'network', icon: <Network className="w-3.5 h-3.5" />, label: 'Network' },
           { key: 'geography', icon: <MapPin className="w-3.5 h-3.5" />, label: 'Geography' },
           { key: 'activity', icon: <Clock className="w-3.5 h-3.5" />, label: 'Activity' },
+          { key: 'reports', icon: <ScrollText className="w-3.5 h-3.5" />, label: 'Reports' },
         ].map(({ key, icon, label }) => (
           <Button
             key={key}
@@ -261,6 +263,9 @@ export default function InvestigationDetail({ investigationId, onBack }) {
       )}
       {activeTab === 'activity' && (
         <ActivityTab investigationId={investigation.investigation_id} />
+      )}
+      {activeTab === 'reports' && (
+        <ReportsTab investigationId={investigation.investigation_id} canManage={investigation.can_edit} />
       )}
 
       {activeTab === 'overview' && (
