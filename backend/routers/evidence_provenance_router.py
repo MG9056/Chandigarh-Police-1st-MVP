@@ -15,6 +15,56 @@ from audit_service import create_audit_log
 
 router = APIRouter(prefix="/api", tags=["Evidence & Provenance"])
 
+
+@router.get("/evidence")
+def list_all_evidence(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 50,
+):
+    """
+    Global evidence view — all DataProvenance records, unscoped by investigation.
+
+    Read-only; broad access (any authenticated user).
+    The /api/investigations/{id}/evidence endpoint provides investigation-scoped views.
+
+    Route registration note: this route is registered at /api/evidence (no trailing
+    path param), separate from /api/provenance/{record_id} and /api/evidence/{id}/download.
+    FastAPI will match the more specific /{evidence_id}/download first due to parameter
+    ordering, so this flat /evidence route is unambiguous.
+    """
+    total = db.query(DataProvenance).count()
+    records = (
+        db.query(DataProvenance)
+        .order_by(DataProvenance.collected_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return {
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "evidence": [
+            {
+                "id": r.id,
+                "investigation_id": r.investigation_id,
+                "source_type": r.source_type,
+                "source_name": r.source_name,
+                "source_identifier": r.source_identifier,
+                "integrity_hash": r.integrity_hash,
+                "finding_id": r.finding_id,
+                "raw_record_id": r.raw_record_id,
+                "promoted_by_id": r.promoted_by_id,
+                "promoted_at": r.promoted_at.isoformat() if r.promoted_at else None,
+                "collected_at": r.collected_at.isoformat(),
+            }
+            for r in records
+        ],
+    }
+
+
 class ProvenanceCreateRequest(BaseModel):
     source_type: str  # Darknet, Telegram, Blockchain, Public Forum
     source_name: str

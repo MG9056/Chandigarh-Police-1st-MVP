@@ -1,0 +1,894 @@
+[
+  {
+    "address": "3QhP4D6a7XHn1QLnVZXnARw2QZmqxyCySf",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "1AyWjF6qM5Hcj2Z4v713zGrifPmGB",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "bc1qu3sn5dakhu60ukfprez2nwxeuuux2zva3cqlra",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "32nMKYUp3Q4n8KtdbxGG5Cyjz3dZ91uSDk",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "1oMrchDDbvJuxRDbexy8bMunzNQk78UX",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "bc15a7tq8fgxq5kzgzhkch2kdty53y0p6q6qqrzwza",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "35tbDR53p7kDJ7GLgtaZsN2mYYZ7vi3Wnb",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "3qnBidm4hMmRWeNouZEKeq2Cnmu9Qo6mn4",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "1dwtF8Et3TfTuVJ3iCUhXdo2H3",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "1tztmL9nXpvV4Ak3bQejVf6VCnfHNt",
+    "entity_name": "HYDRA DARKNET MARKET"
+  },
+  {
+    "address": "bc1hpjp9pfmxpcvr6jys54mrqq9hak77dre9ehvyq9",
+    "entity_name": "GARANTEX EXCHANGE OOO"
+  },
+  {
+    "address": "1zNqjnbfWXiFnXH9wSgTps9XYcASyhHJL",
+    "entity_name": "GARANTEX EXCHANGE OOO"
+  },
+  {
+    "address": "35Eq5zLT8JdVwM3is4YC4qQ73ddDk7ujsG",
+    "entity_name": "GARANTEX EXCHANGE OOO"
+  },
+  {
+    "address": "1KvcsrEiwpcTjiHy15w6SfpYtgmL",
+    "entity_name": "GARANTEX EXCHANGE OOO"
+  },
+  {
+    "address": "1GxKwLs2gkrEk7JUfizfZWfMaeFxPiG1k",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "19Mdy97vXwg1WffFpKQ7bjsSuUcdYJHvgu",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1S5LZ1m6Bm1Z7rgysgkbpySVMy44DT",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "3kTkhpmmNZ1JVRTxRJT7BMdhcZCuYgQ2AH",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1o2uRGaztwLfnfjokpdwi3giSe",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "383yU1RMg2Tmei5Jyi8RkqqwnJQq6sYYQ2",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "3fKQYNR4uWA3CMzTvAC29SqcsnZxxUmh2J",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1pDHwgJ794VatQyJjMT3G5h6dcdR53",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1GSASoLexzTqj7Bb3eKqUUDnugrv",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1gwud7iZQcjWiwhDon7BW2HxX1Qgpv5T3",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "1qJN5zNuGuhoD9b1wfZqnxeM8TgYNy4G",
+    "entity_name": "CHATEX EXCHANGE"
+  },
+  {
+    "address": "bc1vl7guqezumldpd45924m8hh7p4zjw6ku0gfrh5c",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "3pi3eD8qcn4hsN9sRrysD2H56ifcrJbm3P",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "bc1j64anc9hcndfnjxdt607mqy9dacsun40wtharcq",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "bc15w68yzuvvlhf80ajtrl6ueshqs0pa62zev6kx4j",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "1Ey2VzDXd4fxRwVyWmxScMXQRXfQ",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "3KisF3hN89SDhNGs8Lj77WRgyTpW9FZQgj",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "bc1tl65xl2pnwz823kh40554ts0dtwxvr73hwdavr2",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "37UfkUYynKCy6RYXeyrU1FXhu7PqvDAYDq",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "1kib9DAAHrXVNehnWcBa2dKpwk1iG39",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "3C37P8PfJGyvDkVc3z2pngDyXePbrkjfit",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "3Paiqsa6YJonKz6o3HJwu7N1Gz1VJ7tXYv",
+    "entity_name": "SUEX OTC S.R.O"
+  },
+  {
+    "address": "15dbPEzDhAgs8C48sVp8vVAfaFA",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "1WNM5Rk4YmWr8piFRwcfLiwb6GYgFtQ5E",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "bc1v7j9njan7rc9p8x8jwm3rwnsh9yv0gfp2yg6lgx",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "34UgNvPJWCwSHVQrNBHPFpqNhcTBifiN57",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "1rb2zbFCbE66CjabCHkJ6pfyR8J",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "14gV3VG7DMbvv4tLMEbZzB3BkTGhp5T",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "bc1l2url3c6h3ymcywfdpc9ntxk2m2u3xgk66f5cl7",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "bc1ch5qqryg2jkusl5j8y3xcu2ckh6gx4pm7qrpnhk",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "1p6S23QjQVSWCfsYnZV6qp99jq8kT6A",
+    "entity_name": "TORNADO CASH"
+  },
+  {
+    "address": "1e1ur8WeP2YHUCv6ZNSUawdj9VGrgr9",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1qiwxUZA7Myg72PwYECNT3bGLSyfVGJ",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1G3HR2stuHUTD1YfL1f12hVD4ThQJj3Z4",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1mksRJokVX9rCxrfdiVZhyffBoQ7",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "bc19y9h66wd7fyrgnfya4uvcj2mpsmwy47j92xcqvj",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1t74U7BdD9njk2f5QkMjFoDbrNrU",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1htNsUqBCeConzWqxcG5nv3tA6xVA",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1NtCbrmvzNWtF8n1RdpXruAKZkhjAx9uiM",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "1P3wroXyX2KDmgmUT344ssJYbWhTTfG1",
+    "entity_name": "BITZLATO LIMITED"
+  },
+  {
+    "address": "11G9EwMqqiqeq6PpQYcGDEpgLJrcJ6Ppa",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "11MA5J5inhAAzJxKd8D9BEcXZQe4pKh",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "3TJfBEWdBU1TsZT1d8Mz5efneAwa6kF6aj",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "bc1up5yyt5pza095uxnt6pvyuqq24n2xgvypkjvazx",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "1P698aHvivh9cbhihbbnD88Zx1wRzx",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "3amGK3pdbJ6PHmCaCoDxLv3RBL6kq6H9w6",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "3tfeQk3yfvPoFMqr2n7f5fsi7rLb99xzze",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "bc13esnv0vq6vlceq453xjdm5acy4c0jzh6m8lfa9l",
+    "entity_name": "BLENDER.IO"
+  },
+  {
+    "address": "1RSm3gqw9vUjDGtaRFa76eMPJvhhv",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "bc1f0hedk47et3dm9kaezc3tx3vsper7z5ek2pzd5s",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "1fKaC4EvFx2kqSuEfLPanoSkWXffETNzDB",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "3ZHXae1RRXQJYDmhULSCkNZo7UT5AS7Gmk",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "3Gn42mnEUeXMtiTpj64XCHdMFaCR8a8Nkd",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "bc1ygjqrs6x4ssckw2ca38ry4kptgnc2q6z294xwxg",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "bc1ef24s3c7yy9xeg0yn3h9q4qvgfvu4x4rpq6zfng",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "34krhNnuyrxRC7uk5sPfKBBUM9SeVH2nqV",
+    "entity_name": "LAZARUS GROUP"
+  },
+  {
+    "address": "1n569N1GNseLHM2u5yKcsA6ZuxT9P",
+    "entity_name": "KIMSUKY"
+  },
+  {
+    "address": "bc1f70spzsympkwmensvlmnla5qentd9d2rgmna7q4",
+    "entity_name": "KIMSUKY"
+  },
+  {
+    "address": "3wegcMAbbR7N2bwcs6qzEhpLsE1J48mw4R",
+    "entity_name": "KIMSUKY"
+  },
+  {
+    "address": "1yfvNBW35bP9CrPnubCZLM8sBDEbJjz",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1NdFuGgrnTpdwPZAd3EiwhtTzYt",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "bc1pt8tpn0zsfvece58an45u7mzz3yddg6alm2pyvr",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "3AvitK7AYBwyXNJLW2m8JrM6D9mxM2UDjL",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1JRUdLMu9ERVFhg1gKTBmrShUN",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "3SpHYQAHja3DXZXyXUkWsNMFWapyhgGDkB",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1Jygt215AouGaK6x7jE6fjPH3oM72eRSQ",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1Ur4SJpiN5hAHH673tLEePtXNx3H6rL",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1f7LYdJa71RdU2pxYYToQmYrbbeMJ",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1civQzDaP2wtU2q2N2bjcmTsReyw7mB",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 109"
+  },
+  {
+    "address": "1RssZnzrwuuSWttW7UD7xzMdKmVHNTfxD",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "bc15d6ckyk4fkw4m8e8fgq26ek6j0jrr5ruqgjk2t8",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "1rnES7Ar64SCoEB5vB8HCm9rAm",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "1YaFaNyEdAh72vYuSRgfVxRp3tP",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "bc1k65l8ry0a0d3nyd5larnjcgn6tm6kp96na8tews",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "3wEiNP6HsceUgSVmj9tPcUPynBjkWG8GrT",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "1xwMLMW4Qtp4hoYAgnrVAKB9B8wQi7vyao",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "3YjbiHi7N6J8ar9o4BNJqfxFRHpVyE4SCn",
+    "entity_name": "DARKNET EXCHANGE ENTITY 110"
+  },
+  {
+    "address": "1gwDRD1ceEBtC2U52raU7tUfSEvd3wfw",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 111"
+  },
+  {
+    "address": "1jD8trHjR9KdemhKZufRsQ6HQeR3oXJ5V",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 111"
+  },
+  {
+    "address": "3tpzwQUSxU2sL6Av9h3crRGFs9FjTkEn5X",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 111"
+  },
+  {
+    "address": "3GYrfFJnWB27GFRQ7sbjumu5MQX6uawWhj",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 111"
+  },
+  {
+    "address": "3w5F6sXzszqKmBsBeSaEr7pHv8bUsupkry",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "bc1yth4f8jhtxyzty4rr9zp0t8ru0uz6jl7klx60p2",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "3oXce4k9QQECinE4pdjWi5SuKtFvSes2DR",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "3SrZKQ6XY5c9Cn6rtM5pzr89Q8RzNCYF84",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "3wxbMbkr81kEAWfTx1E4mS9Xu3Ukh6HTF5",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "12qhLTx4vtTKExX83yatkRc3WBiKK",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "13LBsAMHA8XmwGtz4BJEcK49xb72bNoT",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "3V7Bak82DRuFsRtJCpKFFAgNwAEEswvcVt",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "1QCBZZ7VsLeqE7aH919kQygPK",
+    "entity_name": "DRUG TRAFFICKING NETWORK 112"
+  },
+  {
+    "address": "1pNBAQyWkoFkMw1c6zv76SnhiQ",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "1spfBVd6i8Yd13HAdM1NmPbPfyrx",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "1zit8ma9QGgRCX2LzoakRJTZFdQgBCsKV",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "3SJXAa2CZYkDxEhAxr5sfyQGE86X8ogbbF",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "1ZzgBr3x9dN2ME7PHTFLR64TL",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "3fSH851CrCtSfq9fAceqZky4H7VKb9TXji",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "16N9wqogiWr6CszFYPVMBNwvdAoxp4xB",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "3vYRYpuJKe4qTki5VjDctZTLyhy1gTU3w5",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "3VMtxbkf5Y48rKXKb9EYEGW95i8RxVwDLr",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 113"
+  },
+  {
+    "address": "bc1sp0pgdmh9la6fxgpzzkudacxk2esy6nnvwk0nq0",
+    "entity_name": "OFAC DESIGNATED MIXER 114"
+  },
+  {
+    "address": "1ymFvdQM8nv2xpxBMYpgWfQamH",
+    "entity_name": "OFAC DESIGNATED MIXER 114"
+  },
+  {
+    "address": "1dvbWQ7wUiZyqVX8PywpJxVXtZk",
+    "entity_name": "OFAC DESIGNATED MIXER 114"
+  },
+  {
+    "address": "18pwHP44mnVhYMr1qcvcdWTrcg",
+    "entity_name": "OFAC DESIGNATED MIXER 114"
+  },
+  {
+    "address": "1ox3HVbqjQabeaQjKQkD2baXPS1ccLJL",
+    "entity_name": "OFAC DESIGNATED MIXER 114"
+  },
+  {
+    "address": "1Xq4f9pDrpEkUqs3HLPzSABwn5xxopgt",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 115"
+  },
+  {
+    "address": "bc1rzvny02m37wytwuvjagk0l8eg92v0m6kgyj9jxj",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 115"
+  },
+  {
+    "address": "1msHpVdp2ARMs1gdUc1rX6TZ7R",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 115"
+  },
+  {
+    "address": "35npi9ELaydm3qo1q188FTUU2Q8fFNWBNR",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "3tcFEnsWCgDwn7K5wUsspdfnvLtUu1Jm2m",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "36B8i4hDrQgpnVgENv9EiweGWp8hdVVYGA",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "3sj59XndYvLzhhxVBHtE7rJqE6rRoWnJgg",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "1dQeSSbH5waDFbxQeNYPY4PFDZHB7Dnj",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "125gnkGwy6eS4sAtL5pvFiSc7Mrn2bxH",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "1EdYXG9os6jcdbsyuKTvgyzpBQyXPov",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "bc1a30d5xt255c70lngrwxn6psnaztl4txxjuey535",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "bc177j3ghu6g660sjqgpww5mhngx44g5qmashw9pxy",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "3FdR2u2cyweN35vMd1HoySmxNuZFGqAAWJ",
+    "entity_name": "CYBER CRIME GROUP 116"
+  },
+  {
+    "address": "bc1878fd5mc2gqg2n0l4l7nkphkszdvkvvmc582ruq",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "1DfGZpj56VZ9DgNqxEw26fTLsPr3WSQQNL",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "3NEkJb3k8XyNjpgdJzKjXpo7QXyE9t96G8",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "1BeNDRyxZqFUQSqT11NfbMRzq",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "bc1hhyr8aemqrkwtrrdkkk06w39gkpdt50h7duk6wh",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "3W1VbJxc5meWXo2DVaPWNFRZvqiM9UZH1z",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "bc1fw4ws4pw4wu4fgycmzq876lxdakgpj45m9tfd2x",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "3pfLktEWSnEg4fGqXa6FxR9n1Yrib7pJz7",
+    "entity_name": "NORTH KOREA LINKED ENTITY 117"
+  },
+  {
+    "address": "1zNHEbhoBc4JFKFhw4c3FCDRQykY1eJ",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "1tkVqPUHvTFmeAZamwXeUCdVB",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "3rhmsyheorxtuFSpEkCBBgLL8T2AmgHBqw",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "3sKrKBiZL7T3X9mTaNjr9NGc33DRQvMAB5",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "bc1ah39r30rjq7w25hr2aj2yy9pgg4n0fy3pyvnmkl",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "bc1s6283s9d46ytkahmfjrw6dshy5m5sded4r4s655",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "3jD95zFH3UDSdxJFCSvuHKtgKCC1ykVtsP",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "3WMRxrmuDtoeUfWy4AGnezBiWhXYcEoJha",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "bc17wl2yd4npdfq87duc2epspek82h2vdqve3snl2y",
+    "entity_name": "IRAN LINKED EXCHANGE 118"
+  },
+  {
+    "address": "bc187kkxgg9xkzz28dwdf9glxjtg90ml2kjfk7zw98",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 119"
+  },
+  {
+    "address": "3cRMpS8WPaZCJtmsh4uS1VgFmLh8Uh5J4q",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 119"
+  },
+  {
+    "address": "3ZwhNtaBFVJrJRo5pwvK9dMaFyNNQSqEeV",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 119"
+  },
+  {
+    "address": "3FoWF7XL82kmK8N9q7RLFZ3odVUQGEG9e1",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 119"
+  },
+  {
+    "address": "1E1MpuGEwrgADrVj4rSKvLD3i1",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "35KdDCUS1MQyqbX81eAfmAjrWsT4WHztew",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "3Uifa4cVPzna1cnAxL35WJaLJH4fFHTjxG",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "15gAyHPWYUBxcfy39XJzKVWTNiNXDeMT",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "3F28VeLQKAF9eVj7GtCfzbbWXz2gK6hy6N",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "1E4wGuT9o6qfQPTJvBCqVL9CkDZXheqYQ",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "1c1K4NWAkGiaLGpGaqtVD9xnC1o7CB5",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "bc1grz60syycslrdhtv55g4p9xka8dh0jhgem989hk",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "3mV2SHi6ws2BrLMfTeMZJkRuShuJiWWC1G",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "bc1hsesgvgu3h66mg9mxcrah0gnclphj8sdq02nrfk",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "3YLtRPZkrd8KENpDpTgHiyN8mo9BQC2yeq",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "37d4kLrHafEHGDsB6jvE3vKdRFPgkpVYH4",
+    "entity_name": "VIRTUAL ASSETS SDN ENTITY 129"
+  },
+  {
+    "address": "1Pn871dfrdrpVXuUhTvN8CcjE5",
+    "entity_name": "DARKNET EXCHANGE ENTITY 130"
+  },
+  {
+    "address": "3frk7spCyRpxDnhwvDYePUD1SZCvqmHGv8",
+    "entity_name": "DARKNET EXCHANGE ENTITY 130"
+  },
+  {
+    "address": "366GewiqGH8i3Q65778tHYTt6mE61N1uFf",
+    "entity_name": "DARKNET EXCHANGE ENTITY 130"
+  },
+  {
+    "address": "3fzfqR6nyANfJc292F5PrvgsBkmBrBsRSm",
+    "entity_name": "DARKNET EXCHANGE ENTITY 130"
+  },
+  {
+    "address": "1Jq7dic3ufcStKAHjkP889YH8Uxqhi5b5D",
+    "entity_name": "DARKNET EXCHANGE ENTITY 130"
+  },
+  {
+    "address": "bc1vsdey4l2ys0jwzddk0a57n3fuhwx5mtns46xz8p",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "1s6FPXgsJUf958U519NLFyy6Nwf",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "11Rmw6z88s9aBcJmGKXWGzRKRd",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "3PKXPtfapd59VtELkj3tbBonAo29maqRP6",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "1Ydti9tNPTuzyo2xT1q3sJevn",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "11V4NPrT6Vh8jMgRKpQDvTs8kBafdbQyp",
+    "entity_name": "RANSOMWARE OPERATOR GROUP 131"
+  },
+  {
+    "address": "bc1mye3pqmk6y5ejyyty892wmhpedsrvzsgvcy5yr8",
+    "entity_name": "DRUG TRAFFICKING NETWORK 132"
+  },
+  {
+    "address": "1SCoBCCECrnEdELYnet4uVpCPraxH",
+    "entity_name": "DRUG TRAFFICKING NETWORK 132"
+  },
+  {
+    "address": "1KFvRk2ghAhpFJiTajw4Nd7HEj",
+    "entity_name": "DRUG TRAFFICKING NETWORK 132"
+  },
+  {
+    "address": "3icJVx2p8DRDcFJSF8Cv7cUqo9R77tpFJy",
+    "entity_name": "DRUG TRAFFICKING NETWORK 132"
+  },
+  {
+    "address": "1gyzA9jqKaNmyfMYKTLaksXLffU",
+    "entity_name": "DRUG TRAFFICKING NETWORK 132"
+  },
+  {
+    "address": "3218RaKwDhgR1qYngH44wmYa65x1kemMzM",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 133"
+  },
+  {
+    "address": "1bZMggt93cUVnjszio5TgU7NUn1GaPo",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 133"
+  },
+  {
+    "address": "1cbgj1NxxGFYrPXkwpxxBoygnjMD",
+    "entity_name": "ILLICIT FINANCE SYNDICATE 133"
+  },
+  {
+    "address": "1AqDitPk7c99DGHNGhm3BKkAQRmSjRTf",
+    "entity_name": "OFAC DESIGNATED MIXER 134"
+  },
+  {
+    "address": "1RX9UPGDVi6TAw9gq8HVNLez59PMNodo6F",
+    "entity_name": "OFAC DESIGNATED MIXER 134"
+  },
+  {
+    "address": "1zWJwgpkdnJdA14RfuQytQxUm1t24P",
+    "entity_name": "OFAC DESIGNATED MIXER 134"
+  },
+  {
+    "address": "18YhaU47ThLKjJ1xXufHPua8BJ",
+    "entity_name": "OFAC DESIGNATED MIXER 134"
+  },
+  {
+    "address": "3bJBimTMFtRsScvwyBXnjMJREcNThVMZdZ",
+    "entity_name": "OFAC DESIGNATED MIXER 134"
+  },
+  {
+    "address": "1ExqZi1DKTVtb1AizT6v2bXDqan9S9",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "36YRQBbwdAC8Y62734oLMQRPMBhBdkCKCL",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "1cYZm5HwZdgntbeMQLJRmcEPiEnKupvRr",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "1Qi8zx5thSuQ5gfsQJaYYF56R2hSwux",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "1GzXdyaVZqzu4FBoZ41zV448L9SvYA",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "1gJzdF7tXLBgJ3bnzixtdCqv3BjxK",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "1f2scuLeGVVAxgg23fGvfQFMoSe4x6UBdN",
+    "entity_name": "SANCTIONED EXCHANGE OPERATOR 135"
+  },
+  {
+    "address": "19DxkaixakYkvotYpqt2Ws8mJ",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "1aHKRD9qAyZFjpcaYavQe8oqFX7VAijxv",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "3H1GPfjHqYLYioYtZJjdz1cbPPFhcA4DZi",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "bc15u2w05yne4laap6ms5rtkjxc8wr20h02epmz3qx",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "1wUWx1pLkC41JHVujasockbuV",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "3teiRYVpWZqJkzf2EeQg9CqxYboQbfmcDm",
+    "entity_name": "CYBER CRIME GROUP 136"
+  },
+  {
+    "address": "1Qiqa5jPbuHVkFMbiBjjYb2ppG",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "3PVBo9hezVD8tWrX2ZiyUtSrXETGnzEbAi",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "bc17645ue7dzmudx7rakk98d53kw0wat0etfd7t0gv",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "1NnzQtu8WHGaZznFpyXb5Rw7GHjRQfZFs",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "bc1t6gaj2hjhg2d6w8r4jc7ktgyrf4twwp43ed2n6c",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "1qeWeTnvuGEuGt2vdKZjtgKA1kR3Tww",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "1CfBmeJJokmhJXJ7HsoidX76NRCXqhRUZ",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "1DZypUx8ZHzgqpSzwZc3VTRGdT",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "bc1s4rmekqylz5llr0m4uysk4k7ngu2n4az8m8p9e8",
+    "entity_name": "NORTH KOREA LINKED ENTITY 137"
+  },
+  {
+    "address": "1S5tYf8MUzNQAAq1D5uhL9CT7SUQQ",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "1oWn2fTdWegHaR2FEPdiJh8Edj",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "19nYx1UnoNEcQUUjJY2LPRANNdGD4z",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "1jLLKouG8EX1Vdymrmt9YGV5R",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "bc1m5lndv9ylgvl63qnlv84sxzd60eaxmcpsyjemzm",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "3kTrdWDaDpvv3X8FNAgeS2MxKCEzhwHDf9",
+    "entity_name": "IRAN LINKED EXCHANGE 138"
+  },
+  {
+    "address": "1whoAKYMifR48J339fv3TdiJaTyvb",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "1yH211Yj8Gx8D6nyZuE1mPDf47QLEZ",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "bc1dpxrhk43n2g0dd40mdurxrmxtgmtyqwvuyy3344",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "1NMqaYmiA2ncwFjXPtka1v8a3uNZu9N",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "19FCPmRXqXe8Gr7Pjv7SRsCgnnguL5k9",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "32vSupf9knC8JpYi4VzggCqRMuh3nf95uh",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  },
+  {
+    "address": "1EVnuERRszofswk5XJjUFw5Yr",
+    "entity_name": "RUSSIA LINKED VIRTUAL ASSET SERVICE 139"
+  }
+]

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 import logging
 from urllib.parse import urlparse
 import urllib.robotparser
@@ -26,7 +26,7 @@ class RobotsChecker:
             return True  # If no netloc/domain parsed, permit or skip
 
         # Check DB cache
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         cache_entry = db.query(RobotsCache).filter(RobotsCache.domain == domain).first()
 
         if cache_entry and (now - cache_entry.checked_at) < timedelta(hours=cache_entry.ttl_hours):

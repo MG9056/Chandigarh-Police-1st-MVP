@@ -3,11 +3,19 @@ import re
 
 logger = logging.getLogger(__name__)
 
+try:
+    from langdetect import detect, DetectorFactory
+    DetectorFactory.seed = 0
+except ImportError:
+    detect = None
+
 
 class LanguageDetector:
     """
-    Detects natural language of text (English, Hindi, Punjabi, etc.).
-    Uses langdetect if available, with Devanagari/Gurmukhi Unicode range heuristic fallbacks.
+    Detects the language of scraped text.
+
+    Uses Unicode script detection for Punjabi and Hindi first,
+    then falls back to langdetect for other languages.
     """
 
     @staticmethod
@@ -15,17 +23,19 @@ class LanguageDetector:
         if not text or not text.strip():
             return "unknown"
 
-        # Check for Gurmukhi script (Punjabi)
+        # Punjabi / Gurmukhi
         if re.search(r"[\u0A00-\u0A7F]", text):
             return "pa"
 
-        # Check for Devanagari script (Hindi)
+        # Hindi / Devanagari
         if re.search(r"[\u0900-\u097F]", text):
             return "hi"
 
-        try:
-            import langdetect
-            lang = langdetect.detect(text)
-            return lang
-        except Exception:
-            return "en"
+        # Other languages
+        if detect is not None:
+            try:
+                return detect(text)
+            except Exception:
+                logger.warning("Could not detect language")
+
+        return "unknown"

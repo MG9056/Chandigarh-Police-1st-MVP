@@ -1,4 +1,60 @@
-DATASETS
-backend/real_data_files/
+# ==============================
+# Dataset / real data
+# ==============================
+DATASETS/
 backend/real_data/cache/
+scratch/
+
+# ==============================
+# Stray root-level crawler output (path bug artifact, kept locally, not tracked)
+# ==============================
+/real_data_files/
+
+# Stray local debug artifacts
+netstat
+startup_err.log
+
+# ==============================
+# Environment / secrets
+# ==============================
+.env
 backend/.env
+
+# ==============================
+# Local database
+# ==============================
+backend/darknight.db
+backend/.semantic_index.json
+
+# ==============================
+# Python
+# ==============================
+__pycache__/
+**/__pycache__/
+
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling / caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==============================
+# OS / editor
+# ==============================
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/
+
+backend/identifier_collisions.log

@@ -20,6 +20,41 @@ import AccessControl from './components/views/AccessControl';
 import TrafficHotspots from './components/views/TrafficHotspots';
 import SuspectProfiles from './components/views/SuspectProfiles';
 
+import InvestigationList from './components/investigation/InvestigationList';
+import InvestigationDetail from './components/investigation/InvestigationDetail';
+import InvestigationCreate from './components/investigation/InvestigationCreate';
+import AIAssistant from './components/ai/AIAssistant';
+
+function InvestigationView() {
+  const [selectedInvestigation, setSelectedInvestigation] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  return (
+    <>
+      {showCreateModal && (
+        <InvestigationCreate
+          onSuccess={() => {
+            setShowCreateModal(false);
+            setSelectedInvestigation(null);
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      )}
+      {selectedInvestigation ? (
+        <InvestigationDetail
+          investigationId={selectedInvestigation}
+          onBack={() => setSelectedInvestigation(null)}
+        />
+      ) : (
+        <InvestigationList
+          onSelectInvestigation={setSelectedInvestigation}
+          onCreateClick={() => setShowCreateModal(true)}
+        />
+      )}
+    </>
+  );
+}
+
 function Dashboard() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
@@ -33,6 +68,7 @@ function Dashboard() {
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard': return <DashboardOverview setActiveView={setActiveView} />;
+      case 'investigations': return <InvestigationView />;
       case 'data': return <DataCollectionStatus />;
       case 'alerts': return <AlertsFeed />;
       case 'network': return <NetworkGraph />;
@@ -47,6 +83,7 @@ function Dashboard() {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
+    { id: 'investigations', label: 'Investigations' },
     { id: 'hotspots', label: 'Traffic Hotspots' },
     { id: 'profiles', label: 'Target Profiles' },
     { id: 'data', label: 'Data Collection Status' },
@@ -143,6 +180,7 @@ function Dashboard() {
         </main>
       </div>
       <ReAuthModal />
+      <AIAssistant activeView={activeView} />
     </div>
   );
 }
