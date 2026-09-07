@@ -143,8 +143,6 @@ export default function NetworkGraph() {
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
-          <h2 className="text-3xl font-black tracking-widest mb-2 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
-          <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs mb-2">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
           <div className="p-2 bg-blue-950/60 border border-blue-700/50 rounded text-[10px] text-blue-300 font-mono inline-block max-w-xl">
             <strong>Demo Dataset (Elliptic++ / Dread Archive)</strong> — not connected to live case data.
           </div>
