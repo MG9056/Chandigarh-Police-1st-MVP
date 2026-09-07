@@ -58,3 +58,9 @@ Thumbs.db
 .vscode/
 
 backend/identifier_collisions.log
+
+# ==============================
+# Dread and elliptic data
+# ==============================
+backend/real_data_files/dread
+backend/real_data_files/elliptic
