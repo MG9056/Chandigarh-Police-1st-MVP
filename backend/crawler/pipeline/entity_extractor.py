@@ -2,7 +2,8 @@ import logging
 import os
 import re
 from typing import Any, Dict, List
-
+from dotenv import load_dotenv
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
