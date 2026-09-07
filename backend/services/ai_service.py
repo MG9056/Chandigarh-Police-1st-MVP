@@ -39,8 +39,7 @@ class AIService:
         """
         load_dotenv()
         current_key = (
-            os.environ.get("LLM_API_KEY")
-            or os.environ.get("GEMINI_API_KEY")
+            os.environ.get("GEMINI_API_KEY")
             or os.environ.get("GOOGLE_API_KEY")
             or ""
         ).strip()
@@ -60,7 +59,7 @@ class AIService:
 
     @property
     def model(self) -> str:
-        return os.environ.get("LLM_MODEL", "gemini-3.6-flash").strip()
+        return os.environ.get("LLM_MODEL", "gemini-3.5-flash-lite").strip()
 
     def _format_contents(
         self,

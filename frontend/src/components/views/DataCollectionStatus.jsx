@@ -1115,10 +1115,11 @@ export default function DataCollectionStatus() {
                 onChange={(e) => {
                   setRawRecordRelevance(e.target.value);
                 }}
+                className="bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 rounded px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-emerald-400"
               >
-                <option value="all">All Records</option>
-                <option value="relevant">Relevant</option>
-                <option value="irrelevant">Irrelevant</option>
+                <option value="all">{t('All Records')}</option>
+                <option value="relevant">{t('Relevant')}</option>
+                <option value="irrelevant">{t('Irrelevant')}</option>
               </select>
               <span className="text-xs text-muted-foreground">Total: {rawRecords.total}</span>
             </div>

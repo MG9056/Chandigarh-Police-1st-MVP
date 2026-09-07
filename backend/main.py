@@ -14,6 +14,7 @@ load_dotenv()
 from database import init_db, get_db
 from models import (
     User,
+    Investigation,
     Suspect,
     CryptoWallet,
     DarknetListing,
@@ -174,6 +175,9 @@ def get_ingestion_status(current_user: User = Depends(get_current_user)):
 
 @app.get("/api/dashboard/summary")
 def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    active_investigations = db.query(Investigation).filter(
+        Investigation.status.in_(["OPEN", "ACTIVE"])
+    ).count()
     total_suspects = db.query(Suspect).count()
     critical_alerts = db.query(Suspect).filter(Suspect.risk_score >= 80).count()
     total_wallets = db.query(CryptoWallet).count()
@@ -184,7 +188,7 @@ def get_dashboard_summary(current_user: User = Depends(get_current_user), db: Se
     total_sources = db.query(Source).count()
 
     return {
-        "active_investigations": total_suspects,
+        "active_investigations": active_investigations,
         "critical_alerts": critical_alerts,
         "sources_monitored": total_sources,
         "total_suspects": total_suspects,

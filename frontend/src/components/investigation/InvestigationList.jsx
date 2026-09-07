@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigations } from '../../api/investigationApi';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +22,7 @@ const STATUS_COLORS = {
 const CREATE_ROLES = ['SUPER ADMIN / DGP', 'IGP', 'SP', 'INSPECTOR', 'INVESTIGATOR'];
 
 export default function InvestigationList({ onSelectInvestigation, onCreateClick }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [investigations, setInvestigations] = useState([]);
   const [total, setTotal] = useState(0);
@@ -57,11 +59,11 @@ export default function InvestigationList({ onSelectInvestigation, onCreateClick
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-primary font-mono tracking-wider uppercase">
-            Investigations
+            {t('Investigations')}
           </h2>
           {!loading && (
             <p className="text-[10px] text-muted-foreground font-mono">
-              {total} case{total !== 1 ? 's' : ''} on record
+              {total} {t(total !== 1 ? 'cases on record' : 'case on record')}
             </p>
           )}
         </div>
@@ -71,7 +73,7 @@ export default function InvestigationList({ onSelectInvestigation, onCreateClick
           </Button>
           {canCreate && (
             <Button size="sm" onClick={onCreateClick} className="h-7 gap-1 text-xs">
-              <Plus className="w-3 h-3" /> New Investigation
+              <Plus className="w-3 h-3" /> {t('New Investigation')}
             </Button>
           )}
         </div>
@@ -84,21 +86,21 @@ export default function InvestigationList({ onSelectInvestigation, onCreateClick
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
           className="bg-background border border-border/60 rounded px-2 py-1 text-xs font-mono"
         >
-          <option value="all">All Status</option>
-          <option value="OPEN">Open</option>
-          <option value="ACTIVE">Active</option>
-          <option value="CLOSED">Closed</option>
+          <option value="all">{t('All Status')}</option>
+          <option value="OPEN">{t('Open')}</option>
+          <option value="ACTIVE">{t('Active')}</option>
+          <option value="CLOSED">{t('Closed')}</option>
         </select>
         <select
           value={filters.priority}
           onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
           className="bg-background border border-border/60 rounded px-2 py-1 text-xs font-mono"
         >
-          <option value="all">All Priority</option>
-          <option value="1">Low</option>
-          <option value="2">Medium</option>
-          <option value="3">High</option>
-          <option value="4">Critical</option>
+          <option value="all">{t('All Priority')}</option>
+          <option value="1">{t('Low')}</option>
+          <option value="2">{t('Medium')}</option>
+          <option value="3">{t('High')}</option>
+          <option value="4">{t('Critical')}</option>
         </select>
       </div>
 
@@ -113,11 +115,11 @@ export default function InvestigationList({ onSelectInvestigation, onCreateClick
       {/* Content */}
       {loading ? (
         <div className="text-xs text-muted-foreground font-mono p-8 text-center animate-pulse">
-          Loading investigations...
+          {t('Loading investigations...')}
         </div>
       ) : investigations.length === 0 ? (
         <div className="text-xs text-muted-foreground font-mono p-8 text-center border border-dashed border-border/40 rounded">
-          No investigations found.
+          {t('No investigations found.')}
           {canCreate && (
             <span
               className="text-primary cursor-pointer ml-1 hover:underline"

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { listInvestigationAlerts, createAlert, resolveAlert } from '../../../api/investigationAlertsApi';
 import { Button } from '../../ui/button';
 import { useAuth } from '../../../context/AuthContext';
@@ -18,6 +19,7 @@ const STATUS_COLORS = {
 };
 
 export default function AlertsTab({ investigationId, canManage }) {
+  const { t } = useTranslation();
   const { triggerReAuth } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -97,7 +99,7 @@ export default function AlertsTab({ investigationId, canManage }) {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 text-xs">
           <Bell className="w-3.5 h-3.5 text-yellow-400" />
-          <span className="text-muted-foreground">{total} alerts</span>
+          <span className="text-muted-foreground">{total} {t('alerts')}</span>
           {['all', 'OPEN', 'ACKNOWLEDGED', 'RESOLVED'].map((s) => (
             <button
               key={s}
@@ -108,7 +110,7 @@ export default function AlertsTab({ investigationId, canManage }) {
                   : 'text-muted-foreground border-border hover:border-foreground'
               }`}
             >
-              {s === 'all' ? 'All' : s}
+              {s === 'all' ? t('All') : s}
             </button>
           ))}
         </div>
@@ -118,7 +120,7 @@ export default function AlertsTab({ investigationId, canManage }) {
           </Button>
           {canManage && (
             <Button size="sm" onClick={() => setShowCreate(!showCreate)} className="h-7 gap-1 text-xs">
-              <Plus className="w-3 h-3" /> New Alert
+              <Plus className="w-3 h-3" /> {t('New Alert')}
             </Button>
           )}
         </div>
@@ -172,9 +174,9 @@ export default function AlertsTab({ investigationId, canManage }) {
 
       {/* Alert List */}
       {loading ? (
-        <p className="text-xs text-muted-foreground animate-pulse">Loading alerts...</p>
+        <p className="text-xs text-muted-foreground animate-pulse">{t('Loading alerts...')}</p>
       ) : alerts.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No alerts match the selected filter.</p>
+        <p className="text-xs text-muted-foreground">{t('No alerts match the selected filter.')}</p>
       ) : (
         <div className="space-y-2">
           {alerts.map((a) => (

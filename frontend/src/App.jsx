@@ -89,7 +89,7 @@ function Dashboard() {
     { id: 'data', label: 'Data Collection Status' },
     { id: 'alerts', label: 'Alerts & Suspicious Activity' },
     { id: 'network', label: 'Network Visualization' },
-    { id: 'search', label: 'Search & Investigation' },
+    { id: 'search', label: 'Universal Search' },
     { id: 'reports', label: 'Reports & Evidence' },
     { id: 'security', label: 'Security & Access Control' },
   ];
@@ -107,8 +107,8 @@ function Dashboard() {
         {/* Header / Top Nav */}
         <header className="h-16 border-b border-border/50 bg-background/50 backdrop-blur-md flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <div className="relative w-8 h-8 flex items-center justify-center bracket-border">
-              <div className="w-3 h-3 bg-primary rotate-45 text-glow" />
+            <div className="relative w-8 h-8 flex items-center justify-center bracket-border overflow-hidden">
+              <img src="/top_right-Photoroom.png" alt="" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-xl font-bold tracking-[0.2em] text-primary text-glow font-mono uppercase">DarKnight</h1>
           </div>
