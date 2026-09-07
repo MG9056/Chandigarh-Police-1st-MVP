@@ -576,9 +576,42 @@ class InvestigationAlert(Base):
         Index("idx_alert_investigation_status", "investigation_id", "status"),
     )
 
-    def __str__(self):
-        return f"InvestigationAlert({self.id}: [{self.severity}] {self.title} → {self.status})"
 
+class Report(Base):
+    """
+    Generated Intelligence & Evidence Report for an Investigation.
+
+    Preserves AI-generated analysis, structured sections, and grounding links
+    to the source DataProvenance and RawRecords without modifying original evidence.
+    """
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(String, unique=True, index=True, nullable=False)
+    investigation_id = Column(String, nullable=False, index=True)
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    structured_data = Column(JSON, nullable=True)
+    evidence_references = Column(JSON, nullable=True)
+    model_used = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="GENERATED")  # DRAFT, GENERATED, FINALIZED
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    # Relationships
+    created_by = relationship("User", foreign_keys=[created_by_id], lazy="joined")
+    investigation = relationship(
+        "Investigation",
+        primaryjoin="Report.investigation_id == foreign(Investigation.investigation_id)",
+        lazy="joined",
+    )
+
+    __table_args__ = (
+        Index("idx_reports_investigation_id", "investigation_id"),
+    )
+
+    def __str__(self):
+        return f"Report({self.report_id}: {self.title})"
 
 
 __all__ = [
@@ -609,6 +642,7 @@ __all__ = [
     "InvestigationFinding",
     "InvestigationAlertStatus",
     "InvestigationAlert",
+    "Report",
     # Crawler subsystem models
     "Source",
     "Keyword",

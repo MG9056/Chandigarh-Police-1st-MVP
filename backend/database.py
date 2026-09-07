@@ -41,8 +41,8 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     _migrate_suspect_enrichment_columns()
     _migrate_data_provenances_columns()
-
     _migrate_darknet_listing_columns()
+    _migrate_reports_table()
 
 
     # Seed/upsert DGP Admin, Inspector, and IGP accounts
@@ -197,3 +197,11 @@ def _migrate_suspect_enrichment_columns():
         print("Sample investigation seed error:", e)
     finally:
         db.close()
+
+
+def _migrate_reports_table():
+    """Ensure reports table exists in pre-existing databases."""
+    inspector = inspect(engine)
+    if "reports" not in inspector.get_table_names():
+        from models import Report
+        Report.__table__.create(bind=engine, checkfirst=True)
