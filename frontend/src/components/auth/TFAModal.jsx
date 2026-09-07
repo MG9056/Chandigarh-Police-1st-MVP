@@ -13,6 +13,15 @@ export default function TFAModal({ onClose, onComplete }) {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const qrCanvasRef = useRef(null);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const startSetup = async () => {
     setLoading(true);
     setError('');
@@ -68,13 +77,28 @@ export default function TFAModal({ onClose, onComplete }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl relative space-y-5 animate-in zoom-in-95">
+    <div
+      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div
+        className="w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto bg-card border border-border rounded-2xl p-6 shadow-2xl relative space-y-5 animate-in zoom-in-95"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tfa-modal-title"
+      >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+          type="button"
+          aria-label="Close two-factor authentication setup"
+          title="Close"
+          className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-md p-1 text-xs font-mono text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <X className="w-5 h-5" />
+          <span className="sr-only">Close</span>
         </button>
 
         <div className="flex items-center gap-3 border-b border-border/40 pb-3">
@@ -82,7 +106,7 @@ export default function TFAModal({ onClose, onComplete }) {
             <KeyRound className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg tracking-wider uppercase font-mono">Two-Factor Auth Setup</h3>
+            <h3 id="tfa-modal-title" className="font-bold text-lg tracking-wider uppercase font-mono">Two-Factor Auth Setup</h3>
             <p className="text-xs text-muted-foreground font-mono">TOTP Authenticator Protection</p>
           </div>
         </div>
