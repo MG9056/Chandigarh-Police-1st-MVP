@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { UserCheck, ShieldPlus, ShieldMinus, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function DelegationControlPanel({ investigationId = 'INV-2026-001' }) {
   const { triggerReAuth } = useAuth();
+  const { t } = useTranslation();
   const [grants, setGrants] = useState([]);
   const [targetUserId, setTargetUserId] = useState('');
   const [expiresHours, setExpiresHours] = useState('72');
@@ -92,10 +94,10 @@ export default function DelegationControlPanel({ investigationId = 'INV-2026-001
       <div className="flex items-center justify-between border-b border-border/40 pb-3">
         <div>
           <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-primary" /> Delegated Investigation Access
+            <UserCheck className="w-4 h-4 text-primary" /> {t('Delegated Investigation Access')}
           </h4>
           <p className="text-xs text-muted-foreground">
-            Explicitly grant modification authority for Investigation <span className="text-primary font-bold">{investigationId}</span>
+            {t('Explicitly grant modification authority for Investigation')} <span className="text-primary font-bold">{investigationId}</span>
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={fetchGrants}>
@@ -122,7 +124,7 @@ export default function DelegationControlPanel({ investigationId = 'INV-2026-001
           type="number"
           value={targetUserId}
           onChange={(e) => setTargetUserId(e.target.value)}
-          placeholder="Officer User ID"
+          placeholder={t('Officer User ID')}
           className="bg-background border border-border/60 rounded px-3 py-1.5 text-xs focus:border-primary"
         />
         <select
@@ -130,17 +132,17 @@ export default function DelegationControlPanel({ investigationId = 'INV-2026-001
           onChange={(e) => setExpiresHours(e.target.value)}
           className="bg-background border border-border/60 rounded px-3 py-1.5 text-xs focus:border-primary"
         >
-          <option value="24">Expire in 24 Hours</option>
-          <option value="72">Expire in 72 Hours</option>
-          <option value="168">Expire in 7 Days</option>
+          <option value="24">{t('Expire in 24 Hours')}</option>
+          <option value="72">{t('Expire in 72 Hours')}</option>
+          <option value="168">{t('Expire in 7 Days')}</option>
         </select>
         <Button size="sm" onClick={handleGrant} disabled={loading} className="gap-1 text-xs">
-          <ShieldPlus className="w-4 h-4" /> Grant Access
+          <ShieldPlus className="w-4 h-4" /> {t('Grant Access')}
         </Button>
       </div>
 
       <div className="space-y-2 pt-2">
-        <label className="text-xs uppercase text-muted-foreground block">Active Modification Grants</label>
+        <label className="text-xs uppercase text-muted-foreground block">{t('Active Modification Grants')}</label>
         {grants.length === 0 ? (
           <div className="text-xs text-muted-foreground p-3 border border-dashed rounded text-center">
             No active explicit access grants for this investigation.
@@ -161,7 +163,7 @@ export default function DelegationControlPanel({ investigationId = 'INV-2026-001
                   onClick={() => handleRevoke(g.id)}
                   className="h-6 text-[11px] border-destructive/50 text-destructive hover:bg-destructive/10 gap-1"
                 >
-                  <ShieldMinus className="w-3 h-3" /> Revoke
+                  <ShieldMinus className="w-3 h-3" /> {t('Revoke')}
                 </Button>
               </div>
             ))}

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Lock, ShieldAlert, X, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function ReAuthModal() {
   const { reAuthRequired, handleReAuthSuccess, cancelReAuth } = useAuth();
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,8 +51,8 @@ export default function ReAuthModal() {
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-base uppercase text-amber-400">Security Confirmation Required</h3>
-            <p className="text-xs text-muted-foreground">High-Risk Sensitive Operation</p>
+            <h3 className="font-bold text-base uppercase text-amber-400">{t('Security Confirmation Required')}</h3>
+            <p className="text-xs text-muted-foreground">{t('High-Risk Sensitive Operation')}</p>
           </div>
         </div>
 
@@ -67,7 +69,7 @@ export default function ReAuthModal() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs uppercase text-muted-foreground">Account Password</label>
+            <label className="text-xs uppercase text-muted-foreground">{t('Account Password')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -84,10 +86,10 @@ export default function ReAuthModal() {
 
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={cancelReAuth} className="flex-1 text-xs">
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button type="submit" disabled={loading} className="flex-1 text-xs gap-1 bg-amber-600 hover:bg-amber-700 text-white">
-              {loading ? 'Verifying...' : 'Authorize Action'} <ArrowRight className="w-4 h-4" />
+              {loading ? t('Verifying...') : t('Authorize Action')} <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </form>

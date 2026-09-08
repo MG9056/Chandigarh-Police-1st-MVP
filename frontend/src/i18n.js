@@ -88,7 +88,7 @@ const resources = {
       "Sector-Level Precision": "Sector-Level Precision",
       "Regional Overview": "Regional Overview",
       "Survey of India (SOI) Aligned Boundaries Active": "Survey of India (SOI) Aligned Boundaries Active",
-
+ 
       // Network Section Translations
       "Interactive map identifying relationships between suspects, wallets, and marketplaces.": "Interactive map identifying relationships between suspects, wallets, and marketplaces.",
       "Exit Full Screen": "Exit Full Screen",
@@ -106,7 +106,7 @@ const resources = {
       "suspect": "Suspect",
       "wallet": "Crypto Wallet",
       "market": "Marketplace",
-
+ 
       // Search Section Translations
       "Perform advanced searches across aliases, wallet addresses, and keywords.": "Perform advanced searches across aliases, wallet addresses, and keywords.",
       "Search by BTC address, alias, or keyword...": "Search by BTC address, alias, or keyword...",
@@ -120,7 +120,7 @@ const resources = {
       "Historical records are automatically maintained for audit purposes.": "Historical records are automatically maintained for audit purposes.",
       "alias": "Alias",
       "listing": "Listing",
-
+ 
       // Security & Access Control Translations
       "Manage roles, review audit logs, and ensure protection of sensitive investigative information.": "Manage roles, review audit logs, and ensure protection of sensitive investigative information.",
       "Investigator Session": "Investigator Session",
@@ -135,7 +135,7 @@ const resources = {
       "Audit Logs": "Audit Logs",
       "Review system access and search history.": "Review system access and search history.",
       "View Logs": "View Logs",
-
+ 
       // Reporting & Evidence Management Translations
       "Reporting & Evidence Management": "Reporting & Evidence Management",
       "Generate structured intelligence reports and manage digitally signed evidence logs.": "Generate structured intelligence reports and manage digitally signed evidence logs.",
@@ -151,7 +151,7 @@ const resources = {
       "Weekly Market Aggregation": "Weekly Market Aggregation",
       "Alias 'Ghost' Investigation": "Alias 'Ghost' Investigation",
       "Crypto Tumbler Analysis": "Crypto Tumbler Analysis",
-
+ 
       // Alerts & Suspicious Activity Translations
       "High-risk listing detected on Alpha Market": "High-risk listing detected on Alpha Market",
       "Unusual crypto transaction linked to Alias 'Ghost'": "Unusual crypto transaction linked to Alias 'Ghost'",
@@ -226,7 +226,116 @@ const resources = {
       "No alerts match the selected filter.": "No alerts match the selected filter.",
       "Status": "Status",
       "Loading findings...": "Loading findings...",
-      "No findings match the selected filter.": "No findings match the selected filter."
+      "No findings match the selected filter.": "No findings match the selected filter.",
+      // Extended Views & Investigation Tabs Translations
+      "Account / Handle": "Account / Handle",
+      "Alerts & Suspicious Activity Feed": "Alerts & Suspicious Activity Feed",
+      "All Feeds": "All Feeds",
+      "Approve pending registrations & assign role permissions.": "Approve pending registrations & assign role permissions.",
+      "Automated Alerts": "Automated Alerts",
+      "Clear Filters": "Clear Filters",
+      "Crawler Activity Stream": "Crawler Activity Stream",
+      "Critical (Red)": "Critical (Red)",
+      "Crypto Wallets": "Crypto Wallets",
+      "Darknet Marketplace Listings": "Darknet Marketplace Listings",
+      "Demo: Critical": "Demo: Critical",
+      "Demo: High": "Demo: High",
+      "Demo: Low": "Demo: Low",
+      "Demo: Medium": "Demo: Medium",
+      "Detection Signal Breakdown": "Detection Signal Breakdown",
+      "Detection pipeline has not flagged high-risk patterns in current records.": "Detection pipeline has not flagged high-risk patterns in current records.",
+      "Deterministic risk triggers computed from ingested crawler intelligence.": "Deterministic risk triggers computed from ingested crawler intelligence.",
+      "Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).": "Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).",
+      "Enter a query to search intelligence database records.": "Enter a query to search intelligence database records.",
+      "Entities Registered": "Entities Registered",
+      "Explainable rule-based pattern analysis across raw crawler intelligence.": "Explainable rule-based pattern analysis across raw crawler intelligence.",
+      "From ingested records": "From ingested records",
+      "Global Intelligence": "Global Intelligence",
+      "Hide Explainable Evidence": "Hide Explainable Evidence",
+      "Immediate action required": "Immediate action required",
+      "Immutable Audit Logs": "Immutable Audit Logs",
+      "Inferred Link": "Inferred Link",
+      "Info (Green)": "Info (Green)",
+      "Informational indicators": "Informational indicators",
+      "Inspect Explainable Evidence": "Inspect Explainable Evidence",
+      "Inspect activity trail & export security records (Re-auth required).": "Inspect activity trail & export security records (Re-auth required).",
+      "Intelligence Metadata": "Intelligence Metadata",
+      "Known Aliases": "Known Aliases",
+      "Linked Domain Artifacts": "Linked Domain Artifacts",
+      "Live": "Live",
+      "Live Co-occurrence": "Live Co-occurrence",
+      "Live Crawler": "Live Crawler",
+      "Live Crawler Entity": "Live Crawler Entity",
+      "Live Crawler Layer": "Live Crawler Layer",
+      "Live Crawler Mentions": "Live Crawler Mentions",
+      "Live case mentions": "Live case mentions",
+      "Live crawler": "Live crawler",
+      "Live crawler layer hidden": "Live crawler layer hidden",
+      "Live crawler layer unavailable": "Live crawler layer unavailable",
+      "Live layer unavailable": "Live layer unavailable",
+      "Loading linked wallet and listing details...": "Loading linked wallet and listing details...",
+      "Loading live crawler entities…": "Loading live crawler entities…",
+      "Loading live crawler geography…": "Loading live crawler geography…",
+      "Loading target profiles...": "Loading target profiles...",
+      "Marker size/color reflects real mention counts — a volume proxy, not precise geolocation. A vendor writing \"ships to Mumbai\" is counted under Mumbai regardless of where they actually are.": "Marker size/color reflects real mention counts — a volume proxy, not precise geolocation. A vendor writing \"ships to Mumbai\" is counted under Mumbai regardless of where they actually are.",
+      "Mentions": "Mentions",
+      "Mentions in ingested records": "Mentions in ingested records",
+      "Moderate threat threshold": "Moderate threat threshold",
+      "Monitor, configure, and control automated intelligence aggregation nodes.": "Monitor, configure, and control automated intelligence aggregation nodes.",
+      "Monitored threat actor entities, darknet vendors, and OFAC targets in SQLite database.": "Monitored threat actor entities, darknet vendors, and OFAC targets in SQLite database.",
+      "Multi-Source Data Collection & Crawler Control": "Multi-Source Data Collection & Crawler Control",
+      "New Crawler Target": "New Crawler Target",
+      "No active alerts recorded": "No active alerts recorded",
+      "No alerts match the selected filters": "No alerts match the selected filters",
+      "No detailed signal breakdown recorded for this detection.": "No detailed signal breakdown recorded for this detection.",
+      "No direct child records linked.": "No direct child records linked.",
+      "No reports found": "No reports found",
+      "No suspicious activities match the selected filters": "No suspicious activities match the selected filters",
+      "No suspicious activities recorded": "No suspicious activities recorded",
+      "No target profiles found": "No target profiles found",
+      "Observed Link": "Observed Link",
+      "Officer Account Governance": "Officer Account Governance",
+      "Open Detections": "Open Detections",
+      "Overall Score": "Overall Score",
+      "Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Internet Activity (Telegram and other social media).": "Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Internet Activity (Telegram and other social media).",
+      "Real Intelligence": "Real Intelligence",
+      "Real place-name mentions scanned from the full Dread forum archive.": "Real place-name mentions scanned from the full Dread forum archive.",
+      "Real-time automated alert generation and explainable AI pattern detection.": "Real-time automated alert generation and explainable AI pattern detection.",
+      "Record ID": "Record ID",
+      "Refresh Feed": "Refresh Feed",
+      "Refreshing...": "Refreshing...",
+      "Retry Loading Alerts": "Retry Loading Alerts",
+      "Retry Loading Suspicious Activities": "Retry Loading Suspicious Activities",
+      "Rule Confidence & Explanations": "Rule Confidence & Explanations",
+      "Scanning database intelligence records...": "Scanning database intelligence records...",
+      "Search by alias, phone, location, platform handle, BTC address, vendor, or keyword...": "Search by alias, phone, location, platform handle, BTC address, vendor, or keyword...",
+      "Search message, case, ID...": "Search message, case, ID...",
+      "Search pattern, rule, case...": "Search pattern, rule, case...",
+      "Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Internet Activity (Telegram and other social media) messages.": "Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Internet Activity (Telegram and other social media) messages.",
+      "Sev": "Sev",
+      "Share of all place mentions": "Share of all place mentions",
+      "Suspect Profiles": "Suspect Profiles",
+      "Suspicious": "Suspicious",
+      "Sync Pipeline": "Sync Pipeline",
+      "Synthetic Demo": "Synthetic Demo",
+      "System detection rules are actively monitoring incoming intelligence records.": "System detection rules are actively monitoring incoming intelligence records.",
+      "Target Sources": "Target Sources",
+      "Toggle the live crawler co-occurrence layer on or off": "Toggle the live crawler co-occurrence layer on or off",
+      "Toggle the live crawler geography layer on or off": "Toggle the live crawler geography layer on or off",
+      "Total Results Found": "Total Results Found",
+      "Trigger Reasons": "Trigger Reasons",
+      "Try relaxing your severity or status filter criteria.": "Try relaxing your severity or status filter criteria.",
+      "Try relaxing your status filter criteria.": "Try relaxing your status filter criteria.",
+      "Universal Intelligence Search": "Universal Intelligence Search",
+      "Unresolved suspicious patterns": "Unresolved suspicious patterns",
+      "Warning (Yellow)": "Warning (Yellow)",
+      "Watchlists & Keywords": "Watchlists & Keywords",
+      "entities": "entities",
+      "places": "places",
+      "places found": "places found",
+      "records": "records",
+      "total mentions": "total mentions",
+      "updated": "updated"
     }
   },
   hi: {
@@ -314,7 +423,7 @@ const resources = {
       "Sector-Level Precision": "सेक्टर-स्तरीय सटीकता",
       "Regional Overview": "क्षेत्रीय अवलोकन",
       "Survey of India (SOI) Aligned Boundaries Active": "भारतीय सर्वेक्षण (SOI) संरेखित सीमाएं सक्रिय",
-
+ 
       // Network Section Translations
       "Interactive map identifying relationships between suspects, wallets, and marketplaces.": "संदिग्धों, वॉलेट्स और मार्केटप्लेस के बीच संबंधों की पहचान करने वाला इंटरैक्टिव मानचित्र।",
       "Exit Full Screen": "फुल स्क्रीन से बाहर निकलें",
@@ -332,7 +441,7 @@ const resources = {
       "suspect": "संदिग्ध",
       "wallet": "क्रिप्टो वॉलेट",
       "market": "मार्केटप्लेस",
-
+ 
       // Search Section Translations
       "Perform advanced searches across aliases, wallet addresses, and keywords.": "उपनामों, वॉलेट पतों और कीवर्ड्स पर उन्नत खोज करें।",
       "Search by BTC address, alias, or keyword...": "BTC पते, उपनाम या कीवर्ड द्वारा खोजें...",
@@ -346,7 +455,7 @@ const resources = {
       "Historical records are automatically maintained for audit purposes.": "ऐतिहासिक रिकॉर्ड ऑडिट उद्देश्यों के लिए स्वचालित रूप से बनाए रखे जाते हैं।",
       "alias": "उपनाम",
       "listing": "लिस्टिंग",
-
+ 
       // Security & Access Control Translations
       "Manage roles, review audit logs, and ensure protection of sensitive investigative information.": "भूमिकाओं का प्रबंधन करें, ऑडिट लॉग की समीक्षा करें और संवेदनशील खोजी जानकारी की सुरक्षा सुनिश्चित करें।",
       "Investigator Session": "जांचकर्ता सत्र",
@@ -361,7 +470,7 @@ const resources = {
       "Audit Logs": "ऑडिट लॉग",
       "Review system access and search history.": "सिस्टम एक्सेस और खोज इतिहास की समीक्षा करें।",
       "View Logs": "लॉग देखें",
-
+ 
       // Reporting & Evidence Management Translations
       "Reporting & Evidence Management": "रिपोर्टिंग और साक्ष्य प्रबंधन",
       "Generate structured intelligence reports and manage digitally signed evidence logs.": "संरचित खुफिया रिपोर्ट बनाएं और डिजिटल रूप से हस्ताक्षरित साक्ष्य लॉग प्रबंधित करें।",
@@ -377,7 +486,7 @@ const resources = {
       "Weekly Market Aggregation": "साप्ताहिक बाज़ार एकत्रीकरण",
       "Alias 'Ghost' Investigation": "उपनाम 'घोस्ट' जांच",
       "Crypto Tumbler Analysis": "क्रिप्टो टम्बलर विश्लेषण",
-
+ 
       // Alerts & Suspicious Activity Translations
       "High-risk listing detected on Alpha Market": "अल्फा मार्केट पर उच्च जोखिम वाली लिस्टिंग पाई गई",
       "Unusual crypto transaction linked to Alias 'Ghost'": "उपनाम 'घोस्ट' से जुड़ा असामान्य क्रिप्टो लेनदेन",
@@ -452,7 +561,116 @@ const resources = {
       "No alerts match the selected filter.": "चयनित फ़िल्टर से कोई अलर्ट मेल नहीं खाता।",
       "Status": "स्थिति",
       "Loading findings...": "निष्कर्ष लोड हो रहे हैं...",
-      "No findings match the selected filter.": "चयनित फ़िल्टर से कोई निष्कर्ष मेल नहीं खाता।"
+      "No findings match the selected filter.": "चयनित फ़िल्टर से कोई निष्कर्ष मेल नहीं खाता।",
+      // Extended Views & Investigation Tabs Translations
+      "Account / Handle": "खाता / हैंडल",
+      "Alerts & Suspicious Activity Feed": "अलर्ट और संदिग्ध गतिविधि फ़ीड",
+      "All Feeds": "सभी फ़ीड",
+      "Approve pending registrations & assign role permissions.": "लंबित पंजीकरण स्वीकृत करें और भूमिका अनुमतियाँ निर्दिष्ट करें।",
+      "Automated Alerts": "स्वचालित अलर्ट",
+      "Clear Filters": "फ़िल्टर साफ़ करें",
+      "Crawler Activity Stream": "क्रॉलर गतिविधि स्ट्रीम",
+      "Critical (Red)": "गंभीर (लाल)",
+      "Crypto Wallets": "क्रिप्टो वॉलेट",
+      "Darknet Marketplace Listings": "डार्कनेट मार्केटप्लेस लिस्टिंग",
+      "Demo: Critical": "डेमो: गंभीर",
+      "Demo: High": "डेमो: उच्च",
+      "Demo: Low": "डेमो: कम",
+      "Demo: Medium": "डेमो: मध्यम",
+      "Detection Signal Breakdown": "पहचान सिग्नल विश्लेषण",
+      "Detection pipeline has not flagged high-risk patterns in current records.": "पहचान पाइपलाइन ने वर्तमान रिकॉर्ड में उच्च-जोखिम पैटर्न को चिह्नित नहीं किया है।",
+      "Deterministic risk triggers computed from ingested crawler intelligence.": "अंतर्ग्रहीत क्रॉलर खुफिया जानकारी से गणना किए गए नियतात्मक जोखिम ट्रिगर।",
+      "Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).": "Elliptic++ वॉलेट क्लस्टर + Dread फोरम सहसंबंध (PGP पुन: उपयोग, उत्तर, वॉलेट उल्लेख)।",
+      "Enter a query to search intelligence database records.": "खुफिया डेटाबेस रिकॉर्ड खोजने के लिए एक क्वेरी दर्ज करें।",
+      "Entities Registered": "पंजीकृत इकाइयाँ",
+      "Explainable rule-based pattern analysis across raw crawler intelligence.": "कच्चे क्रॉलर खुफिया डेटा पर व्याख्येय नियम-आधारित पैटर्न विश्लेषण।",
+      "From ingested records": "अंतर्ग्रहीत रिकॉर्ड से",
+      "Global Intelligence": "वैश्विक खुफिया जानकारी",
+      "Hide Explainable Evidence": "व्याख्येय साक्ष्य छिपाएँ",
+      "Immediate action required": "तत्काल कार्रवाई आवश्यक",
+      "Immutable Audit Logs": "अपरिवर्तनीय ऑडिट लॉग",
+      "Inferred Link": "अनुमानित लिंक",
+      "Info (Green)": "जानकारी (हरा)",
+      "Informational indicators": "सूचनात्मक संकेतक",
+      "Inspect Explainable Evidence": "व्याख्येय साक्ष्य देखें",
+      "Inspect activity trail & export security records (Re-auth required).": "गतिविधि ट्रेल का निरीक्षण करें और सुरक्षा रिकॉर्ड निर्यात करें (पुनः प्रमाणीकरण आवश्यक)।",
+      "Intelligence Metadata": "खुफिया मेटाडेटा",
+      "Known Aliases": "ज्ञात उपनाम",
+      "Linked Domain Artifacts": "लिंक किए गए डोमेन आर्टिफैक्ट",
+      "Live": "लाइव",
+      "Live Co-occurrence": "लाइव सह-घटना",
+      "Live Crawler": "लाइव क्रॉलर",
+      "Live Crawler Entity": "लाइव क्रॉलर इकाई",
+      "Live Crawler Layer": "लाइव क्रॉलर परत",
+      "Live Crawler Mentions": "लाइव क्रॉलर उल्लेख",
+      "Live case mentions": "लाइव केस उल्लेख",
+      "Live crawler": "लाइव क्रॉलर",
+      "Live crawler layer hidden": "लाइव क्रॉलर परत छिपी हुई है",
+      "Live crawler layer unavailable": "लाइव क्रॉलर परत अनुपलब्ध",
+      "Live layer unavailable": "लाइव परत अनुपलब्ध",
+      "Loading linked wallet and listing details...": "लिंक किए गए वॉलेट और लिस्टिंग विवरण लोड हो रहे हैं...",
+      "Loading live crawler entities…": "लाइव क्रॉलर इकाइयाँ लोड हो रही हैं…",
+      "Loading live crawler geography…": "लाइव क्रॉलर भूगोल लोड हो रहा है…",
+      "Loading target profiles...": "लक्ष्य प्रोफाइल लोड हो रहे हैं...",
+      "Marker size/color reflects real mention counts — a volume proxy, not precise geolocation. A vendor writing \"ships to Mumbai\" is counted under Mumbai regardless of where they actually are.": "मार्कर का आकार/रंग वास्तविक उल्लेख संख्या को दर्शाता है — यह सटीक भू-स्थान नहीं बल्कि मात्रा का एक अनुमानक है। यदि कोई विक्रेता \"मुंबई भेजता है\" लिखता है, तो उसे मुंबई के अंतर्गत गिना जाएगा, चाहे वह वास्तव में कहीं भी हो।",
+      "Mentions": "उल्लेख",
+      "Mentions in ingested records": "अंतर्ग्रहीत रिकॉर्ड में उल्लेख",
+      "Moderate threat threshold": "मध्यम खतरा सीमा",
+      "Monitor, configure, and control automated intelligence aggregation nodes.": "स्वचालित खुफिया एकत्रीकरण नोड्स की निगरानी, कॉन्फ़िगर और नियंत्रण करें।",
+      "Monitored threat actor entities, darknet vendors, and OFAC targets in SQLite database.": "SQLite डेटाबेस में निगरानी की गई खतरा अभिकर्ता इकाइयाँ, डार्कनेट विक्रेता, और OFAC लक्ष्य।",
+      "Multi-Source Data Collection & Crawler Control": "बहु-स्रोत डेटा संग्रह और क्रॉलर नियंत्रण",
+      "New Crawler Target": "नया क्रॉलर लक्ष्य",
+      "No active alerts recorded": "कोई सक्रिय अलर्ट दर्ज नहीं",
+      "No alerts match the selected filters": "चयनित फ़िल्टर से कोई अलर्ट मेल नहीं खाता",
+      "No detailed signal breakdown recorded for this detection.": "इस पहचान के लिए कोई विस्तृत सिग्नल विश्लेषण दर्ज नहीं है।",
+      "No direct child records linked.": "कोई प्रत्यक्ष चाइल्ड रिकॉर्ड लिंक नहीं है।",
+      "No reports found": "कोई रिपोर्ट नहीं मिली",
+      "No suspicious activities match the selected filters": "चयनित फ़िल्टर से कोई संदिग्ध गतिविधि मेल नहीं खाती",
+      "No suspicious activities recorded": "कोई संदिग्ध गतिविधि दर्ज नहीं",
+      "No target profiles found": "कोई लक्ष्य प्रोफाइल नहीं मिली",
+      "Observed Link": "प्रेक्षित लिंक",
+      "Officer Account Governance": "अधिकारी खाता प्रशासन",
+      "Open Detections": "खुली पहचानें",
+      "Overall Score": "समग्र स्कोर",
+      "Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Internet Activity (Telegram and other social media).": "संदिग्ध प्रोफाइल, क्रिप्टो वॉलेट, डार्कनेट लिस्टिंग, और इंटरनेट गतिविधि (टेलीग्राम और अन्य सोशल मीडिया) में वास्तविक समय सबस्ट्रिंग और फजी खोज करें।",
+      "Real Intelligence": "वास्तविक खुफिया जानकारी",
+      "Real place-name mentions scanned from the full Dread forum archive.": "पूर्ण Dread फोरम संग्रह से स्कैन किए गए वास्तविक स्थान-नाम उल्लेख।",
+      "Real-time automated alert generation and explainable AI pattern detection.": "वास्तविक समय स्वचालित अलर्ट जेनरेशन और व्याख्येय एआई पैटर्न पहचान।",
+      "Record ID": "रिकॉर्ड आईडी",
+      "Refresh Feed": "फ़ीड रीफ़्रेश करें",
+      "Refreshing...": "रीफ़्रेश हो रहा है...",
+      "Retry Loading Alerts": "अलर्ट फिर से लोड करने का प्रयास करें",
+      "Retry Loading Suspicious Activities": "संदिग्ध गतिविधियाँ फिर से लोड करने का प्रयास करें",
+      "Rule Confidence & Explanations": "नियम विश्वास स्तर और स्पष्टीकरण",
+      "Scanning database intelligence records...": "डेटाबेस खुफिया रिकॉर्ड स्कैन हो रहे हैं...",
+      "Search by alias, phone, location, platform handle, BTC address, vendor, or keyword...": "उपनाम, फ़ोन, स्थान, प्लेटफ़ॉर्म हैंडल, BTC पता, विक्रेता, या कीवर्ड द्वारा खोजें...",
+      "Search message, case, ID...": "संदेश, केस, आईडी खोजें...",
+      "Search pattern, rule, case...": "पैटर्न, नियम, केस खोजें...",
+      "Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Internet Activity (Telegram and other social media) messages.": "78 संदिग्धों, 924 वॉलेट, 650 मार्केट लिस्टिंग, और 175 इंटरनेट गतिविधि (टेलीग्राम और अन्य सोशल मीडिया) संदेशों में खोज करता है।",
+      "Sev": "गंभीरता",
+      "Share of all place mentions": "सभी स्थान उल्लेखों का हिस्सा",
+      "Suspect Profiles": "संदिग्ध प्रोफाइल",
+      "Suspicious": "संदिग्ध",
+      "Sync Pipeline": "सिंक पाइपलाइन",
+      "Synthetic Demo": "सिंथेटिक डेमो",
+      "System detection rules are actively monitoring incoming intelligence records.": "सिस्टम पहचान नियम आने वाले खुफिया रिकॉर्ड की सक्रिय रूप से निगरानी कर रहे हैं।",
+      "Target Sources": "लक्ष्य स्रोत",
+      "Toggle the live crawler co-occurrence layer on or off": "लाइव क्रॉलर सह-घटना परत को चालू या बंद करें",
+      "Toggle the live crawler geography layer on or off": "लाइव क्रॉलर भूगोल परत को चालू या बंद करें",
+      "Total Results Found": "कुल परिणाम मिले",
+      "Trigger Reasons": "ट्रिगर कारण",
+      "Try relaxing your severity or status filter criteria.": "अपने गंभीरता या स्थिति फ़िल्टर मानदंड को शिथिल करने का प्रयास करें।",
+      "Try relaxing your status filter criteria.": "अपने स्थिति फ़िल्टर मानदंड को शिथिल करने का प्रयास करें।",
+      "Universal Intelligence Search": "सार्वभौमिक खुफिया खोज",
+      "Unresolved suspicious patterns": "अनसुलझे संदिग्ध पैटर्न",
+      "Warning (Yellow)": "चेतावनी (पीला)",
+      "Watchlists & Keywords": "वॉचलिस्ट और कीवर्ड",
+      "entities": "इकाइयाँ",
+      "places": "स्थान",
+      "places found": "स्थान मिले",
+      "records": "रिकॉर्ड",
+      "total mentions": "कुल उल्लेख",
+      "updated": "अपडेट किया गया"
     }
   },
   pa: {
@@ -540,7 +758,7 @@ const resources = {
       "Sector-Level Precision": "ਸੈਕਟਰ-ਪੱਧਰ ਦੀ ਸ਼ੁੱਧਤਾ",
       "Regional Overview": "ਖੇਤਰੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
       "Survey of India (SOI) Aligned Boundaries Active": "ਭਾਰਤੀ ਸਰਵੇਖਣ (SOI) ਅਨੁਕੂਲ ਸੀਮਾਵਾਂ ਸਰਗਰਮ",
-
+ 
       // Network Section Translations
       "Interactive map identifying relationships between suspects, wallets, and marketplaces.": "ਸ਼ੱਕੀਆਂ, ਵਾਲਿਟਾਂ ਅਤੇ ਮਾਰਕੀਟਪਲੇਸਾਂ ਵਿਚਕਾਰ ਸਬੰਧਾਂ ਦੀ ਪਛਾਣ ਕਰਨ ਵਾਲਾ ਇੰਟਰਐਕਟਿਵ ਨਕਸ਼ਾ।",
       "Exit Full Screen": "ਪੂਰੀ ਸਕ੍ਰੀਨ ਤੋਂ ਬਾਹਰ ਆਓ",
@@ -558,7 +776,7 @@ const resources = {
       "suspect": "ਸ਼ੱਕੀ",
       "wallet": "ਕ੍ਰਿਪਟੋ ਵਾਲਿਟ",
       "market": "ਮਾਰਕੀਟਪਲੇਸ",
-
+ 
       // Search Section Translations
       "Perform advanced searches across aliases, wallet addresses, and keywords.": "ਉਪਨਾਮਾਂ, ਵਾਲਿਟ ਪਤਿਆਂ ਅਤੇ ਕੀਵਰਡਸ ਵਿੱਚ ਉੱਨਤ ਖੋਜਾਂ ਕਰੋ।",
       "Search by BTC address, alias, or keyword...": "BTC ਪਤੇ, ਉਪਨਾਮ ਜਾਂ ਕੀਵਰਡ ਦੁਆਰਾ ਖੋਜੋ...",
@@ -572,7 +790,7 @@ const resources = {
       "Historical records are automatically maintained for audit purposes.": "ਆਡਿਟ ਦੇ ਉਦੇਸ਼ਾਂ ਲਈ ਇਤਿਹਾਸਕ ਰਿਕਾਰਡ ਆਪਣੇ ਆਪ ਬਣਾਏ ਰੱਖੇ ਜਾਂਦੇ ਹਨ।",
       "alias": "ਉਪਨਾਮ",
       "listing": "ਸੂਚੀ",
-
+ 
       // Security & Access Control Translations
       "Manage roles, review audit logs, and ensure protection of sensitive investigative information.": "ਭੂਮਿਕਾਵਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ, ਆਡਿਟ ਲੌਗਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ ਅਤੇ ਸੰਵੇਦਨਸ਼ੀਲ ਜਾਂਚ ਜਾਣਕਾਰੀ ਦੀ ਸੁਰੱਖਿਆ ਨੂੰ ਯਕੀਨੀ ਬਣਾਓ।",
       "Investigator Session": "ਜਾਂਚਕਾਰ ਸੈਸ਼ਨ",
@@ -587,7 +805,7 @@ const resources = {
       "Audit Logs": "ਆਡਿਟ ਲੌਗ",
       "Review system access and search history.": "ਸਿਸਟਮ ਪਹੁੰਚ ਅਤੇ ਖੋਜ ਇਤਿਹਾਸ ਦੀ ਸਮੀਖਿਆ ਕਰੋ।",
       "View Logs": "ਲੌਗ ਦੇਖੋ",
-
+ 
       // Reporting & Evidence Management Translations
       "Reporting & Evidence Management": "ਰਿਪੋਰਟਿੰਗ ਅਤੇ ਸਬੂਤ ਪ੍ਰਬੰਧਨ",
       "Generate structured intelligence reports and manage digitally signed evidence logs.": "ਸੰਰਚਨਾਬੱਧ ਖੁਫੀਆ ਰਿਪੋਰਟਾਂ ਤਿਆਰ ਕਰੋ ਅਤੇ ਡਿਜੀਟਲ ਤੌਰ 'ਤੇ ਦਸਤਖਤ ਕੀਤੇ ਸਬੂਤ ਲੌਗਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ।",
@@ -603,7 +821,7 @@ const resources = {
       "Weekly Market Aggregation": "ਹਫਤਾਵਾਰੀ ਮਾਰਕੀਟ ਇਕੱਤਰੀਕਰਨ",
       "Alias 'Ghost' Investigation": "ਉਪਨਾਮ 'ਗੋਸਟ' ਜਾਂਚ",
       "Crypto Tumbler Analysis": "ਕ੍ਰਿਪਟੋ ਟੰਬਲਰ ਵਿਸ਼ਲੇਸ਼ਣ",
-
+ 
       // Alerts & Suspicious Activity Translations
       "High-risk listing detected on Alpha Market": "ਅਲਫ਼ਾ ਮਾਰਕੀਟ 'ਤੇ ਉੱਚ-ਜੋਖਮ ਵਾਲੀ ਸੂਚੀ ਮਿਲੀ",
       "Unusual crypto transaction linked to Alias 'Ghost'": "ਉਪਨਾਮ 'ਗੋਸਟ' ਨਾਲ ਜੁੜਿਆ ਅਸਧਾਰਨ ਕ੍ਰਿਪਟੋ ਲੈਣ-ਦੇਣ",
@@ -678,10 +896,149 @@ const resources = {
       "No alerts match the selected filter.": "ਚੁਣੇ ਫਿਲਟਰ ਨਾਲ ਕੋਈ ਚੇਤਾਵਨੀ ਨਹੀਂ ਮਿਲਦੀ।",
       "Status": "ਸਥਿਤੀ",
       "Loading findings...": "ਨਤੀਜੇ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
-      "No findings match the selected filter.": "ਚੁਣੇ ਫਿਲਟਰ ਨਾਲ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਦਾ।"
+      "No findings match the selected filter.": "ਚੁਣੇ ਫਿਲਟਰ ਨਾਲ ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਦਾ।",
+      // Extended Views & Investigation Tabs Translations
+      "Account / Handle": "ਖਾਤਾ / ਹੈਂਡਲ",
+      "Alerts & Suspicious Activity Feed": "ਚੇਤਾਵਨੀਆਂ ਅਤੇ ਸ਼ੱਕੀ ਗਤੀਵਿਧੀ ਫੀਡ",
+      "All Feeds": "ਸਾਰੀਆਂ ਫੀਡਾਂ",
+      "Approve pending registrations & assign role permissions.": "ਬਕਾਇਆ ਰਜਿਸਟ੍ਰੇਸ਼ਨਾਂ ਨੂੰ ਮਨਜ਼ੂਰ ਕਰੋ ਅਤੇ ਭੂਮਿਕਾ ਅਨੁਮਤੀਆਂ ਨਿਰਧਾਰਤ ਕਰੋ।",
+      "Automated Alerts": "ਸਵੈਚਲਿਤ ਚੇਤਾਵਨੀਆਂ",
+      "Clear Filters": "ਫਿਲਟਰ ਸਾਫ਼ ਕਰੋ",
+      "Crawler Activity Stream": "ਕ੍ਰਾਲਰ ਗਤੀਵਿਧੀ ਸਟ੍ਰੀਮ",
+      "Critical (Red)": "ਗੰਭੀਰ (ਲਾਲ)",
+      "Crypto Wallets": "ਕ੍ਰਿਪਟੋ ਵਾਲਿਟ",
+      "Darknet Marketplace Listings": "ਡਾਰਕਨੈੱਟ ਮਾਰਕੀਟਪਲੇਸ ਸੂਚੀਆਂ",
+      "Demo: Critical": "ਡੈਮੋ: ਗੰਭੀਰ",
+      "Demo: High": "ਡੈਮੋ: ਉੱਚ",
+      "Demo: Low": "ਡੈਮੋ: ਘੱਟ",
+      "Demo: Medium": "ਡੈਮੋ: ਮੱਧਮ",
+      "Detection Signal Breakdown": "ਪਛਾਣ ਸਿਗਨਲ ਵਿਸ਼ਲੇਸ਼ਣ",
+      "Detection pipeline has not flagged high-risk patterns in current records.": "ਪਛਾਣ ਪਾਈਪਲਾਈਨ ਨੇ ਮੌਜੂਦਾ ਰਿਕਾਰਡਾਂ ਵਿੱਚ ਉੱਚ-ਜੋਖਮ ਪੈਟਰਨਾਂ ਨੂੰ ਚਿੰਨ੍ਹਿਤ ਨਹੀਂ ਕੀਤਾ।",
+      "Deterministic risk triggers computed from ingested crawler intelligence.": "ਗ੍ਰਹਿਣ ਕੀਤੀ ਕ੍ਰਾਲਰ ਖੁਫੀਆ ਜਾਣਕਾਰੀ ਤੋਂ ਗਣਨਾ ਕੀਤੇ ਨਿਸ਼ਚਿਤ ਜੋਖਮ ਟ੍ਰਿਗਰ।",
+      "Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).": "Elliptic++ ਵਾਲਿਟ ਕਲੱਸਟਰ + Dread ਫੋਰਮ ਸਹਿਸੰਬੰਧ (PGP ਮੁੜ-ਵਰਤੋਂ, ਜਵਾਬ, ਵਾਲਿਟ ਜ਼ਿਕਰ)।",
+      "Enter a query to search intelligence database records.": "ਖੁਫੀਆ ਡਾਟਾਬੇਸ ਰਿਕਾਰਡ ਖੋਜਣ ਲਈ ਇੱਕ ਪ੍ਰਸ਼ਨ ਦਰਜ ਕਰੋ।",
+      "Entities Registered": "ਰਜਿਸਟਰਡ ਇਕਾਈਆਂ",
+      "Explainable rule-based pattern analysis across raw crawler intelligence.": "ਕੱਚੀ ਕ੍ਰਾਲਰ ਖੁਫੀਆ ਜਾਣਕਾਰੀ 'ਤੇ ਵਿਆਖਿਆਯੋਗ ਨਿਯਮ-ਅਧਾਰਿਤ ਪੈਟਰਨ ਵਿਸ਼ਲੇਸ਼ਣ।",
+      "From ingested records": "ਗ੍ਰਹਿਣ ਕੀਤੇ ਰਿਕਾਰਡਾਂ ਤੋਂ",
+      "Global Intelligence": "ਗਲੋਬਲ ਖੁਫੀਆ ਜਾਣਕਾਰੀ",
+      "Hide Explainable Evidence": "ਵਿਆਖਿਆਯੋਗ ਸਬੂਤ ਲੁਕਾਓ",
+      "Immediate action required": "ਤੁਰੰਤ ਕਾਰਵਾਈ ਲੋੜੀਂਦੀ",
+      "Immutable Audit Logs": "ਅਟੱਲ ਆਡਿਟ ਲੌਗ",
+      "Inferred Link": "ਅਨੁਮਾਨਿਤ ਲਿੰਕ",
+      "Info (Green)": "ਜਾਣਕਾਰੀ (ਹਰਾ)",
+      "Informational indicators": "ਜਾਣਕਾਰੀ ਭਰਪੂਰ ਸੰਕੇਤਕ",
+      "Inspect Explainable Evidence": "ਵਿਆਖਿਆਯੋਗ ਸਬੂਤ ਵੇਖੋ",
+      "Inspect activity trail & export security records (Re-auth required).": "ਗਤੀਵਿਧੀ ਟ੍ਰੇਲ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਸੁਰੱਖਿਆ ਰਿਕਾਰਡ ਨਿਰਯਾਤ ਕਰੋ (ਮੁੜ-ਪ੍ਰਮਾਣਿਕਤਾ ਲੋੜੀਂਦੀ)।",
+      "Intelligence Metadata": "ਖੁਫੀਆ ਮੈਟਾਡਾਟਾ",
+      "Known Aliases": "ਜਾਣੇ-ਪਛਾਣੇ ਉਪਨਾਮ",
+      "Linked Domain Artifacts": "ਜੁੜੇ ਡੋਮੇਨ ਆਰਟੀਫੈਕਟ",
+      "Live": "ਲਾਈਵ",
+      "Live Co-occurrence": "ਲਾਈਵ ਸਹਿ-ਮੌਜੂਦਗੀ",
+      "Live Crawler": "ਲਾਈਵ ਕ੍ਰਾਲਰ",
+      "Live Crawler Entity": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਇਕਾਈ",
+      "Live Crawler Layer": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਪਰਤ",
+      "Live Crawler Mentions": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਜ਼ਿਕਰ",
+      "Live case mentions": "ਲਾਈਵ ਕੇਸ ਜ਼ਿਕਰ",
+      "Live crawler": "ਲਾਈਵ ਕ੍ਰਾਲਰ",
+      "Live crawler layer hidden": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਪਰਤ ਲੁਕੀ ਹੋਈ ਹੈ",
+      "Live crawler layer unavailable": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਪਰਤ ਉਪਲਬਧ ਨਹੀਂ",
+      "Live layer unavailable": "ਲਾਈਵ ਪਰਤ ਉਪਲਬਧ ਨਹੀਂ",
+      "Loading linked wallet and listing details...": "ਜੁੜੇ ਵਾਲਿਟ ਅਤੇ ਸੂਚੀ ਵੇਰਵੇ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
+      "Loading live crawler entities…": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਇਕਾਈਆਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…",
+      "Loading live crawler geography…": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਭੂਗੋਲ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…",
+      "Loading target profiles...": "ਟੀਚਾ ਪ੍ਰੋਫਾਈਲ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...",
+      "Marker size/color reflects real mention counts — a volume proxy, not precise geolocation. A vendor writing \"ships to Mumbai\" is counted under Mumbai regardless of where they actually are.": "ਮਾਰਕਰ ਦਾ ਆਕਾਰ/ਰੰਗ ਅਸਲ ਜ਼ਿਕਰ ਗਿਣਤੀ ਨੂੰ ਦਰਸਾਉਂਦਾ ਹੈ — ਇਹ ਸਟੀਕ ਭੂ-ਸਥਿਤੀ ਨਹੀਂ ਸਗੋਂ ਮਾਤਰਾ ਦਾ ਇੱਕ ਅਨੁਮਾਨ ਹੈ। ਜੇ ਕੋਈ ਵਿਕਰੇਤਾ \"ਮੁੰਬਈ ਭੇਜਦਾ ਹੈ\" ਲਿਖਦਾ ਹੈ, ਤਾਂ ਉਹ ਮੁੰਬਈ ਹੇਠ ਗਿਣਿਆ ਜਾਵੇਗਾ, ਭਾਵੇਂ ਉਹ ਅਸਲ ਵਿੱਚ ਕਿਤੇ ਵੀ ਹੋਵੇ।",
+      "Mentions": "ਜ਼ਿਕਰ",
+      "Mentions in ingested records": "ਗ੍ਰਹਿਣ ਕੀਤੇ ਰਿਕਾਰਡਾਂ ਵਿੱਚ ਜ਼ਿਕਰ",
+      "Moderate threat threshold": "ਦਰਮਿਆਨਾ ਖ਼ਤਰਾ ਸੀਮਾ",
+      "Monitor, configure, and control automated intelligence aggregation nodes.": "ਸਵੈਚਲਿਤ ਖੁਫੀਆ ਇਕੱਤਰੀਕਰਨ ਨੋਡਾਂ ਦੀ ਨਿਗਰਾਨੀ, ਕੌਂਫਿਗਰੇਸ਼ਨ ਅਤੇ ਨਿਯੰਤਰਣ ਕਰੋ।",
+      "Monitored threat actor entities, darknet vendors, and OFAC targets in SQLite database.": "SQLite ਡਾਟਾਬੇਸ ਵਿੱਚ ਨਿਗਰਾਨੀ ਕੀਤੀਆਂ ਖ਼ਤਰਾ ਕਰਤਾ ਇਕਾਈਆਂ, ਡਾਰਕਨੈੱਟ ਵਿਕਰੇਤਾ, ਅਤੇ OFAC ਟੀਚੇ।",
+      "Multi-Source Data Collection & Crawler Control": "ਬਹੁ-ਸਰੋਤ ਡਾਟਾ ਸੰਗ੍ਰਹਿ ਅਤੇ ਕ੍ਰਾਲਰ ਨਿਯੰਤਰਣ",
+      "New Crawler Target": "ਨਵਾਂ ਕ੍ਰਾਲਰ ਟੀਚਾ",
+      "No active alerts recorded": "ਕੋਈ ਸਰਗਰਮ ਚੇਤਾਵਨੀ ਦਰਜ ਨਹੀਂ",
+      "No alerts match the selected filters": "ਚੁਣੇ ਫਿਲਟਰਾਂ ਨਾਲ ਕੋਈ ਚੇਤਾਵਨੀ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ",
+      "No detailed signal breakdown recorded for this detection.": "ਇਸ ਪਛਾਣ ਲਈ ਕੋਈ ਵਿਸਤ੍ਰਿਤ ਸਿਗਨਲ ਵਿਸ਼ਲੇਸ਼ਣ ਦਰਜ ਨਹੀਂ ਹੈ।",
+      "No direct child records linked.": "ਕੋਈ ਸਿੱਧਾ ਚਾਈਲਡ ਰਿਕਾਰਡ ਜੁੜਿਆ ਨਹੀਂ।",
+      "No reports found": "ਕੋਈ ਰਿਪੋਰਟ ਨਹੀਂ ਮਿਲੀ",
+      "No suspicious activities match the selected filters": "ਚੁਣੇ ਫਿਲਟਰਾਂ ਨਾਲ ਕੋਈ ਸ਼ੱਕੀ ਗਤੀਵਿਧੀ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ",
+      "No suspicious activities recorded": "ਕੋਈ ਸ਼ੱਕੀ ਗਤੀਵਿਧੀ ਦਰਜ ਨਹੀਂ",
+      "No target profiles found": "ਕੋਈ ਟੀਚਾ ਪ੍ਰੋਫਾਈਲ ਨਹੀਂ ਮਿਲੀ",
+      "Observed Link": "ਦੇਖਿਆ ਗਿਆ ਲਿੰਕ",
+      "Officer Account Governance": "ਅਫਸਰ ਖਾਤਾ ਗਵਰਨੈਂਸ",
+      "Open Detections": "ਖੁੱਲ੍ਹੀਆਂ ਪਛਾਣਾਂ",
+      "Overall Score": "ਸਮੁੱਚਾ ਸਕੋਰ",
+      "Perform real-time substring and fuzzy searches across suspect profiles, crypto wallets, darknet listings, and Internet Activity (Telegram and other social media).": "ਸ਼ੱਕੀ ਪ੍ਰੋਫਾਈਲ, ਕ੍ਰਿਪਟੋ ਵਾਲਿਟ, ਡਾਰਕਨੈੱਟ ਸੂਚੀਆਂ, ਅਤੇ ਇੰਟਰਨੈੱਟ ਗਤੀਵਿਧੀ (ਟੈਲੀਗ੍ਰਾਮ ਅਤੇ ਹੋਰ ਸੋਸ਼ਲ ਮੀਡੀਆ) ਵਿੱਚ ਰੀਅਲ-ਟਾਈਮ ਸਬਸਟ੍ਰਿੰਗ ਅਤੇ ਫਜ਼ੀ ਖੋਜਾਂ ਕਰੋ।",
+      "Real Intelligence": "ਅਸਲ ਖੁਫੀਆ ਜਾਣਕਾਰੀ",
+      "Real place-name mentions scanned from the full Dread forum archive.": "ਪੂਰੇ Dread ਫੋਰਮ ਆਰਕਾਈਵ ਤੋਂ ਸਕੈਨ ਕੀਤੇ ਅਸਲ ਸਥਾਨ-ਨਾਮ ਜ਼ਿਕਰ।",
+      "Real-time automated alert generation and explainable AI pattern detection.": "ਰੀਅਲ-ਟਾਈਮ ਸਵੈਚਲਿਤ ਚੇਤਾਵਨੀ ਉਤਪਤੀ ਅਤੇ ਵਿਆਖਿਆਯੋਗ ਏਆਈ ਪੈਟਰਨ ਪਛਾਣ।",
+      "Record ID": "ਰਿਕਾਰਡ ਆਈਡੀ",
+      "Refresh Feed": "ਫੀਡ ਤਾਜ਼ਾ ਕਰੋ",
+      "Refreshing...": "ਤਾਜ਼ਾ ਹੋ ਰਿਹਾ ਹੈ...",
+      "Retry Loading Alerts": "ਚੇਤਾਵਨੀਆਂ ਮੁੜ ਲੋਡ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+      "Retry Loading Suspicious Activities": "ਸ਼ੱਕੀ ਗਤੀਵਿਧੀਆਂ ਮੁੜ ਲੋਡ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+      "Rule Confidence & Explanations": "ਨਿਯਮ ਭਰੋਸਾ ਪੱਧਰ ਅਤੇ ਵਿਆਖਿਆਵਾਂ",
+      "Scanning database intelligence records...": "ਡਾਟਾਬੇਸ ਖੁਫੀਆ ਰਿਕਾਰਡ ਸਕੈਨ ਹੋ ਰਹੇ ਹਨ...",
+      "Search by alias, phone, location, platform handle, BTC address, vendor, or keyword...": "ਉਪਨਾਮ, ਫ਼ੋਨ, ਸਥਾਨ, ਪਲੇਟਫਾਰਮ ਹੈਂਡਲ, BTC ਪਤਾ, ਵਿਕਰੇਤਾ, ਜਾਂ ਕੀਵਰਡ ਦੁਆਰਾ ਖੋਜੋ...",
+      "Search message, case, ID...": "ਸੁਨੇਹਾ, ਕੇਸ, ਆਈਡੀ ਖੋਜੋ...",
+      "Search pattern, rule, case...": "ਪੈਟਰਨ, ਨਿਯਮ, ਕੇਸ ਖੋਜੋ...",
+      "Searches across 78 suspects, 924 wallets, 650 market listings, and 175 Internet Activity (Telegram and other social media) messages.": "78 ਸ਼ੱਕੀਆਂ, 924 ਵਾਲਿਟਾਂ, 650 ਮਾਰਕੀਟ ਸੂਚੀਆਂ, ਅਤੇ 175 ਇੰਟਰਨੈੱਟ ਗਤੀਵਿਧੀ (ਟੈਲੀਗ੍ਰਾਮ ਅਤੇ ਹੋਰ ਸੋਸ਼ਲ ਮੀਡੀਆ) ਸੁਨੇਹਿਆਂ ਵਿੱਚ ਖੋਜ ਕਰਦਾ ਹੈ।",
+      "Sev": "ਗੰਭੀਰਤਾ",
+      "Share of all place mentions": "ਸਾਰੇ ਸਥਾਨ ਜ਼ਿਕਰਾਂ ਦਾ ਹਿੱਸਾ",
+      "Suspect Profiles": "ਸ਼ੱਕੀ ਪ੍ਰੋਫਾਈਲ",
+      "Suspicious": "ਸ਼ੱਕੀ",
+      "Sync Pipeline": "ਸਿੰਕ ਪਾਈਪਲਾਈਨ",
+      "Synthetic Demo": "ਸਿੰਥੈਟਿਕ ਡੈਮੋ",
+      "System detection rules are actively monitoring incoming intelligence records.": "ਸਿਸਟਮ ਪਛਾਣ ਨਿਯਮ ਆ ਰਹੇ ਖੁਫੀਆ ਰਿਕਾਰਡਾਂ ਦੀ ਸਰਗਰਮੀ ਨਾਲ ਨਿਗਰਾਨੀ ਕਰ ਰਹੇ ਹਨ।",
+      "Target Sources": "ਟੀਚਾ ਸਰੋਤ",
+      "Toggle the live crawler co-occurrence layer on or off": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਸਹਿ-ਮੌਜੂਦਗੀ ਪਰਤ ਨੂੰ ਚਾਲੂ ਜਾਂ ਬੰਦ ਕਰੋ",
+      "Toggle the live crawler geography layer on or off": "ਲਾਈਵ ਕ੍ਰਾਲਰ ਭੂਗੋਲ ਪਰਤ ਨੂੰ ਚਾਲੂ ਜਾਂ ਬੰਦ ਕਰੋ",
+      "Total Results Found": "ਕੁੱਲ ਨਤੀਜੇ ਮਿਲੇ",
+      "Trigger Reasons": "ਟ੍ਰਿਗਰ ਕਾਰਨ",
+      "Try relaxing your severity or status filter criteria.": "ਆਪਣੇ ਗੰਭੀਰਤਾ ਜਾਂ ਸਥਿਤੀ ਫਿਲਟਰ ਮਾਪਦੰਡ ਨੂੰ ਢਿੱਲਾ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "Try relaxing your status filter criteria.": "ਆਪਣੇ ਸਥਿਤੀ ਫਿਲਟਰ ਮਾਪਦੰਡ ਨੂੰ ਢਿੱਲਾ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "Universal Intelligence Search": "ਸਰਵਵਿਆਪੀ ਖੁਫੀਆ ਖੋਜ",
+      "Unresolved suspicious patterns": "ਅਣਸੁਲਝੇ ਸ਼ੱਕੀ ਪੈਟਰਨ",
+      "Warning (Yellow)": "ਚੇਤਾਵਨੀ (ਪੀਲਾ)",
+      "Watchlists & Keywords": "ਵਾਚਲਿਸਟ ਅਤੇ ਕੀਵਰਡ",
+      "entities": "ਇਕਾਈਆਂ",
+      "places": "ਸਥਾਨ",
+      "places found": "ਸਥਾਨ ਮਿਲੇ",
+      "records": "ਰਿਕਾਰਡ",
+      "total mentions": "ਕੁੱਲ ਜ਼ਿਕਰ",
+      "updated": "ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ"
     }
   }
 };
+
+// Supplemental UI strings are kept separate so the locale catalogs above remain easy to scan.
+const supplementalTranslations = {
+  en: {
+    "Light Mode": "Light Mode", "Dark Mode": "Dark Mode", "Navigation": "Navigation", "Loading Security Credentials...": "Loading Security Credentials...",
+    "Official Email": "Official Email", "Password": "Password", "2FA Authenticator Code": "2FA Authenticator Code", "6-digit code or recovery code": "6-digit code or recovery code", "Authenticating...": "Authenticating...", "Sign In to Terminal": "Sign In to Terminal", "Request Access": "Request Access",
+    "Account Registration": "Account Registration", "Chandigarh Police Intelligence Portal": "Chandigarh Police Intelligence Portal", "Back to Login": "Back to Login", "Request Submitted Successfully": "Request Submitted Successfully", "Return to Login Screen": "Return to Login Screen", "Full Name": "Full Name", "Badge Number": "Badge Number", "Assigned Unit": "Assigned Unit", "Password (Min 12 Chars)": "Password (Min 12 Chars)", "Confirm Password": "Confirm Password", "Submitting Request...": "Submitting Request...", "Submit Operational Registration": "Submit Operational Registration",
+    "Security Confirmation Required": "Security Confirmation Required", "High-Risk Sensitive Operation": "High-Risk Sensitive Operation", "Account Password": "Account Password", "Verifying...": "Verifying...", "Authorize Action": "Authorize Action", "Cancel": "Cancel", "Close": "Close", "Two-Factor Auth Setup": "Two-Factor Auth Setup", "TOTP Authenticator Protection": "TOTP Authenticator Protection", "Initializing...": "Initializing...", "Generate 2FA Credentials": "Generate 2FA Credentials", "Scan with Authenticator App": "Scan with Authenticator App", "or enter the key below manually": "or enter the key below manually", "Secret Key (Base32)": "Secret Key (Base32)", "One-Time Recovery Codes (Store Securely)": "One-Time Recovery Codes (Store Securely)", "Copied": "Copied", "Copy": "Copy", "Enter 6-Digit Authenticator Code": "Enter 6-Digit Authenticator Code", "Verify & Activate 2FA": "Verify & Activate 2FA",
+    "Your investigative copilot": "Your investigative copilot", "Close AI Panel": "Close AI Panel", "Officer:": "Officer:", "View:": "View:", "Investigative Copilot Ready": "Investigative Copilot Ready", "Hi, I'm": "Hi, I'm", "your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?": "your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?", "Quick Prompts:": "Quick Prompts:", "Ask →": "Ask →", "DarKnight AI is thinking...": "DarKnight AI is thinking...", "Ask DarKnight AI a question...": "Ask DarKnight AI a question...", "Send Message (Enter)": "Send Message (Enter)", "Press": "Press", "to send": "to send", "RBAC & Session Enforced": "RBAC & Session Enforced",
+    "Officer Account Governance": "Officer Account Governance", "Approve pending registrations, assign role permissions, or revoke user sessions.": "Approve pending registrations, assign role permissions, or revoke user sessions.", "Officer Details": "Officer Details", "Badge & Unit": "Badge & Unit", "Assign Role (Hierarchy Enforced)": "Assign Role (Hierarchy Enforced)", "Actions": "Actions", "Approve": "Approve", "Reject": "Reject", "Suspend": "Suspend", "No accounts found with status:": "No accounts found with status:", "Immutable Audit Log Trail": "Immutable Audit Log Trail", "Append-only security and activity record (UPDATE & DELETE strictly disabled).": "Append-only security and activity record (UPDATE & DELETE strictly disabled).", "Load Audit Trail": "Load Audit Trail", "Export CSV": "Export CSV", "Filter:": "Filter:", "All Results": "All Results", "Apply Filter": "Apply Filter", "Timestamp (UTC)": "Timestamp (UTC)", "Officer ID & Role": "Officer ID & Role", "Security Action": "Security Action", "Resource Target": "Resource Target", "Result": "Result", "IP Address": "IP Address",
+    "Data Provenance & Origin": "Data Provenance & Origin", "Collapse": "Collapse", "Inspect Provenance": "Inspect Provenance", "Source:": "Source:", "Collected:": "Collected:", "Source Identifier:": "Source Identifier:", "Collection Method:": "Collection Method:", "Source URL / Ref:": "Source URL / Ref:", "SHA-256 Integrity Hash:": "SHA-256 Integrity Hash:", "Original raw record preserved. AI processing is cleanly separated from source intelligence.": "Original raw record preserved. AI processing is cleanly separated from source intelligence.", "Reports Are Investigation-Scoped": "Reports Are Investigation-Scoped", "How to generate a report": "How to generate a report", "Navigate to": "Navigate to", "Select an Investigation": "Select an Investigation", "Reports tab": "Reports tab", "Delegated Investigation Access": "Delegated Investigation Access", "Explicitly grant modification authority for Investigation": "Explicitly grant modification authority for Investigation", "Officer User ID": "Officer User ID", "Expire in 24 Hours": "Expire in 24 Hours", "Expire in 72 Hours": "Expire in 72 Hours", "Expire in 7 Days": "Expire in 7 Days", "Grant Access": "Grant Access", "Active Modification Grants": "Active Modification Grants", "Revoke": "Revoke"
+  },
+  hi: {
+    "Light Mode": "लाइट मोड", "Dark Mode": "डार्क मोड", "Navigation": "नेविगेशन", "Loading Security Credentials...": "सुरक्षा क्रेडेंशियल लोड हो रहे हैं...", "Official Email": "आधिकारिक ईमेल", "Password": "पासवर्ड", "2FA Authenticator Code": "2FA प्रमाणक कोड", "6-digit code or recovery code": "6 अंकों का कोड या रिकवरी कोड", "Authenticating...": "प्रमाणीकरण हो रहा है...", "Sign In to Terminal": "टर्मिनल में साइन इन करें", "Request Access": "पहुंच का अनुरोध करें", "Account Registration": "खाता पंजीकरण", "Back to Login": "लॉगिन पर वापस जाएं", "Request Submitted Successfully": "अनुरोध सफलतापूर्वक भेजा गया", "Return to Login Screen": "लॉगिन स्क्रीन पर लौटें", "Full Name": "पूरा नाम", "Badge Number": "बैज नंबर", "Assigned Unit": "सौंपा गया यूनिट", "Confirm Password": "पासवर्ड की पुष्टि करें", "Submitting Request...": "अनुरोध भेजा जा रहा है...", "Security Confirmation Required": "सुरक्षा पुष्टि आवश्यक", "Account Password": "खाता पासवर्ड", "Verifying...": "सत्यापन हो रहा है...", "Authorize Action": "कार्रवाई अधिकृत करें", "Close": "बंद करें", "Cancel": "रद्द करें", "Two-Factor Auth Setup": "दो-कारक प्रमाणीकरण सेटअप", "TOTP Authenticator Protection": "TOTP प्रमाणक सुरक्षा", "Initializing...": "आरंभ हो रहा है...", "Generate 2FA Credentials": "2FA क्रेडेंशियल बनाएं", "Scan with Authenticator App": "प्रमाणक ऐप से स्कैन करें", "Secret Key (Base32)": "गुप्त कुंजी (Base32)", "Copied": "कॉपी किया गया", "Copy": "कॉपी करें", "Verify & Activate 2FA": "सत्यापित करें और 2FA सक्रिय करें", "Your investigative copilot": "आपका जांच सहायक", "Investigative Copilot Ready": "जांच सहायक तैयार है", "Quick Prompts:": "त्वरित प्रॉम्प्ट:", "DarKnight AI is thinking...": "DarKnight AI सोच रहा है...", "Ask DarKnight AI a question...": "DarKnight AI से प्रश्न पूछें...", "Officer:": "अधिकारी:", "View:": "दृश्य:", "Approve": "स्वीकृत करें", "Reject": "अस्वीकार करें", "Suspend": "निलंबित करें", "Actions": "कार्रवाई", "Officer Details": "अधिकारी विवरण", "Badge & Unit": "बैज और यूनिट", "Grant Access": "पहुंच प्रदान करें", "Revoke": "रद्द करें", "Close AI Panel": "AI पैनल बंद करें", "Collapse": "समेटें", "Inspect Provenance": "उत्पत्ति देखें", "Source:": "स्रोत:", "Collected:": "संग्रहित:", "Collection Method:": "संग्रह विधि:", "Source Identifier:": "स्रोत पहचानकर्ता:", "Source URL / Ref:": "स्रोत URL / संदर्भ:", "Reports Are Investigation-Scoped": "रिपोर्ट जांच-विशिष्ट हैं", "How to generate a report": "रिपोर्ट कैसे बनाएं", "Navigate to": "यहां जाएं", "Select an Investigation": "एक जांच चुनें", "Reports tab": "रिपोर्ट टैब", "Delegated Investigation Access": "प्रतिनिधि जांच पहुंच", "Active Modification Grants": "सक्रिय संशोधन अनुमतियां"
+  },
+  pa: {
+    "Light Mode": "ਲਾਈਟ ਮੋਡ", "Dark Mode": "ਡਾਰਕ ਮੋਡ", "Navigation": "ਨੇਵੀਗੇਸ਼ਨ", "Loading Security Credentials...": "ਸੁਰੱਖਿਆ ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਲੋਡ ਹੋ ਰਹੇ ਹਨ...", "Official Email": "ਅਧਿਕਾਰਤ ਈਮੇਲ", "Password": "ਪਾਸਵਰਡ", "2FA Authenticator Code": "2FA ਪ੍ਰਮਾਣਕ ਕੋਡ", "Authenticating...": "ਪ੍ਰਮਾਣੀਕਰਨ ਹੋ ਰਿਹਾ ਹੈ...", "Sign In to Terminal": "ਟਰਮੀਨਲ ਵਿੱਚ ਸਾਈਨ ਇਨ ਕਰੋ", "Request Access": "ਪਹੁੰਚ ਦੀ ਬੇਨਤੀ ਕਰੋ", "Account Registration": "ਖਾਤਾ ਰਜਿਸਟ੍ਰੇਸ਼ਨ", "Back to Login": "ਲੌਗਇਨ ਤੇ ਵਾਪਸ ਜਾਓ", "Request Submitted Successfully": "ਬੇਨਤੀ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜੀ ਗਈ", "Return to Login Screen": "ਲੌਗਇਨ ਸਕ੍ਰੀਨ ਤੇ ਵਾਪਸ ਜਾਓ", "Full Name": "ਪੂਰਾ ਨਾਮ", "Badge Number": "ਬੈਜ ਨੰਬਰ", "Assigned Unit": "ਸੌਂਪੀ ਇਕਾਈ", "Confirm Password": "ਪਾਸਵਰਡ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ", "Submitting Request...": "ਬੇਨਤੀ ਭੇਜੀ ਜਾ ਰਹੀ ਹੈ...", "Security Confirmation Required": "ਸੁਰੱਖਿਆ ਪੁਸ਼ਟੀ ਲੋੜੀਂਦੀ ਹੈ", "Account Password": "ਖਾਤਾ ਪਾਸਵਰਡ", "Verifying...": "ਤਸਦੀਕ ਹੋ ਰਹੀ ਹੈ...", "Authorize Action": "ਕਾਰਵਾਈ ਅਧਿਕਾਰਤ ਕਰੋ", "Close": "ਬੰਦ ਕਰੋ", "Cancel": "ਰੱਦ ਕਰੋ", "Two-Factor Auth Setup": "ਦੋ-ਕਾਰਕ ਪ੍ਰਮਾਣੀਕਰਨ ਸੈੱਟਅਪ", "TOTP Authenticator Protection": "TOTP ਪ੍ਰਮਾਣਕ ਸੁਰੱਖਿਆ", "Initializing...": "ਸ਼ੁਰੂ ਹੋ ਰਿਹਾ ਹੈ...", "Generate 2FA Credentials": "2FA ਕ੍ਰੈਡੈਂਸ਼ੀਅਲ ਬਣਾਓ", "Scan with Authenticator App": "ਪ੍ਰਮਾਣਕ ਐਪ ਨਾਲ ਸਕੈਨ ਕਰੋ", "Secret Key (Base32)": "ਗੁਪਤ ਕੁੰਜੀ (Base32)", "Copied": "ਕਾਪੀ ਹੋਇਆ", "Copy": "ਕਾਪੀ ਕਰੋ", "Verify & Activate 2FA": "ਤਸਦੀਕ ਕਰੋ ਅਤੇ 2FA ਚਾਲੂ ਕਰੋ", "Your investigative copilot": "ਤੁਹਾਡਾ ਜਾਂਚ ਸਹਾਇਕ", "Investigative Copilot Ready": "ਜਾਂਚ ਸਹਾਇਕ ਤਿਆਰ ਹੈ", "Quick Prompts:": "ਤੁਰੰਤ ਪ੍ਰੌਮਪਟ:", "DarKnight AI is thinking...": "DarKnight AI ਸੋਚ ਰਿਹਾ ਹੈ...", "Ask DarKnight AI a question...": "DarKnight AI ਨੂੰ ਸਵਾਲ ਪੁੱਛੋ...", "Officer:": "ਅਧਿਕਾਰੀ:", "View:": "ਦ੍ਰਿਸ਼:", "Approve": "ਮਨਜ਼ੂਰ ਕਰੋ", "Reject": "ਰੱਦ ਕਰੋ", "Suspend": "ਮੁਅੱਤਲ ਕਰੋ", "Actions": "ਕਾਰਵਾਈਆਂ", "Officer Details": "ਅਧਿਕਾਰੀ ਵੇਰਵੇ", "Badge & Unit": "ਬੈਜ ਅਤੇ ਇਕਾਈ", "Grant Access": "ਪਹੁੰਚ ਦਿਓ", "Revoke": "ਰੱਦ ਕਰੋ", "Close AI Panel": "AI ਪੈਨਲ ਬੰਦ ਕਰੋ", "Collapse": "ਸਮੇਟੋ", "Inspect Provenance": "ਮੂਲ ਜਾਣਕਾਰੀ ਵੇਖੋ", "Source:": "ਸਰੋਤ:", "Collected:": "ਇਕੱਠਾ ਕੀਤਾ:", "Collection Method:": "ਸੰਗ੍ਰਹਿ ਵਿਧੀ:", "Source Identifier:": "ਸਰੋਤ ਪਛਾਣਕਰਤਾ:", "Source URL / Ref:": "ਸਰੋਤ URL / ਹਵਾਲਾ:", "Reports Are Investigation-Scoped": "ਰਿਪੋਰਟਾਂ ਪੜਤਾਲ-ਵਿਸ਼ੇਸ਼ ਹਨ", "How to generate a report": "ਰਿਪੋਰਟ ਕਿਵੇਂ ਬਣਾਉਣੀ ਹੈ", "Navigate to": "ਇੱਥੇ ਜਾਓ", "Select an Investigation": "ਇੱਕ ਪੜਤਾਲ ਚੁਣੋ", "Reports tab": "ਰਿਪੋਰਟ ਟੈਬ", "Delegated Investigation Access": "ਸੌਂਪੀ ਪੜਤਾਲ ਪਹੁੰਚ", "Active Modification Grants": "ਸਰਗਰਮ ਸੋਧ ਇਜਾਜ਼ਤਾਂ"
+  }
+};
+
+Object.assign(supplementalTranslations.hi, {
+  "Submit Operational Registration": "ऑपरेशनल पंजीकरण भेजें", "High-Risk Sensitive Operation": "उच्च जोखिम वाला संवेदनशील ऑपरेशन", "One-Time Recovery Codes (Store Securely)": "एक बार के रिकवरी कोड (सुरक्षित रखें)", "or enter the key below manually": "या नीचे कुंजी स्वयं दर्ज करें", "Enter 6-Digit Authenticator Code": "6 अंकों का प्रमाणक कोड दर्ज करें", "Close AI Panel": "AI पैनल बंद करें", "DarKnight AI — Your Investigative Copilot": "DarKnight AI - आपका जांच सहायक", "Open DarKnight AI Copilot": "DarKnight AI जांच सहायक खोलें", "Close DarKnight AI Copilot": "DarKnight AI जांच सहायक बंद करें", "DarKnight AI": "DarKnight AI", "Hi, I'm": "नमस्ते, मैं", "your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?": "आपका जांच सहायक हूं। आप प्लेटफॉर्म, खुफिया कार्यप्रवाह, भूमिकाओं या साक्ष्य आवश्यकताओं के बारे में क्या जानना चाहते हैं?", "Ask →": "पूछें →", "Press": "दबाएं", "to send": "भेजने के लिए", "RBAC & Session Enforced": "RBAC और सत्र लागू", "Hide Table": "तालिका छिपाएं", "Manage": "प्रबंधित करें", "Hide Logs": "लॉग छिपाएं", "View Audit Logs": "ऑडिट लॉग देखें", "Assign Role (Hierarchy Enforced)": "भूमिका सौंपें (पदानुक्रम लागू)", "No accounts found with status:": "इस स्थिति वाले खाते नहीं मिले:", "Immutable Audit Log Trail": "अपरिवर्तनीय ऑडिट लॉग ट्रेल", "Load Audit Trail": "ऑडिट ट्रेल लोड करें", "Export CSV": "CSV निर्यात करें", "Filter:": "फ़िल्टर:", "All Results": "सभी परिणाम", "Apply Filter": "फ़िल्टर लागू करें", "Timestamp (UTC)": "समय (UTC)", "Officer ID & Role": "अधिकारी ID और भूमिका", "Security Action": "सुरक्षा कार्रवाई", "Resource Target": "संसाधन लक्ष्य", "IP Address": "IP पता", "SHA-256 Integrity Hash:": "SHA-256 अखंडता हैश:", "Original raw record preserved. AI processing is cleanly separated from source intelligence.": "मूल रिकॉर्ड सुरक्षित है। AI प्रसंस्करण को स्रोत खुफिया जानकारी से अलग रखा गया है।", "Explicitly grant modification authority for Investigation": "जांच के लिए संशोधन अधिकार स्पष्ट रूप से प्रदान करें", "Officer User ID": "अधिकारी उपयोगकर्ता ID", "Expire in 24 Hours": "24 घंटे में समाप्त", "Expire in 72 Hours": "72 घंटे में समाप्त", "Expire in 7 Days": "7 दिनों में समाप्त"
+});
+Object.assign(supplementalTranslations.pa, {
+  "Submit Operational Registration": "ਓਪਰੇਸ਼ਨਲ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਭੇਜੋ", "High-Risk Sensitive Operation": "ਉੱਚ ਜੋਖਮ ਵਾਲੀ ਸੰਵੇਦਨਸ਼ੀਲ ਕਾਰਵਾਈ", "One-Time Recovery Codes (Store Securely)": "ਇੱਕ ਵਾਰ ਦੇ ਰਿਕਵਰੀ ਕੋਡ (ਸੁਰੱਖਿਅਤ ਰੱਖੋ)", "or enter the key below manually": "ਜਾਂ ਹੇਠਾਂ ਕੁੰਜੀ ਖੁਦ ਦਰਜ ਕਰੋ", "Enter 6-Digit Authenticator Code": "6 ਅੰਕਾਂ ਦਾ ਪ੍ਰਮਾਣਕ ਕੋਡ ਦਰਜ ਕਰੋ", "Close AI Panel": "AI ਪੈਨਲ ਬੰਦ ਕਰੋ", "DarKnight AI — Your Investigative Copilot": "DarKnight AI - ਤੁਹਾਡਾ ਜਾਂਚ ਸਹਾਇਕ", "Open DarKnight AI Copilot": "DarKnight AI ਜਾਂਚ ਸਹਾਇਕ ਖੋਲ੍ਹੋ", "Close DarKnight AI Copilot": "DarKnight AI ਜਾਂਚ ਸਹਾਇਕ ਬੰਦ ਕਰੋ", "DarKnight AI": "DarKnight AI", "Hi, I'm": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਮੈਂ", "your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?": "ਤੁਹਾਡਾ ਜਾਂਚ ਸਹਾਇਕ ਹਾਂ। ਤੁਸੀਂ ਪਲੇਟਫਾਰਮ, ਖੁਫੀਆ ਕਾਰਜ-ਪ੍ਰਵਾਹ, ਭੂਮਿਕਾਵਾਂ ਜਾਂ ਸਬੂਤ ਲੋੜਾਂ ਬਾਰੇ ਕੀ ਜਾਣਨਾ ਚਾਹੁੰਦੇ ਹੋ?", "Ask →": "ਪੁੱਛੋ →", "Press": "ਦਬਾਓ", "to send": "ਭੇਜਣ ਲਈ", "RBAC & Session Enforced": "RBAC ਅਤੇ ਸੈਸ਼ਨ ਲਾਗੂ", "Hide Table": "ਟੇਬਲ ਲੁਕਾਓ", "Manage": "ਪ੍ਰਬੰਧਿਤ ਕਰੋ", "Hide Logs": "ਲੌਗ ਲੁਕਾਓ", "View Audit Logs": "ਆਡਿਟ ਲੌਗ ਵੇਖੋ", "Assign Role (Hierarchy Enforced)": "ਭੂਮਿਕਾ ਦਿਓ (ਲੜੀ ਲਾਗੂ)", "No accounts found with status:": "ਇਸ ਸਥਿਤੀ ਵਾਲੇ ਖਾਤੇ ਨਹੀਂ ਮਿਲੇ:", "Immutable Audit Log Trail": "ਅਪਰਿਵਰਤਨਸ਼ੀਲ ਆਡਿਟ ਲੌਗ ਟ੍ਰੇਲ", "Load Audit Trail": "ਆਡਿਟ ਟ੍ਰੇਲ ਲੋਡ ਕਰੋ", "Export CSV": "CSV ਨਿਰਯਾਤ ਕਰੋ", "Filter:": "ਫਿਲਟਰ:", "All Results": "ਸਾਰੇ ਨਤੀਜੇ", "Apply Filter": "ਫਿਲਟਰ ਲਾਗੂ ਕਰੋ", "Timestamp (UTC)": "ਸਮਾਂ (UTC)", "Officer ID & Role": "ਅਧਿਕਾਰੀ ID ਅਤੇ ਭੂਮਿਕਾ", "Security Action": "ਸੁਰੱਖਿਆ ਕਾਰਵਾਈ", "Resource Target": "ਸਰੋਤ ਟੀਚਾ", "IP Address": "IP ਪਤਾ", "SHA-256 Integrity Hash:": "SHA-256 ਅਖੰਡਤਾ ਹੈਸ਼:", "Original raw record preserved. AI processing is cleanly separated from source intelligence.": "ਮੂਲ ਰਿਕਾਰਡ ਸੁਰੱਖਿਅਤ ਹੈ। AI ਪ੍ਰਕਿਰਿਆ ਨੂੰ ਸਰੋਤ ਖੁਫੀਆ ਜਾਣਕਾਰੀ ਤੋਂ ਵੱਖ ਰੱਖਿਆ ਗਿਆ ਹੈ।", "Explicitly grant modification authority for Investigation": "ਪੜਤਾਲ ਲਈ ਸੋਧ ਅਧਿਕਾਰ ਸਪਸ਼ਟ ਤੌਰ ਤੇ ਦਿਓ", "Officer User ID": "ਅਧਿਕਾਰੀ ਯੂਜ਼ਰ ID", "Expire in 24 Hours": "24 ਘੰਟਿਆਂ ਵਿੱਚ ਸਮਾਪਤ", "Expire in 72 Hours": "72 ਘੰਟਿਆਂ ਵਿੱਚ ਸਮਾਪਤ", "Expire in 7 Days": "7 ਦਿਨਾਂ ਵਿੱਚ ਸਮਾਪਤ"
+});
+
+Object.entries(supplementalTranslations).forEach(([language, translation]) => {
+  Object.assign(resources[language].translation, translation);
+});
 
 i18n
   .use(initReactI18next)

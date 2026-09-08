@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, CheckCircle, XCircle, ShieldAlert, UserCheck, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const ROLE_RANK = {
   "SUPER ADMIN / DGP": 0,
@@ -14,6 +15,7 @@ const ROLE_RANK = {
 
 export default function UserManagementTable() {
   const { user: currentUser } = useAuth();
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [loading, setLoading] = useState(false);
@@ -101,10 +103,10 @@ export default function UserManagementTable() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2 font-mono">
-            <Users className="w-5 h-5 text-primary" /> Officer Account Governance
+            <Users className="w-5 h-5 text-primary" /> {t('Officer Account Governance')}
           </h3>
           <p className="text-xs text-muted-foreground font-mono">
-            Approve pending registrations, assign role permissions, or revoke user sessions.
+            {t('Approve pending registrations, assign role permissions, or revoke user sessions.')}
           </p>
         </div>
 
@@ -144,18 +146,18 @@ export default function UserManagementTable() {
         <table className="w-full text-left font-mono text-xs">
           <thead className="bg-muted/40 border-b border-border/60 text-muted-foreground uppercase">
             <tr>
-              <th className="p-3">Officer Details</th>
-              <th className="p-3">Badge & Unit</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Assign Role (Hierarchy Enforced)</th>
-              <th className="p-3 text-right">Actions</th>
+              <th className="p-3">{t('Officer Details')}</th>
+              <th className="p-3">{t('Badge & Unit')}</th>
+              <th className="p-3">{t('Status')}</th>
+              <th className="p-3">{t('Assign Role (Hierarchy Enforced)')}</th>
+              <th className="p-3 text-right">{t('Actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
             {users.length === 0 ? (
               <tr>
                 <td colSpan="5" className="p-6 text-center text-muted-foreground">
-                  No accounts found with status: {statusFilter}
+                  {t('No accounts found with status:')} {statusFilter}
                 </td>
               </tr>
             ) : (
@@ -205,7 +207,7 @@ export default function UserManagementTable() {
                           onClick={() => handleApproveReject(u.id, 'APPROVE')}
                           className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 text-xs px-2 gap-1 font-mono"
                         >
-                          <UserCheck className="w-3 h-3" /> Approve
+                          <UserCheck className="w-3 h-3" /> {t('Approve')}
                         </Button>
                         <Button
                           size="sm"
@@ -213,7 +215,7 @@ export default function UserManagementTable() {
                           onClick={() => handleApproveReject(u.id, 'REJECT')}
                           className="h-7 text-xs px-2 gap-1 font-mono"
                         >
-                          <XCircle className="w-3 h-3" /> Reject
+                          <XCircle className="w-3 h-3" /> {t('Reject')}
                         </Button>
                       </>
                     )}
@@ -226,7 +228,7 @@ export default function UserManagementTable() {
                         disabled={ROLE_RANK[u.role] <= myRank}
                         className="border-destructive/50 text-destructive hover:bg-destructive/10 h-7 text-xs px-2 gap-1 font-mono"
                       >
-                        <ShieldAlert className="w-3 h-3" /> Suspend
+                        <ShieldAlert className="w-3 h-3" /> {t('Suspend')}
                       </Button>
                     )}
                   </td>

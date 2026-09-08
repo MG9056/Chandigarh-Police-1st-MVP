@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useAI } from '../../hooks/useAI';
 import { Button } from '../ui/button';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Simple Markdown-like text formatter for assistant responses.
@@ -102,6 +103,7 @@ function renderInlineFormatting(text) {
 
 export default function AIAssistant({ activeView = 'dashboard', selectedInvestigationId = null }) {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
@@ -165,14 +167,14 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
         {!isOpen && (
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-background/90 border border-primary/50 rounded-full shadow-lg text-[11px] font-mono text-primary animate-pulse backdrop-blur-md">
             <Sparkles className="w-3 h-3 text-primary" />
-            <span>DarKnight AI</span>
+            <span>{t('DarKnight AI')}</span>
           </div>
         )}
 
         <button
           onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? 'Close DarKnight AI Copilot' : 'Open DarKnight AI Copilot'}
-          title="DarKnight AI — Your Investigative Copilot"
+          aria-label={isOpen ? t('Close DarKnight AI Copilot') : t('Open DarKnight AI Copilot')}
+          title={t('DarKnight AI — Your Investigative Copilot')}
           className={`relative group h-12 w-12 rounded-full border flex items-center justify-center shadow-2xl transition-all duration-300 backdrop-blur-md ${
             isOpen
               ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-105'
@@ -213,7 +215,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                     DarKnight AI
                   </h3>
                 </div>
-                <span className="text-[10px] text-muted-foreground font-mono">Your investigative copilot</span>
+                <span className="text-[10px] text-muted-foreground font-mono">{t('Your investigative copilot')}</span>
               </div>
             </div>
 
@@ -222,7 +224,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
-                title="Close AI Panel"
+                title={t('Close AI Panel')}
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
@@ -235,11 +237,11 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
             <div className="flex items-center gap-1.5 truncate">
               <ShieldCheck className="w-3 h-3 text-primary flex-shrink-0" />
               <span className="truncate">
-                Officer: <strong className="text-foreground">{user.full_name}</strong> ({user.role})
+                {t('Officer:')} <strong className="text-foreground">{user.full_name}</strong> ({user.role})
               </span>
             </div>
             <span className="px-1.5 py-0.5 rounded bg-background border border-border/50 text-primary text-[9px] uppercase font-bold flex-shrink-0">
-              View: {activeView}
+              {t('View:')} {activeView}
             </span>
           </div>
 
@@ -251,10 +253,10 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                 <div className="p-3.5 bg-card/60 border border-primary/30 rounded-lg space-y-2">
                   <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase">
                     <Sparkles className="w-4 h-4" />
-                    <span>Investigative Copilot Ready</span>
+                    <span>{t('Investigative Copilot Ready')}</span>
                   </div>
                   <p className="text-xs text-foreground font-sans leading-relaxed">
-                    Hi, I'm <strong>DarKnight AI</strong>, your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?
+                    {t("Hi, I'm")} <strong>DarKnight AI</strong>, {t('your investigative copilot. What would you like to know about the platform, intelligence workflows, roles, or evidence requirements?')}
                   </p>
                 </div>
 
@@ -262,7 +264,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                 {quickPrompts.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono block">
-                      Quick Prompts:
+                      {t('Quick Prompts:')}
                     </span>
                     <div className="flex flex-col gap-1.5">
                       {quickPrompts.map((item) => (
@@ -273,7 +275,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                         >
                           <span>{item.label}</span>
                           <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px]">
-                            Ask →
+                            {t('Ask →')}
                           </span>
                         </button>
                       ))}
@@ -322,7 +324,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
             {isStreaming && (
               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-card/40 border border-border/40 text-xs text-primary font-mono animate-pulse w-max">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
-                <span>DarKnight AI is thinking...</span>
+                <span>{t('DarKnight AI is thinking...')}</span>
               </div>
             )}
 
@@ -345,7 +347,7 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask DarKnight AI a question..."
+                placeholder={t('Ask DarKnight AI a question...')}
                 disabled={isStreaming}
                 rows={1}
                 className="w-full bg-background border border-border/60 rounded-lg px-3 py-2 pr-10 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/80 font-mono resize-none max-h-24 custom-scrollbar"
@@ -355,15 +357,15 @@ export default function AIAssistant({ activeView = 'dashboard', selectedInvestig
                 size="icon"
                 disabled={!inputText.trim() || isStreaming}
                 className="absolute right-1.5 h-7 w-7 rounded-md"
-                title="Send Message (Enter)"
+                title={t('Send Message (Enter)')}
               >
                 <Send className="w-3.5 h-3.5" />
               </Button>
             </div>
 
             <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono">
-              <span>Press <kbd className="px-1 py-0.5 bg-muted rounded border border-border">Enter</kbd> to send</span>
-              <span className="text-primary/70">RBAC & Session Enforced</span>
+              <span>{t('Press')} <kbd className="px-1 py-0.5 bg-muted rounded border border-border">Enter</kbd> {t('to send')}</span>
+              <span className="text-primary/70">{t('RBAC & Session Enforced')}</span>
             </div>
           </form>
         </div>

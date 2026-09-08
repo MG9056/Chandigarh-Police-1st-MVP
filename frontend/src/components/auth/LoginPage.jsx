@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Shield, Lock, Mail, KeyRound, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage({ onSwitchToRegister }) {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
@@ -61,7 +63,7 @@ export default function LoginPage({ onSwitchToRegister }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-mono uppercase text-muted-foreground">Official Email</label>
+            <label className="text-xs font-mono uppercase text-muted-foreground">{t('Official Email')}</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -76,7 +78,7 @@ export default function LoginPage({ onSwitchToRegister }) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-mono uppercase text-muted-foreground">Password</label>
+            <label className="text-xs font-mono uppercase text-muted-foreground">{t('Password')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -92,7 +94,7 @@ export default function LoginPage({ onSwitchToRegister }) {
 
           {mfaRequired && (
             <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
-              <label className="text-xs font-mono uppercase text-amber-500 font-semibold">2FA Authenticator Code</label>
+              <label className="text-xs font-mono uppercase text-amber-500 font-semibold">{t('2FA Authenticator Code')}</label>
               <div className="relative">
                 <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-amber-500" />
                 <input
@@ -100,7 +102,7 @@ export default function LoginPage({ onSwitchToRegister }) {
                   required
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value)}
-                  placeholder="6-digit code or recovery code"
+                  placeholder={t('6-digit code or recovery code')}
                   className="w-full bg-background/60 border border-amber-500/60 rounded-lg py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-amber-500 font-mono tracking-widest"
                 />
               </div>
@@ -108,9 +110,9 @@ export default function LoginPage({ onSwitchToRegister }) {
           )}
 
           <Button type="submit" disabled={loading} className="w-full gap-2 mt-2">
-            {loading ? 'Authenticating...' : (
+            {loading ? t('Authenticating...') : (
               <>
-                <span>Sign In to Terminal</span>
+                <span>{t('Sign In to Terminal')}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -119,13 +121,13 @@ export default function LoginPage({ onSwitchToRegister }) {
 
         <div className="border-t border-border/40 pt-4 text-center">
           <p className="text-xs text-muted-foreground">
-            Don't have an operational account?{' '}
+            {t("Don't have an operational account?")} {' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
               className="text-primary hover:underline font-semibold font-mono"
             >
-              Request Access
+              {t('Request Access')}
             </button>
           </p>
         </div>

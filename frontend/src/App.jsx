@@ -137,7 +137,7 @@ function Dashboard() {
               size="sm"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              {theme === "dark" ? t('Light Mode') : t('Dark Mode')}
             </Button>
           </div>
         </header>
@@ -147,7 +147,7 @@ function Dashboard() {
           {/* Left Panel: Navigation */}
           <aside className="w-[280px] border-r border-border/50 bg-background/30 backdrop-blur-sm p-6 overflow-y-auto flex-shrink-0">
             <div className="mb-8">
-              <span className="text-xs font-mono tracking-widest text-muted-foreground uppercase border-b border-border/50 pb-2 block w-full">Navigation</span>
+              <span className="text-xs font-mono tracking-widest text-muted-foreground uppercase border-b border-border/50 pb-2 block w-full">{t('Navigation')}</span>
             </div>
             <div className="space-y-4">
               {navItems.map(item => (
@@ -202,7 +202,7 @@ export default function App() {
     <ThemeProvider defaultTheme="dark" storageKey="darknight-theme">
       {isLoading ? (
         <div className="h-screen w-full flex items-center justify-center bg-background text-primary font-mono text-sm">
-          Loading Security Credentials...
+          {t('Loading Security Credentials...')}
         </div>
       ) : !isAuthenticated ? (
         showRegister ? (

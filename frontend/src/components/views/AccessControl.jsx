@@ -38,8 +38,8 @@ export default function AccessControl() {
           </div>
           
           <div className="w-full border-t border-border/40 my-4 pt-4 text-xs text-left space-y-2 text-muted-foreground">
-            <div>Badge Number: <span className="text-foreground font-semibold">{user?.badge_number || 'N/A'}</span></div>
-            <div>Assigned Unit: <span className="text-foreground font-semibold">{user?.unit || 'Cyber Intelligence'}</span></div>
+            <div>{t('Badge Number')}: <span className="text-foreground font-semibold">{user?.badge_number || 'N/A'}</span></div>
+            <div>{t('Assigned Unit')}: <span className="text-foreground font-semibold">{user?.unit || 'Cyber Intelligence'}</span></div>
             <div>2FA Protection: <span className={user?.mfa_enabled ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
               {user?.mfa_enabled ? 'ENABLED (TOTP)' : 'DISABLED'}
             </span></div>
@@ -74,7 +74,7 @@ export default function AccessControl() {
               </div>
             </div>
             <Button variant="outline" size="sm" className="font-mono text-xs">
-              {showAdminTable ? 'Hide Table' : 'Manage'}
+              {showAdminTable ? t('Hide Table') : t('Manage')}
             </Button>
           </div>
 
@@ -93,7 +93,7 @@ export default function AccessControl() {
               </div>
             </div>
             <Button variant="outline" size="sm" className="font-mono text-xs">
-              {showAuditLogs ? 'Hide Logs' : 'View Audit Logs'}
+              {showAuditLogs ? t('Hide Logs') : t('View Audit Logs')}
             </Button>
           </div>
         </div>
