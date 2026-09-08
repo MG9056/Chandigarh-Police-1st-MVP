@@ -203,7 +203,7 @@ def detach_source_from_investigation(
 
 
 @router.post("/{source_id}/trigger")
-def trigger_source_for_investigation(
+async def trigger_source_for_investigation(
     investigation_id: str,
     source_id: str,
     request: Request,
