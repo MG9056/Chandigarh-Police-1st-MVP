@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone, timedelta
 import jwt  # PyJWT — jwt/ directory is installed by the PyJWT package
 import hashlib
@@ -5,7 +6,7 @@ import secrets
 import string
 import pyotp
 import bcrypt
-from fastapi import Request
+from fastapi import Request, HTTPException, status
 import os
 import json
 
@@ -125,3 +126,34 @@ def get_client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "127.0.0.1"
+
+
+def parse_uuid_safely(val: str | uuid.UUID | None, field_name: str = "UUID", allow_none: bool = False) -> uuid.UUID | None:
+    """
+    Safely converts a string or UUID object into a uuid.UUID instance.
+    Raises HTTPException(400) if the value is not a valid UUID string.
+    """
+    if val is None:
+        if allow_none:
+            return None
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid {field_name}: value cannot be null."
+        )
+    if isinstance(val, uuid.UUID):
+        return val
+    if not isinstance(val, str) or not val.strip():
+        if allow_none:
+            return None
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid {field_name}: value must be a non-empty UUID string."
+        )
+    try:
+        return uuid.UUID(val.strip())
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid {field_name} format: '{val}' is not a valid UUID."
+        )
+

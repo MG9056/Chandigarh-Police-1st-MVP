@@ -15,9 +15,10 @@ Route registration:
 
 Authorization:
   - GET  : broad Permission.READ (any authenticated user)
-  - POST : investigation modification access (v2) + re-authentication
+  - POST : investigation modification access (v2)
 """
 
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -35,7 +36,7 @@ from models import (
 )
 from rbac import can_review_investigation_intelligence, require_permission, Permission
 from routers.auth_router import get_current_user
-from routers.reauth_router import require_recent_reauth
+from security import parse_uuid_safely
 
 router = APIRouter(
     prefix="/api/investigations/{investigation_id}/evidence",
@@ -97,7 +98,6 @@ def promote_finding_to_evidence(
     finding_id: int,
     request: Request,
     current_user: User = Depends(get_current_user),
-    reauth_user: User = Depends(require_recent_reauth),
     db: Session = Depends(get_db),
 ):
     """
@@ -160,15 +160,16 @@ def promote_finding_to_evidence(
     # Resolve the source RawRecord — verify it belongs to THIS investigation
     raw_record = None
     if finding.raw_record_id:
+        record_uuid = parse_uuid_safely(finding.raw_record_id, field_name="raw_record_id")
         raw_record = db.query(RawRecord).filter(
-            RawRecord.id == finding.raw_record_id,
+            RawRecord.id == record_uuid,
             RawRecord.case_id == investigation.investigation_id,
         ).first()
         # If record exists but case_id doesn't match, it's a cross-investigation attempt
         if raw_record is None:
             # Try without case_id filter to give a more descriptive error
             orphan = db.query(RawRecord).filter(
-                RawRecord.id == finding.raw_record_id
+                RawRecord.id == record_uuid
             ).first()
             if orphan and orphan.case_id != investigation.investigation_id:
                 raise HTTPException(

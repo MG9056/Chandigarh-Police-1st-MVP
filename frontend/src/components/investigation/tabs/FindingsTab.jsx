@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { listInvestigationFindings } from '../../../api/investigationFindingsApi';
 import { listInvestigationEvidence, promoteToEvidence } from '../../../api/investigationEvidenceApi';
 import { Button } from '../../ui/button';
-import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, RefreshCw, ShieldCheck, Filter } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -14,7 +13,6 @@ const STATUS_COLORS = {
 
 export default function FindingsTab({ investigationId, canManage }) {
   const { t } = useTranslation();
-  const { triggerReAuth } = useAuth();
   const [findings, setFindings] = useState([]);
   const [promotedFindingIds, setPromotedFindingIds] = useState(new Set());
   const [statusFilter, setStatusFilter] = useState('RELEVANT');
@@ -50,25 +48,23 @@ export default function FindingsTab({ investigationId, canManage }) {
     }
   };
 
-  const handlePromote = (findingId) => {
-    triggerReAuth(async () => {
-      setPromoting(findingId);
-      setError('');
-      try {
-        await promoteToEvidence(investigationId, findingId);
-        setSuccess('Finding promoted to evidence successfully.');
-        setTimeout(() => setSuccess(''), 3500);
-        loadData();
-      } catch (err) {
-        if (err.message.includes('409') || err.message.toLowerCase().includes('already been promoted')) {
-          setSuccess('This finding was already promoted.');
-        } else {
-          setError(err.message);
-        }
-      } finally {
-        setPromoting(null);
+  const handlePromote = async (findingId) => {
+    setPromoting(findingId);
+    setError('');
+    try {
+      await promoteToEvidence(investigationId, findingId);
+      setSuccess('Finding promoted to evidence successfully.');
+      setTimeout(() => setSuccess(''), 3500);
+      loadData();
+    } catch (err) {
+      if (err.message.includes('409') || err.message.toLowerCase().includes('already been promoted')) {
+        setSuccess('This finding was already promoted.');
+      } else {
+        setError(err.message);
       }
-    });
+    } finally {
+      setPromoting(null);
+    }
   };
 
   return (

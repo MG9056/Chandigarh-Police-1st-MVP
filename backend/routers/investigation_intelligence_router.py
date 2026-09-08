@@ -20,8 +20,7 @@ from models import (
 from rbac import can_review_investigation_intelligence, require_permission, Permission
 
 from routers.auth_router import get_current_user
-from routers.reauth_router import require_recent_reauth
-from security import get_client_ip
+from security import get_client_ip, parse_uuid_safely
 from semantic_search import SemanticIndex
 
 router = APIRouter(prefix="/api/investigations/{investigation_id}/intelligence", tags=["Investigation Intelligence"])
@@ -178,7 +177,7 @@ def get_intelligence_detail(
     if not investigation:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Investigation '{investigation_id}' not found.")
 
-    record_uuid = uuid.UUID(raw_record_id) if isinstance(raw_record_id, str) and "-" in raw_record_id else raw_record_id
+    record_uuid = parse_uuid_safely(raw_record_id, field_name="raw_record_id")
     record = db.query(RawRecord).filter(
         RawRecord.id == record_uuid,
         RawRecord.case_id == investigation.investigation_id
@@ -222,14 +221,13 @@ def review_intelligence(
     req: ReviewIntelligenceRequest,
     request: Request,
     current_user: User = Depends(get_current_user),
-    reauth_user: User = Depends(require_recent_reauth),
     db: Session = Depends(get_db)
 ):
     """
     Review a raw intelligence record: mark as RELEVANT, DISMISSED, or PENDING_REVIEW.
 
     Creates or updates InvestigationFinding (upsert).
-    Requires investigation modification access + re-authentication.
+    Requires investigation modification access.
     """
     investigation = db.query(Investigation).filter(Investigation.investigation_id == investigation_id).first()
     if not investigation:
@@ -238,7 +236,7 @@ def review_intelligence(
     if not can_review_investigation_intelligence(current_user, investigation, db):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied.")
 
-    record_uuid = uuid.UUID(raw_record_id) if isinstance(raw_record_id, str) and "-" in raw_record_id else raw_record_id
+    record_uuid = parse_uuid_safely(raw_record_id, field_name="raw_record_id")
     record = db.query(RawRecord).filter(
         RawRecord.id == record_uuid,
         RawRecord.case_id == investigation.investigation_id
