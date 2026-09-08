@@ -104,8 +104,7 @@ def ingest_synthetic_telegram(db: Session) -> tuple[int, int, dict]:
             member_count=c_info["member_count"]
         )
         db.add(ch)
-        db.commit()
-        db.refresh(ch)
+        db.flush()
         channels_map[c_info["channel_id"]] = ch
 
     test_handles = [
@@ -139,7 +138,6 @@ def ingest_synthetic_telegram(db: Session) -> tuple[int, int, dict]:
             if clean_h not in curr_aliases:
                 curr_aliases.append(clean_h)
             best_suspect.aliases_json = json.dumps(sorted(list(set(curr_aliases))))
-            db.commit()
             merged_handles.append((handle, best_suspect.primary_alias, best_score))
         else:
             suspect = db.query(Suspect).filter((Suspect.telegram_handle == handle) | (Suspect.primary_alias == clean_h)).first()
@@ -152,8 +150,9 @@ def ingest_synthetic_telegram(db: Session) -> tuple[int, int, dict]:
                     risk_score=70
                 )
                 db.add(suspect)
-                db.commit()
             standalone_handles.append(handle)
+
+    db.commit()
 
     random.seed(1337)
     messages_to_add = []

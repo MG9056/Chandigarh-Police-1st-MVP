@@ -8,10 +8,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User
+from models import User, CrawlerCandidate
 from rbac import require_permission, Permission
 from crawler.models.source import Source
 from crawler.models.crawler_run import CrawlerRun
+from crawler.models.raw_record import RawRecord
 from crawler.orchestration.flows import run_crawl
 
 
@@ -106,7 +107,7 @@ def list_sources(
 def create_source(
     payload: SourceCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
+    current_user: User = Depends(require_permission(Permission.CREATE)),
 ):
     source_type = payload.source_type.upper()
 
@@ -165,7 +166,7 @@ def update_source(
     source_id: str,
     payload: SourceUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
+    current_user: User = Depends(require_permission(Permission.UPDATE)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -216,7 +217,7 @@ async def trigger_source_run(
     source_id: str,
     case_id: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
+    current_user: User = Depends(require_permission(Permission.UPDATE)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -260,7 +261,7 @@ async def trigger_source_run(
 def stop_source_run(
     source_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
+    current_user: User = Depends(require_permission(Permission.UPDATE)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -324,7 +325,7 @@ def stop_source_run(
 def delete_source(
     source_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.MANAGE_DATA_SOURCES)),
+    current_user: User = Depends(require_permission(Permission.DELETE)),
 ):
     source_uuid = (
         uuid.UUID(source_id)
@@ -343,6 +344,15 @@ def delete_source(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Source not found",
         )
+
+    db.query(CrawlerCandidate).filter(
+        CrawlerCandidate.source_record_id.in_(
+            db.query(RawRecord.id).filter(RawRecord.source_id == source_uuid)
+        )
+    ).update({CrawlerCandidate.source_record_id: None}, synchronize_session=False)
+    db.query(RawRecord).filter(
+        RawRecord.source_id == source_uuid
+    ).update({RawRecord.source_id: None}, synchronize_session=False)
 
     # Delete associated crawler runs
     db.query(CrawlerRun).filter(

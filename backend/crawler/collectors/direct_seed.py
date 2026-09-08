@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 from .base import BaseCollector
 
@@ -23,7 +24,13 @@ class DirectSeedCollector(BaseCollector):
         records = []
         fetched_at = datetime.now(timezone.utc)
 
-        for url in seed_urls:
+        for raw_url in seed_urls:
+            url = str(raw_url).strip()
+            if url and not urlparse(url).scheme:
+                url = f"https://{url}"
+            if not url:
+                logger.warning("Skipping empty direct seed URL")
+                continue
             try:
                 res = await transport.get(url)
                 if res.get("status_code") == 200:

@@ -3,6 +3,7 @@ import { Lock, ShieldAlert, X, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import API_BASE_URL from '../../config/api';
 
 export default function ReAuthModal() {
   const { reAuthRequired, handleReAuthSuccess, cancelReAuth } = useAuth();
@@ -19,8 +20,9 @@ export default function ReAuthModal() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/reauthenticate', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/reauthenticate`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
