@@ -33,6 +33,6 @@ gliner
 # ==== Testing (used by backend/tests/) ====
 pytest>=8.0.0
 httpx
-
+reportlab
 # ==== Testing ====
 pytest==8.3.4

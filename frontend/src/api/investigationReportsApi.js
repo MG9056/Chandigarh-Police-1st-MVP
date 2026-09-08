@@ -80,3 +80,40 @@ export async function generateInvestigationReport(investigationId, title = null)
   }
   return res.json();
 }
+
+/**
+ * List all generated reports across all investigations.
+ *
+ * Used by the global Reports & Evidence dashboard.
+ *
+ * @returns {Promise<{ total: number, reports: Array }>}
+ */
+export async function listGlobalReports() {
+  const res = await apiFetch('/api/reports');
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err.detail || 'Failed to fetch global reports'
+    );
+  }
+
+  return res.json();
+}
+export async function downloadInvestigationReportPdf(
+  investigationId,
+  reportId,
+) {
+  const res = await apiFetch(
+    `/api/investigations/${investigationId}/reports/${reportId}/pdf`,
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err.detail || 'Failed to generate report PDF',
+    );
+  }
+
+  return res.blob();
+}
