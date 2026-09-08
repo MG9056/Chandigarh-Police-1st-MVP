@@ -2,8 +2,11 @@ import logging
 import os
 import re
 from typing import Any, Dict, List
+
 from dotenv import load_dotenv
+
 load_dotenv()
+
 logger = logging.getLogger(__name__)
 
 
@@ -69,8 +72,10 @@ class EntityExtractor:
     investigation confidence. Final contextual relevance/confidence
     is assigned later by the LLM.
 
-    The selected NER model is loaded once when EntityExtractor is
-    created and reused for all records.
+    IMPORTANT:
+    The selected NER model is loaded lazily on the first call to
+    extract() and then reused for subsequent records. This prevents
+    large NER models from consuming RAM during application startup.
     """
 
     # ------------------------------------------------------------------
@@ -100,6 +105,8 @@ class EntityExtractor:
     GLINER_THRESHOLD = 0.5
 
     def __init__(self):
+        # Model is intentionally NOT loaded here.
+        # This keeps EntityExtractor lightweight during imports/startup.
         self.model = None
 
         # Default to spaCy so the project works without GLiNER.
@@ -108,12 +115,15 @@ class EntityExtractor:
             "spacy",
         ).lower()
 
-        if self.extractor_type == "gliner":
-            self._load_gliner()
-        else:
-            # Treat any value other than "gliner" as spaCy.
+        # Treat any value other than "gliner" as spaCy.
+        if self.extractor_type != "gliner":
             self.extractor_type = "spacy"
-            self._load_spacy()
+
+        logger.info(
+            "EntityExtractor initialized with engine '%s'. "
+            "Model loading is deferred until first extraction.",
+            self.extractor_type,
+        )
 
     # ------------------------------------------------------------------
     # Model loading
@@ -121,14 +131,18 @@ class EntityExtractor:
 
     def _load_spacy(self):
         """
-        Load spaCy NER model.
+        Load spaCy NER model lazily.
         """
+
+        # Prevent repeated loading if multiple calls race through here.
+        if self.model is not None:
+            return
 
         try:
             import spacy
 
             logger.info(
-                "Loading spaCy entity extractor..."
+                "Loading spaCy entity extractor lazily..."
             )
 
             self.model = spacy.load(
@@ -147,16 +161,23 @@ class EntityExtractor:
                 exc_info=True,
             )
 
+            self.model = None
+
     def _load_gliner(self):
         """
-        Load GLiNER NER model.
+        Load GLiNER NER model lazily.
         """
+
+        # Prevent repeated loading if model is already available.
+        if self.model is not None:
+            return
 
         try:
             from gliner import GLiNER
 
             logger.info(
-                "Loading GLiNER model urchade/gliner_medium-v2.1..."
+                "Loading GLiNER model "
+                "urchade/gliner_medium-v2.1 lazily..."
             )
 
             self.model = GLiNER.from_pretrained(
@@ -174,6 +195,24 @@ class EntityExtractor:
                 e,
                 exc_info=True,
             )
+
+            self.model = None
+
+    def _ensure_model_loaded(self):
+        """
+        Lazily load the configured NER model.
+
+        This method is called only when semantic NER extraction is
+        actually requested.
+        """
+
+        if self.model is not None:
+            return
+
+        if self.extractor_type == "gliner":
+            self._load_gliner()
+        else:
+            self._load_spacy()
 
     # ------------------------------------------------------------------
     # Utility methods
@@ -362,10 +401,12 @@ class EntityExtractor:
         Extract general entities using spaCy.
         """
 
-        if not self.model:
+        if not text or not text.strip():
             return []
 
-        if not text or not text.strip():
+        # Model should already be loaded by extract(), but keeping this
+        # guard makes the method safe if called directly.
+        if not self.model:
             return []
 
         candidates: List[Dict[str, Any]] = []
@@ -417,10 +458,12 @@ class EntityExtractor:
         Extract domain-specific entities using GLiNER.
         """
 
-        if not self.model:
+        if not text or not text.strip():
             return []
 
-        if not text or not text.strip():
+        # Model should already be loaded by extract(), but keeping this
+        # guard makes the method safe if called directly.
+        if not self.model:
             return []
 
         candidates: List[Dict[str, Any]] = []
@@ -524,6 +567,9 @@ class EntityExtractor:
 
         Regex handles deterministic entities such as wallet addresses
         and phone numbers.
+
+        The NER model is loaded lazily here on the first extraction
+        request, not during EntityExtractor construction.
         """
 
         if not text or not text.strip():
@@ -532,8 +578,10 @@ class EntityExtractor:
         candidates: List[Dict[str, Any]] = []
 
         # --------------------------------------------------------------
-        # 1. NER
+        # 1. Lazy-load NER model only when extraction is actually used
         # --------------------------------------------------------------
+
+        self._ensure_model_loaded()
 
         if self.extractor_type == "gliner":
             candidates.extend(
