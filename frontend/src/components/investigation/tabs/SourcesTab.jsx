@@ -4,6 +4,8 @@ import { listInvestigationSources, attachSource, detachSource, triggerSourceForI
 import { Button } from '../../ui/button';
 import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, Play, Trash2, Plus, RefreshCw } from 'lucide-react';
+import { apiFetch } from '../../../lib/apiClient';
+import API_BASE_URL from '../../../config/api';
 
 export default function SourcesTab({ investigationId, canManage }) {
   const { t } = useTranslation();
@@ -15,9 +17,12 @@ export default function SourcesTab({ investigationId, canManage }) {
   const [attachingSourceId, setAttachingSourceId] = useState('');
   const [showAttachForm, setShowAttachForm] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [availableSources, setAvailableSources] = useState([]);
+  const [loadingAvailableSources, setLoadingAvailableSources] = useState(false);
 
   useEffect(() => {
     loadSources();
+    loadAvailableSources();
   }, [investigationId]);
 
   const loadSources = async () => {
@@ -30,6 +35,24 @@ export default function SourcesTab({ investigationId, canManage }) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableSources = async () => {
+    setLoadingAvailableSources(true);
+    try {
+      const response = await apiFetch(`${API_BASE_URL}/sources`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load crawler sources');
+      }
+      const data = await response.json();
+      setAvailableSources(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingAvailableSources(false);
     }
   };
 
@@ -133,20 +156,34 @@ export default function SourcesTab({ investigationId, canManage }) {
       {/* Attach Source Form */}
       {showAttachForm && canManage && (
         <div className="p-3 bg-card/60 border border-border/60 rounded space-y-2 font-mono">
-          <label className="text-[10px] uppercase text-muted-foreground">Source ID (UUID or Name)</label>
+          <label className="text-[10px] uppercase text-muted-foreground">Crawler Source</label>
           <div className="flex gap-2">
-            <input
-              type="text"
+            <select
               value={attachingSourceId}
               onChange={(e) => setAttachingSourceId(e.target.value)}
-              placeholder="E.g., 550e8400-e29b-41d4-a716-446655440000"
               className="flex-1 bg-background border border-border/60 rounded px-2 py-1 text-xs"
-              onKeyDown={(e) => e.key === 'Enter' && handleAttachSource()}
-            />
+              disabled={loadingAvailableSources || actionLoading}
+            >
+              <option value="">
+                {loadingAvailableSources ? 'Loading crawler sources...' : 'Select a crawler source'}
+              </option>
+              {availableSources
+                .filter((source) => !sources.some((attached) => attached.source_id === source.id))
+                .map((source) => (
+                  <option key={source.id} value={source.id}>
+                    {source.name} ({source.source_type}) — {source.id}
+                  </option>
+                ))}
+            </select>
             <Button size="sm" onClick={handleAttachSource} disabled={actionLoading} className="text-xs">
               Attach
             </Button>
           </div>
+          {!loadingAvailableSources && availableSources.length === 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              No crawler sources are available. Create one from Data Collection first.
+            </p>
+          )}
         </div>
       )}
 
