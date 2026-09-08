@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone
 
 from database import get_db
-from models import User, Suspect, CryptoWallet, DarknetListing, TelegramMessage, TelegramChannel
+from models import User, Suspect, CryptoWallet, DarknetListing, TelegramMessage, TelegramChannel, CrawlerCandidate
 from routers.auth_router import get_current_user
 from entity_resolution import username_similarity
 from semantic_search import SemanticIndex
@@ -25,6 +25,90 @@ def _platform_mentions(suspect: Suspect) -> list:
 
 def _data_origin(suspect: Suspect) -> str:
     return suspect.data_origin or "base_dataset"
+
+
+def _candidate_aliases(candidate: CrawlerCandidate) -> list:
+    if candidate.aliases_json:
+        try:
+            parsed = json.loads(candidate.aliases_json)
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed if item]
+            return [str(parsed)]
+        except json.JSONDecodeError:
+            pass
+    if candidate.primary_alias:
+        return [candidate.primary_alias]
+    return [f"Unidentified target — crawler {candidate.id}"]
+
+
+def _candidate_data_origin(candidate: CrawlerCandidate) -> str:
+    return candidate.data_origin or "crawler_candidate"
+
+
+def _profile_sort_key(item: dict) -> tuple:
+    origin = item.get("data_origin") or ""
+    priority = 0 if item.get("crawler_candidate") else (1 if "crawler" in origin else 2)
+    return priority, -(item.get("risk_score") or 0), item.get("primary_alias") or item.get("label") or ""
+
+
+def _candidate_result(candidate: CrawlerCandidate) -> dict:
+    aliases = _candidate_aliases(candidate)
+    label = candidate.primary_alias or aliases[0]
+    risk_level = "Critical" if candidate.risk_score >= 80 else ("High" if candidate.risk_score >= 70 else "Medium")
+    platform_mentions = []
+    if candidate.platform_mentions:
+        try:
+            parsed_mentions = json.loads(candidate.platform_mentions)
+            if isinstance(parsed_mentions, list):
+                platform_mentions = parsed_mentions
+            else:
+                platform_mentions = [str(parsed_mentions)]
+        except json.JSONDecodeError:
+            platform_mentions = [candidate.platform_mentions]
+    return {
+        "id": candidate.id,
+        "label": label,
+        "primary_alias": candidate.primary_alias or label,
+        "aliases": aliases,
+        "telegram_handle": candidate.telegram_handle,
+        "pgp_fingerprint": None,
+        "phone_number": candidate.phone_number,
+        "last_known_location": candidate.last_known_location,
+        "platform_mentions": platform_mentions,
+        "enrichment_summary": candidate.notes or "Partial crawler observation; identity information may be incomplete.",
+        "enrichment_source_count": 1 if candidate.confidence_score else 0,
+        "last_enriched_at": candidate.updated_at.isoformat() if candidate.updated_at else None,
+        "data_origin": _candidate_data_origin(candidate),
+        "risk_score": candidate.risk_score,
+        "risk_level": risk_level,
+        "notes": candidate.notes or "Partial crawler-fetched entity; identity fields may be incomplete.",
+        "match_reason": "Crawler candidate match",
+        "wallets_count": 0,
+        "listings_count": 0,
+        "telegram_messages_count": 0,
+        "crawler_candidate": True,
+        "profile_type": "crawler_candidate",
+        "source_url": candidate.source_url,
+        "synthetic_generated": bool(candidate.synthetic_generated),
+        "synthetic_reason": candidate.synthetic_reason,
+        "created_at": candidate.created_at.isoformat() if candidate.created_at else None,
+    }
+
+
+def _candidate_matches_query(candidate: CrawlerCandidate, q_lower: str) -> bool:
+    search_fields = [
+        candidate.primary_alias or "",
+        candidate.telegram_handle or "",
+        candidate.phone_number or "",
+        candidate.last_known_location or "",
+        candidate.source_url or "",
+        candidate.raw_text or "",
+        candidate.cleaned_text or "",
+        candidate.notes or "",
+    ]
+    if candidate.platform_mentions:
+        search_fields.append(candidate.platform_mentions)
+    return any(q_lower in str(value).lower() for value in search_fields)
 
 
 def _semantic_matches(query_str: str, category: str, db: Session) -> list[dict]:
@@ -132,6 +216,11 @@ def universal_search(
 
     q_lower = query_str.lower()
     
+    candidate_matches = []
+    for candidate in db.query(CrawlerCandidate).all():
+        if _candidate_matches_query(candidate, q_lower):
+            candidate_matches.append(_candidate_result(candidate))
+
     # 1. Search Suspects (SQL Substring + Fuzzy Matching)
     suspects_results = []
     seen_suspect_ids = set()
@@ -276,6 +365,10 @@ def universal_search(
                 "match_reason": match_reason
             })
 
+    suspects_results.extend(candidate_matches)
+
+    suspects_results = sorted(suspects_results, key=_profile_sort_key)
+
     _append_semantic_matches(
         query_str, category or "all", db,
         suspects_results, wallets_results, listings_results, telegram_results,
@@ -340,7 +433,6 @@ def list_suspects(
         aliases_list = json.loads(s.aliases_json) if s.aliases_json else [s.primary_alias]
         risk_lvl = "Critical" if s.risk_score >= 80 else ("High" if s.risk_score >= 70 else "Medium")
         
-        # Count linked telegram messages by handle
         tg_count = 0
         if s.telegram_handle:
             tg_count = db.query(TelegramMessage).filter(TelegramMessage.sender_handle == s.telegram_handle).count()
@@ -369,12 +461,58 @@ def list_suspects(
             "telegram_messages_count": tg_count
         })
 
+    candidate_rows = []
+    candidate_query = db.query(CrawlerCandidate)
+    if q:
+        q_clean = q.strip().lower()
+        candidate_rows = [
+            candidate for candidate in candidate_query.all()
+            if _candidate_matches_query(candidate, q_clean)
+        ]
+    else:
+        candidate_rows = candidate_query.order_by(CrawlerCandidate.updated_at.desc()).limit(limit).all()
+
+    result.extend(_candidate_result(candidate) for candidate in candidate_rows)
+    result = sorted(result, key=_profile_sort_key)
+
     return {
         "page": page,
         "limit": limit,
-        "total": total,
-        "suspects": result
+        "total": total + len(candidate_rows),
+        "suspects": result[:limit]
     }
+
+@router.get("/crawler-candidates/{candidate_id}")
+def get_crawler_candidate_detail(
+    candidate_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    candidate = db.query(CrawlerCandidate).filter(CrawlerCandidate.id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Crawler target profile not found"
+        )
+
+    raw_record = None
+    if candidate.source_record_id:
+        from crawler.models.raw_record import RawRecord
+        raw_record = db.query(RawRecord).filter(RawRecord.id == candidate.source_record_id).first()
+
+    result = _candidate_result(candidate)
+    result.update({
+        "raw_record_id": str(candidate.source_record_id) if candidate.source_record_id else None,
+        "raw_text": candidate.raw_text,
+        "cleaned_text": candidate.cleaned_text,
+        "relevance_reasoning": raw_record.relevance_reasoning if raw_record else None,
+        "extracted_candidates": raw_record.extracted_candidates if raw_record else [],
+        "structured_intelligence": raw_record.structured_intelligence if raw_record else None,
+        "wallets": [],
+        "listings": [],
+        "telegram_messages": [],
+    })
+    return result
 
 @router.get("/suspects/{suspect_id}")
 def get_suspect_detail(

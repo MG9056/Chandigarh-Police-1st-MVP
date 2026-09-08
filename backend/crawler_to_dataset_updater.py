@@ -234,6 +234,66 @@ def _apply_enrichment(db: Session, rec, enrichment: dict[str, Any], tier: str, m
     return True
 
 
+def _crawler_profile_identity(rec) -> tuple[str, list[str]]:
+    """Extract a display identity without inventing one from crawler text."""
+    aliases = []
+    for candidate in (rec.extracted_candidates or []):
+        candidate_type = str(candidate.get("type", "")).upper()
+        value = str(candidate.get("value", "")).strip()
+        if value and candidate_type in {"PERSON", "USERNAME", "HANDLE", "ACCOUNT"}:
+            if value not in aliases:
+                aliases.append(value)
+
+    if aliases:
+        return aliases[0], aliases
+
+    digest = (rec.content_hash or str(rec.id))[:12]
+    return f"Crawler observation {digest}", []
+
+
+def _project_crawler_candidate(db: Session, rec, label: str, enrichment: dict[str, Any], matched_suspect_id: int | None) -> None:
+    """Persist profile visibility for records without a confident suspect match."""
+    from models import CrawlerCandidate
+
+    if matched_suspect_id is not None or _suspect_match(db, rec, enrichment) is not None:
+        return
+
+    candidate = db.query(CrawlerCandidate).filter(
+        CrawlerCandidate.source_record_id == rec.id
+    ).first()
+    primary_alias, aliases = _crawler_profile_identity(rec)
+    confidence = rec.relevance_confidence or 0.0
+    risk_by_label = {"ofac": 90, "elliptic": 75, "agora": 65, "no_match": 35}
+
+    values = {
+        "source_record_id": rec.id,
+        "case_id": rec.case_id,
+        "primary_alias": primary_alias,
+        "aliases_json": json.dumps(aliases),
+        "telegram_handle": (enrichment.get("platform_mentions") or [None])[0],
+        "phone_number": enrichment.get("phone_number"),
+        "last_known_location": enrichment.get("last_known_location"),
+        "platform_mentions": json.dumps(enrichment.get("platform_mentions") or []),
+        "notes": rec.relevance_reasoning or f"Crawler record classified as {label}.",
+        "raw_text": rec.raw_text,
+        "cleaned_text": rec.cleaned_text,
+        "source_url": rec.url,
+        "confidence_score": confidence,
+        "risk_score": risk_by_label.get(label, 35),
+        "data_origin": "crawler_candidate",
+        "synthetic_generated": False,
+        "synthetic_reason": None,
+        "status": "crawler_candidate",
+    }
+    if candidate is None:
+        db.add(CrawlerCandidate(**values))
+        logger.info("[crawler_updater] projected crawler profile for record=%s label=%s", rec.id, label)
+    else:
+        for key, value in values.items():
+            setattr(candidate, key, value)
+        logger.info("[crawler_updater] refreshed crawler profile for record=%s label=%s", rec.id, label)
+
+
 def _ai_decision(db: Session, rec) -> tuple[str | None, dict[str, Any], str, int | None] | None:
     """Use Gemini, then Anthropic, for optional structured classification."""
     import httpx
@@ -586,6 +646,7 @@ def process_pending_records(db: Session) -> int:
     Returns the number of records processed.
     """
     from crawler.models.raw_record import RawRecord
+    from models import CrawlerCandidate
 
     all_raw_records = db.query(RawRecord).all()
     for raw_record in all_raw_records:
@@ -596,6 +657,37 @@ def process_pending_records(db: Session) -> int:
             logger.error(
                 "[crawler_updater] Telegram table population failed for record %s: %s",
                 raw_record.id,
+                exc,
+                exc_info=True,
+            )
+
+    projected_review_records = 0
+    review_queue = (
+        db.query(RawRecord)
+        .filter(RawRecord.status == "review_queue")
+        .all()
+    )
+    for rec in review_queue:
+        try:
+            enrichment = _heuristic_enrichment(rec)
+            before = db.query(CrawlerCandidate).filter(
+                CrawlerCandidate.source_record_id == rec.id
+            ).first()
+            _project_crawler_candidate(
+                db,
+                rec,
+                "review_queue",
+                enrichment,
+                None,
+            )
+            if before is None:
+                projected_review_records += 1
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            logger.error(
+                "[crawler_updater] Review-queue profile projection failed for record %s: %s",
+                rec.id,
                 exc,
                 exc_info=True,
             )
@@ -673,6 +765,7 @@ def process_pending_records(db: Session) -> int:
                     rec.matched_keywords,
                 )
 
+            _project_crawler_candidate(db, rec, label, enrichment, ai_suspect_id)
             rec.status = new_status
             db.add(rec)
             db.commit()
