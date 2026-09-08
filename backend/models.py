@@ -233,6 +233,32 @@ def time_step_to_timestamp(time_step: int) -> datetime:
 
 # --- Domain & Intelligence Models for Project Dark Knight ---
 
+class CrawlerCandidate(Base):
+    __tablename__ = "crawler_candidates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    source_record_id = Column(Uuid(as_uuid=True), ForeignKey("raw_records.id"), nullable=True, unique=True, index=True)
+    case_id = Column(String, nullable=True, index=True)
+    primary_alias = Column(String, nullable=True, index=True)
+    aliases_json = Column(Text, nullable=True)
+    telegram_handle = Column(String, nullable=True, index=True)
+    phone_number = Column(String, nullable=True, index=True)
+    last_known_location = Column(String, nullable=True, index=True)
+    platform_mentions = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    raw_text = Column(Text, nullable=True)
+    cleaned_text = Column(Text, nullable=True)
+    source_url = Column(String, nullable=True)
+    confidence_score = Column(Numeric, nullable=True, default=0.0)
+    risk_score = Column(Integer, default=35, index=True)
+    data_origin = Column(String, nullable=False, default="crawler_candidate", index=True)
+    synthetic_generated = Column(Boolean, default=True, nullable=False)
+    synthetic_reason = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="crawler_candidate")
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+
 class Suspect(Base):
     __tablename__ = "suspects"
 

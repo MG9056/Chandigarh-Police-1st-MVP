@@ -23,22 +23,26 @@ export default function SuspectProfiles() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleToggleExpand = (id) => {
-    if (expandedId === id) {
+  const handleToggleExpand = (suspect) => {
+    const profileKey = `${suspect.profile_type || 'suspect'}:${suspect.id}`;
+    if (expandedId === profileKey) {
       setExpandedId(null);
       return;
     }
 
-    setExpandedId(id);
-    if (!suspectDetail[id]) {
-      fetch(`/api/suspects/${id}`)
+    setExpandedId(profileKey);
+    if (!suspectDetail[profileKey]) {
+      const detailPath = suspect.crawler_candidate
+        ? `/api/crawler-candidates/${suspect.id}`
+        : `/api/suspects/${suspect.id}`;
+      fetch(detailPath)
         .then(res => res.ok ? res.json() : null)
         .then(detail => {
           if (detail) {
-            setSuspectDetail(prev => ({ ...prev, [id]: detail }));
+            setSuspectDetail(prev => ({ ...prev, [profileKey]: detail }));
           }
         })
-        .catch(err => console.error(`Error fetching detail for suspect ${id}:`, err));
+        .catch(err => console.error(`Error fetching detail for profile ${profileKey}:`, err));
     }
   };
 
@@ -65,13 +69,14 @@ export default function SuspectProfiles() {
           </div>
         ) : (
           suspects.map((suspect) => {
-            const detail = suspectDetail[suspect.id];
+            const profileKey = `${suspect.profile_type || 'suspect'}:${suspect.id}`;
+            const detail = suspectDetail[profileKey];
 
             return (
-              <div key={suspect.id} className="bracket-border bg-background/40 backdrop-blur-sm transition-all">
+              <div key={profileKey} className="bracket-border bg-background/40 backdrop-blur-sm transition-all">
                 <div
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-primary/5 transition-colors group"
-                  onClick={() => handleToggleExpand(suspect.id)}
+                  onClick={() => handleToggleExpand(suspect)}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 font-bold">
@@ -80,8 +85,8 @@ export default function SuspectProfiles() {
                     <div>
                       <div className="flex items-center gap-3">
                         <h3 className="font-bold text-lg text-foreground tracking-wide">{suspect.label}</h3>
-                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${suspect.data_origin?.includes('crawler_enriched') ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
-                          {suspect.data_origin?.includes('crawler_enriched') ? 'Crawler enriched' : 'Base dataset'}
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${suspect.crawler_candidate ? 'bg-cyan-500/15 text-cyan-400' : suspect.data_origin?.includes('crawler_enriched') ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                          {suspect.crawler_candidate ? 'Crawler profile' : suspect.data_origin?.includes('crawler_enriched') ? 'Crawler enriched' : 'Base dataset'}
                         </span>
                         {suspect.telegram_handle && (
                           <span className="text-xs bg-cyan-500/10 text-cyan-500 px-2 py-0.5 rounded font-mono">{suspect.telegram_handle}</span>
@@ -94,12 +99,12 @@ export default function SuspectProfiles() {
                     </div>
                   </div>
                   <div className="text-muted-foreground group-hover:text-primary transition-colors">
-                    {expandedId === suspect.id ? <ChevronDown /> : <ChevronRight />}
+                    {expandedId === profileKey ? <ChevronDown /> : <ChevronRight />}
                   </div>
                 </div>
 
                 <AnimatePresence>
-                  {expandedId === suspect.id && (
+                  {expandedId === profileKey && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
