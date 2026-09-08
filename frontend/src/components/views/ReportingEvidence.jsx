@@ -34,7 +34,7 @@ export default function ReportingEvidence() {
 
         <div className="space-y-2">
           <h3 className="text-base font-bold uppercase tracking-wider">
-            Reports Are Investigation-Scoped
+            {t('Reports Are Investigation-Scoped')}
           </h3>
           <p className="text-muted-foreground text-xs max-w-lg mx-auto leading-relaxed">
             Intelligence reports in DarKnight are AI-grounded documents tied to a specific
@@ -45,7 +45,7 @@ export default function ReportingEvidence() {
 
         <div className="space-y-2 text-left max-w-sm mx-auto">
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider text-center">
-            How to generate a report
+            {t('How to generate a report')}
           </p>
           {[
             'Open an Investigation from the Investigations view',
@@ -64,12 +64,12 @@ export default function ReportingEvidence() {
 
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
           <FolderOpen className="w-3.5 h-3.5" />
-          <span>Navigate to</span>
+          <span>{t('Navigate to')}</span>
           <span className="text-primary font-bold">Investigations</span>
           <ArrowRight className="w-3 h-3" />
-          <span className="text-primary font-bold">Select an Investigation</span>
+          <span className="text-primary font-bold">{t('Select an Investigation')}</span>
           <ArrowRight className="w-3 h-3" />
-          <span className="text-primary font-bold">Reports tab</span>
+          <span className="text-primary font-bold">{t('Reports tab')}</span>
         </div>
       </div>
     </div>

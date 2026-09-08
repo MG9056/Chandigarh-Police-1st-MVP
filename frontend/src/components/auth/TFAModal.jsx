@@ -2,6 +2,7 @@ import { KeyRound, Copy, Check, AlertTriangle, ShieldCheck, X } from 'lucide-rea
 import { Button } from '../ui/button';
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import { useTranslation } from 'react-i18next';
 
 export default function TFAModal({ onClose, onComplete }) {
   const [step, setStep] = useState('init'); // init, verify
@@ -11,6 +12,7 @@ export default function TFAModal({ onClose, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const { t } = useTranslation();
   const qrCanvasRef = useRef(null);
 
   useEffect(() => {
@@ -94,11 +96,11 @@ export default function TFAModal({ onClose, onComplete }) {
           onClick={onClose}
           type="button"
           aria-label="Close two-factor authentication setup"
-          title="Close"
+          title={t('Close')}
           className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-md p-1 text-xs font-mono text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <X className="w-5 h-5" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t('Close')}</span>
         </button>
 
         <div className="flex items-center gap-3 border-b border-border/40 pb-3">
@@ -106,8 +108,8 @@ export default function TFAModal({ onClose, onComplete }) {
             <KeyRound className="w-5 h-5" />
           </div>
           <div>
-            <h3 id="tfa-modal-title" className="font-bold text-lg tracking-wider uppercase font-mono">Two-Factor Auth Setup</h3>
-            <p className="text-xs text-muted-foreground font-mono">TOTP Authenticator Protection</p>
+            <h3 id="tfa-modal-title" className="font-bold text-lg tracking-wider uppercase font-mono">{t('Two-Factor Auth Setup')}</h3>
+            <p className="text-xs text-muted-foreground font-mono">{t('TOTP Authenticator Protection')}</p>
           </div>
         </div>
 
@@ -125,7 +127,7 @@ export default function TFAModal({ onClose, onComplete }) {
               Enhance your law-enforcement portal account with TOTP 2FA. You will need a standard authenticator app (Google Authenticator, Microsoft Authenticator, or Aegis).
             </p>
             <Button onClick={startSetup} disabled={loading} className="w-full font-mono gap-2">
-              {loading ? 'Initializing...' : 'Generate 2FA Credentials'}
+              {loading ? t('Initializing...') : t('Generate 2FA Credentials')}
             </Button>
           </div>
         )}
@@ -135,7 +137,7 @@ export default function TFAModal({ onClose, onComplete }) {
             <div className="p-4 bg-muted/40 rounded-xl border border-border/60 space-y-2">
               {qrDataUrl && (
                 <div className="flex flex-col items-center gap-2 p-4 bg-muted/40 rounded-xl border border-border/60">
-                  <label className="text-xs font-mono uppercase text-muted-foreground">Scan with Authenticator App</label>
+                  <label className="text-xs font-mono uppercase text-muted-foreground">{t('Scan with Authenticator App')}</label>
                   <img
                     src={qrDataUrl}
                     alt="2FA QR Code"
@@ -143,10 +145,10 @@ export default function TFAModal({ onClose, onComplete }) {
                     width={180}
                     height={180}
                   />
-                  <p className="text-[10px] text-muted-foreground font-mono">or enter the key below manually</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">{t('or enter the key below manually')}</p>
                 </div>
               )}
-              <label className="text-xs font-mono uppercase text-muted-foreground block">Secret Key (Base32)</label>
+              <label className="text-xs font-mono uppercase text-muted-foreground block">{t('Secret Key (Base32)')}</label>
               <div className="p-2 bg-background font-mono text-sm tracking-widest text-amber-400 font-bold rounded border select-all text-center">
                 {setupData.secret}
               </div>
@@ -154,10 +156,10 @@ export default function TFAModal({ onClose, onComplete }) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-mono uppercase text-muted-foreground">One-Time Recovery Codes (Store Securely)</label>
+                <label className="text-xs font-mono uppercase text-muted-foreground">{t('One-Time Recovery Codes (Store Securely)')}</label>
                 <Button variant="ghost" size="sm" onClick={copyRecoveryCodes} className="h-6 text-xs gap-1">
                   {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                  {copied ? 'Copied' : 'Copy'}
+                  {copied ? t('Copied') : t('Copy')}
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-1.5 p-2 bg-background rounded-lg border border-border/40 font-mono text-xs text-muted-foreground text-center">
@@ -169,7 +171,7 @@ export default function TFAModal({ onClose, onComplete }) {
 
             <form onSubmit={handleVerify} className="space-y-3 pt-2">
               <div className="space-y-1">
-                <label className="text-xs font-mono uppercase text-muted-foreground">Enter 6-Digit Authenticator Code</label>
+                <label className="text-xs font-mono uppercase text-muted-foreground">{t('Enter 6-Digit Authenticator Code')}</label>
                 <input
                   type="text"
                   required
@@ -181,7 +183,7 @@ export default function TFAModal({ onClose, onComplete }) {
               </div>
 
               <Button type="submit" disabled={loading} className="w-full font-mono gap-2">
-                {loading ? 'Verifying...' : 'Verify & Activate 2FA'}
+                {loading ? t('Verifying...') : t('Verify & Activate 2FA')}
               </Button>
             </form>
           </div>
