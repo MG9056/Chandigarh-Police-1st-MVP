@@ -3,7 +3,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
-import { ZoomIn, ZoomOut, Maximize, Minimize, Expand } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Minimize, Expand, Search, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { apiFetch } from '../../lib/apiClient';
 
@@ -60,6 +60,8 @@ export default function NetworkGraph() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoverNode, setHoverNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchNotFound, setSearchNotFound] = useState(false);
 
   useEffect(() => {
   setData({ nodes: [], links: [] });
@@ -230,6 +232,33 @@ export default function NetworkGraph() {
     return () => resizeObserver.disconnect();
   }, [isExpanded]);
 
+  // Zooms/pans the force-graph camera onto the first node whose label (or id,
+  // as a fallback for live entities keyed as "TYPE:VALUE") contains the
+  // search text, and opens its detail panel like a click would.
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return;
+
+    const nodes = mergedData.nodes || [];
+    const match = nodes.find((n) => (n.label || '').toLowerCase().includes(query))
+      || nodes.find((n) => (n.id || '').toString().toLowerCase().includes(query));
+
+    if (match && fgRef.current && typeof match.x === 'number' && typeof match.y === 'number') {
+      setSearchNotFound(false);
+      setSelectedNode(match);
+      fgRef.current.centerAt(match.x, match.y, 800);
+      fgRef.current.zoom(5, 800);
+    } else {
+      setSearchNotFound(true);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchNotFound(false);
+  };
+
   const containerClass = isExpanded
     ? "fixed inset-0 z-[100] bg-background p-6 flex flex-col"
     : "animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col";
@@ -295,6 +324,31 @@ export default function NetworkGraph() {
       </div>
       <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
         <div ref={containerRef} className="flex-1 bracket-border bg-background/20 backdrop-blur-sm overflow-hidden relative h-full">
+          <div className="absolute top-4 left-4 z-10 w-60 max-w-[45%]">
+            <form
+              onSubmit={handleSearch}
+              className="flex items-center gap-1.5 bg-background/80 backdrop-blur-md border border-border/50 rounded px-2 py-1.5"
+            >
+              <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setSearchNotFound(false); }}
+                placeholder={t('Search node...')}
+                className="bg-transparent border-none outline-none text-xs font-mono w-full placeholder:text-muted-foreground/60"
+              />
+              {searchQuery && (
+                <button type="button" onClick={clearSearch} className="flex-shrink-0 text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </form>
+            {searchNotFound && (
+              <p className="mt-1 text-[10px] font-mono text-red-500 uppercase tracking-wider">
+                {t('No matching node found')}
+              </p>
+            )}
+          </div>
           <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
             <Button variant="secondary" size="icon" className="w-8 h-8 opacity-80 hover:opacity-100" onClick={() => fgRef.current && fgRef.current.zoom(fgRef.current.zoom() * 1.5, 400)}>
               <ZoomIn className="w-4 h-4" />

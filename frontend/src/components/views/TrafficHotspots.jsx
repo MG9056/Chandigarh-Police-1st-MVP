@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme-provider';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import indiaOsmData from '../../assets/india-osm.json';
 import { apiFetch } from '../../lib/apiClient';
 import { Button } from '../ui/button';
+import { Maximize, Minimize } from 'lucide-react';
 
 const TIER_COLORS = {
   critical: '#ef4444',
@@ -76,6 +77,17 @@ export default function TrafficHotspots() {
   const [liveLoading, setLiveLoading] = useState(true);
   const [showLive, setShowLive] = useState(true);
   const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const mapRef = useRef(null);
+
+  // Leaflet sizes its canvas from the container's dimensions at mount time,
+  // so whenever the container resizes out-of-band (entering/exiting
+  // fullscreen) we need to explicitly tell it to recalculate.
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const id = setTimeout(() => mapRef.current.invalidateSize(), 250);
+    return () => clearTimeout(id);
+  }, [isExpanded]);
 
   useEffect(() => {
   apiFetch('/api/geo/activity')
@@ -173,8 +185,12 @@ export default function TrafficHotspots() {
 
   const liveMaxCount = livePlaces.length ? livePlaces[0].count : 0;
 
+  const containerClass = isExpanded
+    ? "fixed inset-0 z-[100] bg-background p-6 flex flex-col"
+    : "h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500";
+
   return (
-    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className={containerClass}>
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h2 className="text-3xl font-black tracking-widest mb-2 uppercase text-foreground">{t('Traffic Hotspots')}</h2>
@@ -224,9 +240,19 @@ export default function TrafficHotspots() {
         )}
       </div>
 
-      <div className="flex-1 bracket-border bg-background/20 backdrop-blur-sm relative overflow-hidden flex items-center justify-center p-4">
-        <div className="relative w-full h-full min-h-[500px]">
+      <div className={`flex-1 bracket-border bg-background/20 backdrop-blur-sm relative overflow-hidden ${isExpanded ? 'p-2' : 'p-4'}`}>
+        <div className="relative w-full h-full">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute top-3 right-3 z-[1000] w-8 h-8 opacity-80 hover:opacity-100"
+            onClick={() => setIsExpanded(v => !v)}
+            title={isExpanded ? t('Exit Full Screen') : t('Full Screen')}
+          >
+            {isExpanded ? <Minimize className="w-4 h-4 text-red-500" /> : <Maximize className="w-4 h-4" />}
+          </Button>
           <MapContainer
+            ref={mapRef}
             center={[22.5, 79.0]}
             zoom={5}
             style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
