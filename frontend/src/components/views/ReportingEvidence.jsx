@@ -1,73 +1,78 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, Download, ShieldCheck } from 'lucide-react';
-import { Button } from '../ui/button';
-import { apiFetch } from '../../lib/apiClient';
+import { ScrollText, FolderOpen, ArrowRight } from 'lucide-react';
 
+/**
+ * ReportingEvidence — Global Reports View
+ *
+ * Intelligence reports in DarKnight are scoped to individual investigations.
+ * They are generated using AI grounded on reviewed findings and promoted evidence.
+ *
+ * To access reports: open an Investigation → click the "Reports" tab.
+ */
 export default function ReportingEvidence() {
   const { t } = useTranslation();
-  const [reports, setReports] = useState([]);
-
-  useEffect(() => {
-  apiFetch('/api/reports')
-    .then(res => res.ok ? res.json() : [])
-    .then(data => {
-      if (Array.isArray(data)) setReports(data);
-    })
-    .catch(err => console.error("Error fetching reports:", err));
-}, []);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto h-full font-mono">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase">{t('Reporting & Evidence Management')}</h2>
-          <p className="text-muted-foreground text-xs">{t('Generate structured intelligence reports and manage digitally signed evidence logs.')}</p>
-        </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 font-mono text-xs">
-          <FileText className="w-4 h-4" /> {t('Generate New Report')}
-        </Button>
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase">
+          {t('Reporting & Evidence Management')}
+        </h2>
+        <p className="text-muted-foreground text-xs">
+          {t('Generate structured intelligence reports and manage digitally signed evidence logs.')}
+        </p>
       </div>
 
-      <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
-        <div className="grid grid-cols-5 gap-4 p-4 border-b bg-muted/30 font-semibold text-xs text-muted-foreground uppercase">
-          <div className="col-span-2">{t('Report Title')}</div>
-          <div>{t('Author')}</div>
-          <div>{t('Date')}</div>
-          <div className="text-right">{t('Actions')}</div>
+      {/* Info panel */}
+      <div className="p-8 bg-card/40 border border-border/50 rounded-xl text-center space-y-5">
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <ScrollText className="w-8 h-8 text-primary" />
+          </div>
         </div>
-        
-        <div className="divide-y divide-border/50 text-xs">
-          {reports.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">{t('No reports found')}</div>
-          ) : (
-            reports.map(rep => (
-              <div key={rep.id} className="grid grid-cols-5 gap-4 p-4 items-center hover:bg-muted/10 transition-colors">
-                <div className="col-span-2 flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-blue-500" />
-                  <div>
-                    <p className="font-medium text-sm">{t(rep.title) || rep.title}</p>
-                    <div className="flex items-center gap-1 text-[11px] mt-0.5">
-                      {rep.status === 'Finalized' ? (
-                        <span className="text-green-500 flex items-center gap-1"><ShieldCheck className="w-3 h-3"/> {t('Sealed')}</span>
-                      ) : (
-                        <span className="text-yellow-500">{t('Draft')}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div>{t(rep.author) || rep.author}</div>
-                <div className="text-muted-foreground">{rep.date}</div>
-                <div className="text-right">
-                  <Button variant="ghost" size="sm" className="gap-2 font-mono text-xs">
-                    <Download className="w-4 h-4" /> {t('PDF')}
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
+
+        <div className="space-y-2">
+          <h3 className="text-base font-bold uppercase tracking-wider">
+            Reports Are Investigation-Scoped
+          </h3>
+          <p className="text-muted-foreground text-xs max-w-lg mx-auto leading-relaxed">
+            Intelligence reports in DarKnight are AI-grounded documents tied to a specific
+            investigation. They are generated from reviewed intelligence findings and promoted
+            evidence records, ensuring full traceability.
+          </p>
+        </div>
+
+        <div className="space-y-2 text-left max-w-sm mx-auto">
+          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider text-center">
+            How to generate a report
+          </p>
+          {[
+            'Open an Investigation from the Investigations view',
+            'Mark intelligence findings as RELEVANT in the Intelligence tab',
+            'Promote relevant findings to evidence in the Findings tab',
+            'Click the Reports tab → Generate Report',
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3 text-xs">
+              <span className="w-5 h-5 rounded-full bg-primary/20 border border-primary/30 text-primary flex-shrink-0 flex items-center justify-center text-[10px] font-bold">
+                {i + 1}
+              </span>
+              <span className="text-muted-foreground">{step}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+          <FolderOpen className="w-3.5 h-3.5" />
+          <span>Navigate to</span>
+          <span className="text-primary font-bold">Investigations</span>
+          <ArrowRight className="w-3 h-3" />
+          <span className="text-primary font-bold">Select an Investigation</span>
+          <ArrowRight className="w-3 h-3" />
+          <span className="text-primary font-bold">Reports tab</span>
         </div>
       </div>
     </div>
   );
 }
+
