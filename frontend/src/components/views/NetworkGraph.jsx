@@ -12,7 +12,36 @@ const GROUP_ANGLE = {
   wallet: Math.PI / 2,
   account: Math.PI,
   market: (3 * Math.PI) / 2,
+  live: Math.PI / 4,
 };
+
+const LIVE_POLL_INTERVAL_MS = 60000; // matches backend crawler_to_dataset_updater cadence
+
+// Normalize a /api/global/entities co-occurrence node into the force-graph
+// node shape the cached/demo dataset already uses, tagging it as live so it
+// can be styled and filtered separately without touching the cached layer.
+function normalizeLiveNode(n) {
+  return {
+    id: n.id,
+    label: n.value,
+    group: 'live',
+    entityType: n.type,
+    mentions: n.mentions,
+    risk_level: null,
+    notes: `Live crawler entity — ${n.mentions} mention${n.mentions === 1 ? '' : 's'} in ingested records`,
+    live: true,
+  };
+}
+
+function normalizeLiveLink(l) {
+  return {
+    source: l.source,
+    target: l.target,
+    value: l.weight,
+    type: 'live_cooccurrence',
+    live: true,
+  };
+}
 
 export default function NetworkGraph() {
   const { t } = useTranslation();
@@ -20,6 +49,11 @@ export default function NetworkGraph() {
   const [source, setSource] = useState('real'); // 'real' | 'synthetic'
   const [data, setData] = useState({ nodes: [], links: [] });
   const [loadError, setLoadError] = useState(null);
+  const [liveData, setLiveData] = useState({ nodes: [], links: [], record_count: 0 });
+  const [liveError, setLiveError] = useState(null);
+  const [liveLoading, setLiveLoading] = useState(true);
+  const [showLive, setShowLive] = useState(true);
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState(null);
   const containerRef = useRef();
   const fgRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
@@ -58,9 +92,72 @@ export default function NetworkGraph() {
     });
 }, [source]);
 
+  // Live crawler layer — pulled from /api/global/entities (co-occurrence
+  // graph built from ingested RawRecords) independently of the cached/demo
+  // dataset above, and refreshed on an interval so new crawler output shows
+  // up without a page reload. A failure here never blocks the cached graph.
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLive = () => {
+      apiFetch('/api/global/entities?limit_records=500')
+        .then(res => {
+          if (res.status === 401) {
+            if (!cancelled) setLiveError('Your session expired. Please log in again.');
+            return null;
+          }
+          return res.ok ? res.json() : null;
+        })
+        .then(liveGraph => {
+          if (cancelled) return;
+          if (!liveGraph) {
+            setLiveError(prev => prev || 'Failed to load live crawler data');
+            return;
+          }
+          setLiveError(null);
+          setLiveData({
+            nodes: Array.isArray(liveGraph.nodes) ? liveGraph.nodes : [],
+            links: Array.isArray(liveGraph.links) ? liveGraph.links : [],
+            record_count: liveGraph.record_count || 0,
+          });
+          setLiveUpdatedAt(new Date());
+        })
+        .catch(err => {
+          if (cancelled) return;
+          console.error("Error fetching live crawler network data:", err);
+          setLiveError(err.message);
+        })
+        .finally(() => {
+          if (!cancelled) setLiveLoading(false);
+        });
+    };
+
+    fetchLive();
+    const interval = setInterval(fetchLive, LIVE_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Merge the cached/demo dataset with the normalized live crawler layer.
+  // Concatenation (not overwrite) is deliberate — the point is to keep
+  // rendering whatever is pre-stored/cached while layering live data on top.
+  // Collisions are effectively impossible: cached ids come from the
+  // synthetic/real_data builders, live ids are "TYPE:VALUE" from the crawler.
+  const mergedData = useMemo(() => {
+    if (!showLive) return data;
+    const liveNodes = liveData.nodes.map(normalizeLiveNode);
+    const liveLinks = liveData.links.map(normalizeLiveLink);
+    return {
+      nodes: [...(data.nodes || []), ...liveNodes],
+      links: [...(data.links || []), ...liveLinks],
+    };
+  }, [data, liveData, showLive]);
+
   const degreeById = useMemo(() => {
     const m = new Map();
-    const links = data?.links || [];
+    const links = mergedData?.links || [];
     for (const l of links) {
       const s = typeof l.source === 'object' ? l.source.id : l.source;
       const t = typeof l.target === 'object' ? l.target.id : l.target;
@@ -68,10 +165,10 @@ export default function NetworkGraph() {
       m.set(t, (m.get(t) || 0) + 1);
     }
     return m;
-  }, [data]);
+  }, [mergedData]);
 
   useEffect(() => {
-    if (!fgRef.current || !data.nodes || data.nodes.length === 0) return;
+    if (!fgRef.current || !mergedData.nodes || mergedData.nodes.length === 0) return;
     const fg = fgRef.current;
     const degree = (node) => degreeById.get(node.id) || 0;
 
@@ -79,11 +176,11 @@ export default function NetworkGraph() {
 
     fg.d3Force('link')
       .distance((link) => {
-        const base = link.type === 'inferred' ? 130 : 80;
+        const base = link.type === 'inferred' ? 130 : (link.type === 'live_cooccurrence' ? 100 : 80);
         const weight = Math.min(link.value || 1, 5);
         return Math.max(30, base - weight * 10);
       })
-      .strength((link) => (link.type === 'inferred' ? 0.25 : 0.55));
+      .strength((link) => (link.type === 'inferred' ? 0.25 : (link.type === 'live_cooccurrence' ? 0.35 : 0.55)));
 
     fg.d3Force('collide', forceCollide((node) => 16 + 3 * Math.min(degree(node), 8)));
 
@@ -92,7 +189,7 @@ export default function NetworkGraph() {
 
     fg.d3ReheatSimulation();
     setTimeout(() => fg.zoomToFit(800, 60), 900);
-  }, [data, degreeById]);
+  }, [mergedData, degreeById]);
 
   const highlightNodes = useMemo(() => new Set(), []);
   const highlightLinks = useMemo(() => new Set(), []);
@@ -101,10 +198,10 @@ export default function NetworkGraph() {
     highlightNodes.clear();
     highlightLinks.clear();
 
-    if ((hoverNode || selectedNode) && data.links) {
+    if ((hoverNode || selectedNode) && mergedData.links) {
       const activeNode = hoverNode || selectedNode;
       highlightNodes.add(activeNode);
-      data.links.forEach(link => {
+      mergedData.links.forEach(link => {
         if (link.source.id === activeNode.id || link.source === activeNode.id) {
           highlightNodes.add(link.target);
           highlightLinks.add(link);
@@ -115,7 +212,7 @@ export default function NetworkGraph() {
         }
       });
     }
-  }, [hoverNode, selectedNode, data, highlightNodes, highlightLinks]);
+  }, [hoverNode, selectedNode, mergedData, highlightNodes, highlightLinks]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -144,7 +241,7 @@ export default function NetworkGraph() {
           <h2 className="text-3xl font-black tracking-widest mb-4 uppercase text-foreground">{t('Entity Correlation & Network')}</h2>
           <p className="text-muted-foreground font-mono tracking-wider uppercase text-xs">{t('Interactive map identifying relationships between suspects, wallets, and marketplaces.')}</p>
           <div className="p-2 bg-blue-950/60 border border-blue-700/50 rounded text-[10px] text-blue-300 font-mono inline-block max-w-xl">
-            <strong>Demo Dataset (Elliptic++ / Dread Archive)</strong> — not connected to live case data.
+            <strong>Demo Dataset (Elliptic++ / Dread Archive)</strong> — layered underneath with live crawler entities.
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -165,12 +262,35 @@ export default function NetworkGraph() {
             >
               {t('Synthetic Demo')}
             </Button>
+            <Button
+              variant={showLive ? 'default' : 'secondary'}
+              size="sm"
+              className="text-xs font-mono uppercase tracking-wider"
+              onClick={() => setShowLive(v => !v)}
+              title={t('Toggle the live crawler co-occurrence layer on or off')}
+            >
+              <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${liveError ? 'bg-red-500' : (liveLoading ? 'bg-yellow-500 animate-pulse' : 'bg-teal-400 animate-pulse')}`}></span>
+              {t('Live Crawler')}
+            </Button>
           </div>
           {source === 'real' && (
             <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider max-w-[280px] text-right">
               {t('Elliptic++ wallet cluster + Dread forum correlation (PGP reuse, replies, wallet mentions).')}
             </p>
           )}
+          <p className="text-[10px] font-mono uppercase tracking-wider max-w-[300px] text-right">
+            {liveError ? (
+              <span className="text-red-500">{t('Live crawler layer unavailable')}: {liveError}</span>
+            ) : showLive ? (
+              <span className="text-teal-400">
+                {liveLoading
+                  ? t('Loading live crawler entities…')
+                  : `${t('Live')}: ${liveData.record_count} ${t('records')} · ${liveData.nodes.length} ${t('entities')}${liveUpdatedAt ? ` · ${t('updated')} ${liveUpdatedAt.toLocaleTimeString()}` : ''}`}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{t('Live crawler layer hidden')}</span>
+            )}
+          </p>
         </div>
       </div>
       <div className="flex-1 flex gap-6 overflow-hidden relative min-h-[500px]">
@@ -189,20 +309,21 @@ export default function NetworkGraph() {
               {isExpanded ? <Minimize className="w-4 h-4 text-red-500" /> : <Maximize className="w-4 h-4" />}
             </Button>
           </div>
-          {data.nodes && data.nodes.length > 0 ? (
+          {mergedData.nodes && mergedData.nodes.length > 0 ? (
             <ForceGraph2D
               ref={fgRef}
               width={dimensions.width}
               height={dimensions.height}
-              graphData={data}
+              graphData={mergedData}
               nodeRelSize={6}
               linkColor={link => {
                 if (highlightLinks.has(link)) return '#ef4444';
                 if (link.type === 'inferred') return theme === 'dark' ? '#c084fc' : '#a855f7';
+                if (link.type === 'live_cooccurrence') return theme === 'dark' ? '#2dd4bf' : '#0d9488';
                 return theme === 'dark' ? '#334155' : '#cbd5e1';
               }}
-              linkWidth={link => highlightLinks.has(link) ? 2 : (link.type === 'inferred' ? 1 : 1.5)}
-              linkLineDash={link => link.type === 'inferred' ? [3, 2] : null}
+              linkWidth={link => highlightLinks.has(link) ? 2 : (link.type === 'inferred' || link.type === 'live_cooccurrence' ? 1 : 1.5)}
+              linkLineDash={link => link.type === 'inferred' ? [3, 2] : (link.type === 'live_cooccurrence' ? [1, 3] : null)}
               backgroundColor={theme === 'dark' ? 'transparent' : '#f8fafc'}
               onNodeHover={setHoverNode}
               onNodeClick={node => {
@@ -237,6 +358,9 @@ export default function NetworkGraph() {
                 }  else if (node.group === 'account') {
                   symbol = '🧾';
                   bgColor = '#a855f7';
+                } else if (node.group === 'live') {
+                  symbol = '📡';
+                  bgColor = '#14b8a6';
                 }
                 else {
                   symbol = '❓';
@@ -279,6 +403,7 @@ export default function NetworkGraph() {
                 if (node.group === 'wallet') symbol = '💳';
                 if (node.group === 'market') symbol = '🛒';
                 if (node.group === 'account') symbol = '🧾';
+                if (node.group === 'live') symbol = '📡';
                 
                 const fullText = `${symbol} ${node.label}`;
                 const textWidth = ctx.measureText(fullText).width;
@@ -320,11 +445,23 @@ export default function NetworkGraph() {
                   <span className={`px-2 py-1 rounded text-xs font-bold font-mono
                     ${selectedNode.group === 'suspect' ? 'bg-red-500/20 text-red-500' : 
                       selectedNode.group === 'wallet' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' : 
+                      selectedNode.group === 'live' ? 'bg-teal-500/20 text-teal-500' :
                       'bg-blue-500/20 text-blue-500'}`}>
                     {t(selectedNode.group) || selectedNode.group}
                   </span>
+                  {selectedNode.live && (
+                    <span className="ml-2 px-2 py-1 rounded text-[10px] font-bold font-mono bg-teal-500/10 text-teal-400 uppercase">
+                      {t('Live crawler')}{selectedNode.entityType ? ` · ${selectedNode.entityType}` : ''}
+                    </span>
+                  )}
                 </p>
               </div>
+              {selectedNode.live && typeof selectedNode.mentions === 'number' && (
+                <div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Mentions in ingested records')}</span>
+                  <p className="font-mono mt-1 text-sm">{selectedNode.mentions}</p>
+                </div>
+              )}
               {selectedNode.risk_level && (
                 <div>
                   <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">{t('Risk Level')}</span>
@@ -368,8 +505,10 @@ export default function NetworkGraph() {
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500"></div> {t('Crypto Wallet')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500"></div> {t('Digital Marketplace')}</div>
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500"></div> {t('Account / Handle')}</div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-teal-500"></div> {t('Live Crawler Entity')}</div>
         <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-slate-400"></div> {t('Observed Link')}</div>
         <div className="flex items-center gap-2"><div className="w-6 h-0.5 border-t-2 border-dashed border-slate-400"></div> {t('Inferred Link')}</div>
+        <div className="flex items-center gap-2"><div className="w-6 h-0.5 border-t-2 border-dotted border-teal-500"></div> {t('Live Co-occurrence')}</div>
       </div>
     </div>
   );
