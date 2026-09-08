@@ -15,7 +15,7 @@ from rbac import can_manage_investigation_sources, require_permission, Permissio
 
 from routers.auth_router import get_current_user
 from routers.reauth_router import require_recent_reauth
-from security import get_client_ip
+from security import get_client_ip, parse_uuid_safely
 
 router = APIRouter(prefix="/api/investigations/{investigation_id}/sources", tags=["Investigation Sources"])
 
@@ -66,7 +66,7 @@ def list_investigation_sources(
     # Get source details for enriched response
     sources_data = []
     for a in attachments:
-        source_uuid = uuid.UUID(a.source_id) if isinstance(a.source_id, str) and "-" in a.source_id else a.source_id
+        source_uuid = parse_uuid_safely(a.source_id, field_name="source_id", allow_none=True) if a.source_id else None
         source = db.query(Source).filter(Source.id == source_uuid).first() if source_uuid else None
         sources_data.append({
             "id": a.id,
@@ -90,12 +90,11 @@ def attach_source_to_investigation(
     req: AttachSourceRequest,
     request: Request,
     current_user: User = Depends(get_current_user),
-    reauth_user: User = Depends(require_recent_reauth),
     db: Session = Depends(get_db)
 ):
     """
     Attach an existing crawler source to an investigation.
-    Requires investigation modification access + re-authentication.
+    Requires investigation modification access.
     """
     investigation = db.query(Investigation).filter(Investigation.investigation_id == investigation_id).first()
     if not investigation:
@@ -105,7 +104,7 @@ def attach_source_to_investigation(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to attach sources to this investigation.")
 
     # Verify source exists
-    source_uuid = uuid.UUID(req.source_id) if isinstance(req.source_id, str) and "-" in req.source_id else req.source_id
+    source_uuid = parse_uuid_safely(req.source_id, field_name="source_id")
     source = db.query(Source).filter(Source.id == source_uuid).first()
     if not source:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Source '{req.source_id}' not found.")
@@ -183,7 +182,7 @@ def detach_source_from_investigation(
     # Soft-delete
     attachment.removed_at = datetime.now(timezone.utc)
 
-    source_uuid = uuid.UUID(source_id) if isinstance(source_id, str) and "-" in source_id else source_id
+    source_uuid = parse_uuid_safely(source_id, field_name="source_id")
     source = db.query(Source).filter(Source.id == source_uuid).first()
 
     create_audit_log(
@@ -208,7 +207,6 @@ async def trigger_source_for_investigation(
     source_id: str,
     request: Request,
     current_user: User = Depends(get_current_user),
-    reauth_user: User = Depends(require_recent_reauth),
     db: Session = Depends(get_db)
 ):
     """
@@ -217,7 +215,7 @@ async def trigger_source_for_investigation(
     The crawl will run with case_id = investigation.investigation_id
     so that RawRecords and CrawlerRun.case_id are scoped to this investigation.
 
-    Requires source attachment + re-authentication.
+    Requires source attachment.
     """
     investigation = db.query(Investigation).filter(Investigation.investigation_id == investigation_id).first()
     if not investigation:
@@ -237,7 +235,7 @@ async def trigger_source_for_investigation(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Source '{source_id}' is not attached to this investigation.")
 
     # Verify source exists
-    source_uuid = uuid.UUID(source_id) if isinstance(source_id, str) and "-" in source_id else source_id
+    source_uuid = parse_uuid_safely(source_id, field_name="source_id")
     source = db.query(Source).filter(Source.id == source_uuid).first()
     if not source:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Source '{source_id}' not found.")

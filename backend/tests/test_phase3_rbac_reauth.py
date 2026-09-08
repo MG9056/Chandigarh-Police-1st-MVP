@@ -28,32 +28,39 @@ def setup_users():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    # Create SP user
-    sp = User(
-        email="sp_test@chandigarhpolice.gov.in",
-        full_name="SP Test",
-        password_hash=hash_password("SPPassword123!"),
-        role=RoleEnum.SP,
-        account_status=AccountStatusEnum.ACTIVE
-    )
-    # Create Investigator user
-    inv = User(
-        email="inv_test@chandigarhpolice.gov.in",
-        full_name="Investigator Test",
-        password_hash=hash_password("InvPassword123!"),
-        role=RoleEnum.INVESTIGATOR,
-        account_status=AccountStatusEnum.ACTIVE
-    )
-    # Create Constable user
-    constable = User(
-        email="constable_test@chandigarhpolice.gov.in",
-        full_name="Constable Test",
-        password_hash=hash_password("ConstablePassword123!"),
-        role=RoleEnum.CONSTABLE,
-        account_status=AccountStatusEnum.ACTIVE
-    )
+    sp = db.query(User).filter_by(email="sp_test@chandigarhpolice.gov.in").first()
+    if not sp:
+        sp = User(
+            email="sp_test@chandigarhpolice.gov.in",
+            full_name="SP Test",
+            password_hash=hash_password("SPPassword123!"),
+            role=RoleEnum.SP,
+            account_status=AccountStatusEnum.ACTIVE
+        )
+        db.add(sp)
 
-    db.add_all([sp, inv, constable])
+    inv = db.query(User).filter_by(email="inv_test@chandigarhpolice.gov.in").first()
+    if not inv:
+        inv = User(
+            email="inv_test@chandigarhpolice.gov.in",
+            full_name="Investigator Test",
+            password_hash=hash_password("InvPassword123!"),
+            role=RoleEnum.INVESTIGATOR,
+            account_status=AccountStatusEnum.ACTIVE
+        )
+        db.add(inv)
+
+    constable = db.query(User).filter_by(email="constable_test@chandigarhpolice.gov.in").first()
+    if not constable:
+        constable = User(
+            email="constable_test@chandigarhpolice.gov.in",
+            full_name="Constable Test",
+            password_hash=hash_password("ConstablePassword123!"),
+            role=RoleEnum.CONSTABLE,
+            account_status=AccountStatusEnum.ACTIVE
+        )
+        db.add(constable)
+
     db.commit()
     db.refresh(sp)
     db.refresh(inv)

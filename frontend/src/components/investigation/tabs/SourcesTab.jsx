@@ -62,22 +62,20 @@ export default function SourcesTab({ investigationId, canManage }) {
       return;
     }
 
-    triggerReAuth(async () => {
-      setActionLoading(true);
-      setError('');
-      try {
-        await attachSource(investigationId, attachingSourceId.trim());
-        setSuccess('Source attached successfully');
-        setAttachingSourceId('');
-        setShowAttachForm(false);
-        loadSources();
-        setTimeout(() => setSuccess(''), 3000);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setActionLoading(false);
-      }
-    });
+    setActionLoading(true);
+    setError('');
+    try {
+      await attachSource(investigationId, attachingSourceId.trim());
+      setSuccess('Source attached successfully');
+      setAttachingSourceId('');
+      setShowAttachForm(false);
+      loadSources();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDetachSource = async (sourceId, sourceName) => {
@@ -100,19 +98,17 @@ export default function SourcesTab({ investigationId, canManage }) {
   };
 
   const handleTriggerSource = async (sourceId, sourceName) => {
-    triggerReAuth(async () => {
-      setActionLoading(true);
-      setError('');
-      try {
-        const res = await triggerSourceForInvestigation(investigationId, sourceId);
-        setSuccess(`Crawl run triggered for ${sourceName || sourceId} [Status: ${res.status || 'QUEUED'}]`);
-        setTimeout(() => setSuccess(''), 3500);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setActionLoading(false);
-      }
-    });
+    setActionLoading(true);
+    setError('');
+    try {
+      const res = await triggerSourceForInvestigation(investigationId, sourceId);
+      setSuccess(`Crawl run triggered for ${sourceName || sourceId} [Status: ${res.status || 'QUEUED'}]`);
+      setTimeout(() => setSuccess(''), 3500);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (

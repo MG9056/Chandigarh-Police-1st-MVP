@@ -29,16 +29,18 @@ def setup_senior_officer():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    officer = User(
-        email="senior_audit_officer@chandigarhpolice.gov.in",
-        full_name="Inspector S. Vault",
-        password_hash=hash_password("VaultPassword123!"),
-        role=RoleEnum.SUPER_ADMIN,
-        account_status=AccountStatusEnum.ACTIVE
-    )
-    db.add(officer)
-    db.commit()
-    db.refresh(officer)
+    officer = db.query(User).filter_by(email="senior_audit_officer@chandigarhpolice.gov.in").first()
+    if not officer:
+        officer = User(
+            email="senior_audit_officer@chandigarhpolice.gov.in",
+            full_name="Inspector S. Vault",
+            password_hash=hash_password("VaultPassword123!"),
+            role=RoleEnum.SUPER_ADMIN,
+            account_status=AccountStatusEnum.ACTIVE
+        )
+        db.add(officer)
+        db.commit()
+        db.refresh(officer)
 
     yield officer
 
