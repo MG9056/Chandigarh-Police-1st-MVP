@@ -2,6 +2,7 @@ import { KeyRound, Copy, Check, AlertTriangle, ShieldCheck, X } from 'lucide-rea
 import { Button } from '../ui/button';
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import API_BASE_URL from '../../config/api';
 
 export default function TFAModal({ onClose, onComplete }) {
   const [step, setStep] = useState('init'); // init, verify
@@ -26,8 +27,9 @@ export default function TFAModal({ onClose, onComplete }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/2fa/setup', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/2fa/setup`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
       const data = await res.json();
@@ -53,8 +55,9 @@ export default function TFAModal({ onClose, onComplete }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/2fa/verify', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/2fa/verify`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: verifyCode })
       });

@@ -29,6 +29,14 @@ class RateLimiter:
         # Enforce hard floor — cannot be configured below MIN_CRAWL_DELAY_SECONDS
         return max(delay, MIN_CRAWL_DELAY_SECONDS)
 
+    @staticmethod
+    def _as_utc(value: datetime) -> datetime:
+        # PostgreSQL can return naive values when a legacy timestamp column
+        # was created without timezone support.
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
     async def wait_if_needed(self, url: str, requested_delay: float | None = None):
         domain = urlparse(url).netloc
         if not domain:
@@ -38,7 +46,7 @@ class RateLimiter:
         now = datetime.now(timezone.utc)
 
         if domain in self.last_fetch_times:
-            elapsed = (now - self.last_fetch_times[domain]).total_seconds()
+            elapsed = (now - self._as_utc(self.last_fetch_times[domain])).total_seconds()
             if elapsed < effective_delay:
                 sleep_time = effective_delay - elapsed
                 logger.debug(f"Rate limiting domain {domain}: sleeping {sleep_time:.2f}s")

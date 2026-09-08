@@ -100,6 +100,16 @@ export async function listGlobalReports() {
 
   return res.json();
 }
+
+export async function listGlobalEvidence() {
+  const res = await apiFetch('/api/evidence?limit=100');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch global evidence');
+  }
+  return res.json();
+}
+
 export async function downloadInvestigationReportPdf(
   investigationId,
   reportId,

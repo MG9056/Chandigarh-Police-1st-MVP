@@ -1,7 +1,4 @@
-"""
-Master Orchestrator: Seeding SQLite Database (darknight.db) for Project Dark Knight.
-Executes all ingestion pipelines in order, then runs a selective fuzzy entity resolution pass on overlapping aliases.
-"""
+"""Seed the configured database with the available intelligence datasets."""
 
 from __future__ import annotations
 
@@ -22,6 +19,7 @@ from models import (
     DataProvenance, AuditLog
 )
 from entity_resolution import username_similarity
+from semantic_search import SemanticIndex
 
 from pipelines import ingest_daksh_datasets
 from pipelines import ingest_elliptic_ofac
@@ -90,8 +88,7 @@ def seed_database():
     print("STARTING DATABASE SEEDING FOR PROJECT DARK KNIGHT")
     print("=" * 70)
 
-    # Re-initialize fresh SQLite tables
-    print("\n[seed_db] 1/6 Initializing SQLite database schema...")
+    print("\n[seed_db] 1/6 Initializing configured database schema...")
     init_db()
 
     db = SessionLocal()
@@ -126,6 +123,10 @@ def seed_database():
         # 6. Run Selective Fuzzy Entity Resolution Pass
         print("\n[seed_db] 6/6 Running Selective Fuzzy Entity Resolution Pass...")
         run_selective_fuzzy_resolution_pass(db)
+
+        print("\n[seed_db] Rebuilding semantic search index from seeded records...")
+        indexed_count = SemanticIndex().rebuild(db)
+        print(f"[seed_db] Indexed {indexed_count:,} searchable documents.")
 
         print("\n" + "=" * 70)
         print("DATABASE SEEDING COMPLETE! REPORTING TABLE ROW COUNTS & LINK METRICS:")
@@ -167,8 +168,10 @@ def seed_database():
         print("\n" + "=" * 70)
         print("SUSPECT LINKAGE STATISTICAL SUMMARY:")
         print("=" * 70)
-        print(f"  - CryptoWallet Linkage: {wallets_linked:,} linked ({wallets_linked/wallets_total*100:.1f}%) | {wallets_unlinked:,} unlinked (Elliptic++ background nodes)")
-        print(f"  - DarknetListing Linkage: {listings_linked:,} linked ({listings_linked/listings_total*100:.1f}%) | {listings_unlinked:,} unlinked")
+        wallet_link_pct = wallets_linked / wallets_total * 100 if wallets_total else 0
+        listing_link_pct = listings_linked / listings_total * 100 if listings_total else 0
+        print(f"  - CryptoWallet Linkage: {wallets_linked:,} linked ({wallet_link_pct:.1f}%) | {wallets_unlinked:,} unlinked (Elliptic++ background nodes)")
+        print(f"  - DarknetListing Linkage: {listings_linked:,} linked ({listing_link_pct:.1f}%) | {listings_unlinked:,} unlinked")
         print(f"  - TelegramMessage Sender Handle Linkage: All {tg_messages_count} messages sent by {len(tg_handles)} handles ({', '.join(sorted(tg_handles))}) map 100% to Suspect.telegram_handle records.")
 
     finally:

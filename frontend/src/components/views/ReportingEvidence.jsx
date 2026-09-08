@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import {
   listGlobalReports,
+  listGlobalEvidence,
   getInvestigationReport,
   downloadInvestigationReportPdf,
 } from '../../api/investigationReportsApi';
@@ -195,6 +196,29 @@ async function handleDownloadPdf() {
 
 function ReportDetail({ report, onBack }) {
   const officers = report.assigned_officers || [];
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  async function handleDownloadPdf() {
+    try {
+      setDownloadingPdf(true);
+      const blob = await downloadInvestigationReportPdf(
+        report.investigation_id,
+        report.report_id,
+      );
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${report.report_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download report PDF:', err);
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -375,6 +399,7 @@ function ReportDetail({ report, onBack }) {
 
 export default function ReportingEvidence() {
   const [reports, setReports] = useState([]);
+  const [evidence, setEvidence] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -391,9 +416,13 @@ export default function ReportingEvidence() {
         setLoading(true);
       }
 
-      const data = await listGlobalReports();
+      const [reportData, evidenceData] = await Promise.all([
+        listGlobalReports(),
+        listGlobalEvidence(),
+      ]);
 
-      setReports(data.reports || []);
+      setReports(reportData.reports || []);
+      setEvidence(evidenceData.evidence || []);
     } catch (err) {
       console.error('Failed to load global reports:', err);
       setError(err.message || 'Failed to load reports.');
@@ -490,6 +519,32 @@ if (selectedReport) {
             {error}
           </div>
         )}
+
+        <section className="mb-8 bracket-border bg-background/20 p-6">
+          <div className="flex items-end justify-between border-b border-border/50 pb-4">
+            <div>
+              <p className="text-xs font-mono tracking-widest uppercase text-primary">
+                Global Evidence
+              </p>
+              <p className="mt-1 text-xs font-mono text-muted-foreground">
+                {evidence.length} PROVENANCE RECORD{evidence.length !== 1 ? 'S' : ''}
+              </p>
+            </div>
+          </div>
+          {evidence.length === 0 ? (
+            <p className="pt-5 text-sm text-muted-foreground">No evidence records available.</p>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {evidence.map((item) => (
+                <div key={item.id} className="grid gap-2 py-4 md:grid-cols-[1fr_1fr_2fr] md:items-center">
+                  <span className="text-xs font-mono uppercase text-primary">{item.source_type}</span>
+                  <span className="text-sm text-foreground">{item.source_name}</span>
+                  <span className="truncate text-xs text-muted-foreground">{item.integrity_hash || item.source_identifier}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {loading ? (
           <div className="flex min-h-[300px] items-center justify-center bracket-border bg-background/20">

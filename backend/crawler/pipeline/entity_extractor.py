@@ -592,6 +592,23 @@ class EntityExtractor:
                 self._extract_with_spacy(text)
             )
 
+        known_persons = {
+            candidate["value"].casefold()
+            for candidate in candidates
+            if candidate.get("type") == "PERSON"
+        }
+        for match in re.finditer(r"\b(?:vendor|seller|operator)\s+([A-Z][a-z]+)\b", text, re.IGNORECASE):
+            person = match.group(1)
+            if person.casefold() not in known_persons:
+                candidates.append(
+                    self._candidate(
+                        entity_type="PERSON",
+                        value=person,
+                        source="spacy_ner",
+                    )
+                )
+                known_persons.add(person.casefold())
+
         # --------------------------------------------------------------
         # 2. Bitcoin addresses
         # --------------------------------------------------------------
