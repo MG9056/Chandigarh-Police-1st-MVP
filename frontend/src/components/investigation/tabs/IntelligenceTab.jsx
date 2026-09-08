@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { listInvestigationIntelligence, getIntelligenceDetail, reviewIntelligence, listInvestigationFindings } from '../../../api/investigationIntelligenceApi';
 import { Button } from '../../ui/button';
-import { useAuth } from '../../../context/AuthContext';
 import { AlertCircle, CheckCircle, Eye, ThumbsUp, ThumbsDown, ArrowLeft, RefreshCw, FileText } from 'lucide-react';
 import { Search } from 'lucide-react';
 
 export default function IntelligenceTab({ investigationId, canManage }) {
-  const { triggerReAuth } = useAuth();
   const [records, setRecords] = useState([]);
   const [findings, setFindings] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -58,22 +56,20 @@ export default function IntelligenceTab({ investigationId, canManage }) {
   const handleReviewStatus = async (statusVal) => {
     if (!selectedRecord) return;
 
-    triggerReAuth(async () => {
-      setActionLoading(true);
-      setError('');
-      try {
-        await reviewIntelligence(investigationId, selectedRecord.raw_record_id, statusVal, reviewNotes);
-        setSuccess(`Intelligence marked as ${statusVal}`);
-        setSelectedRecord(null);
-        setSelectedRecordDetail(null);
-        loadIntelligence();
-        setTimeout(() => setSuccess(''), 3000);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setActionLoading(false);
-      }
-    });
+    setActionLoading(true);
+    setError('');
+    try {
+      await reviewIntelligence(investigationId, selectedRecord.raw_record_id, statusVal, reviewNotes);
+      setSuccess(`Intelligence marked as ${statusVal}`);
+      setSelectedRecord(null);
+      setSelectedRecordDetail(null);
+      loadIntelligence();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (selectedRecordDetail) {

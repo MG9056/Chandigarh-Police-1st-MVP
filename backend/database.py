@@ -1,6 +1,9 @@
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # SQLite database setup for local development / hackathon feasibility
 DB_PATH = os.path.join(os.path.dirname(__file__), "darknight.db")

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import json
 import os
 
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,7 @@ from database import init_db, get_db
 from models import (
     User,
     Investigation,
+    Report,
     Suspect,
     CryptoWallet,
     DarknetListing,
@@ -26,6 +28,7 @@ from crawler.orchestration.scheduler import CrawlerScheduler
 from pipelines.ingest_ai_router import start_background_ingestion_task, INGESTION_STATUS
 from crawler.models.source import Source
 from routers.auth_router import router as auth_router, get_current_user
+from rbac import Permission, require_permission
 from routers.admin_router import router as admin_router
 from routers.reauth_router import router as reauth_router
 from routers.delegation_router import router as delegation_router
@@ -85,7 +88,7 @@ app = FastAPI(
 # Enable CORS with credentials for cookies
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000","https://darknight-tau.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -225,10 +228,107 @@ def search_entities(q: str = "", current_user: User = Depends(get_current_user))
 
 # /api/alerts/suspicious — now served by routers/alerts_router.py (DB-backed)
 
-@app.get("/api/reports")
-def get_reports(current_user: User = Depends(get_current_user)):
-    db = load_db()
-    return db.get("reports", [])
+@app.get("/api/reports", tags=["Global Reports"])
+def get_global_reports(
+    current_user: User = Depends(require_permission(Permission.READ)),
+    db: Session = Depends(get_db),
+):
+    """
+    List all generated investigation reports for the global
+    Reports & Evidence dashboard.
+
+    Returns report data together with case metadata and
+    assigned investigators so the frontend does not need
+    to make one request per investigation.
+    """
+
+    reports = (
+        db.query(Report)
+        .order_by(Report.created_at.desc())
+        .all()
+    )
+
+    result = []
+
+    for report in reports:
+        investigation = report.investigation
+
+        if not investigation:
+            continue
+
+        # Active assigned investigators only
+        assigned_officers = []
+
+        for assignment in investigation.assignments or []:
+            if assignment.removed_at is not None:
+                continue
+
+            if assignment.assigned_to:
+                assigned_officers.append({
+                    "id": assignment.assigned_to.id,
+                    "name": assignment.assigned_to.full_name,
+                    "email": assignment.assigned_to.email,
+                    "badge_number": assignment.assigned_to.badge_number,
+                    "unit": assignment.assigned_to.unit,
+                })
+
+        # Include lead investigator separately if present
+        lead_investigator = None
+
+        if investigation.lead_investigator:
+            lead_investigator = {
+                "id": investigation.lead_investigator.id,
+                "name": investigation.lead_investigator.full_name,
+                "email": investigation.lead_investigator.email,
+                "badge_number": investigation.lead_investigator.badge_number,
+                "unit": investigation.lead_investigator.unit,
+            }
+
+        structured_data = report.structured_data or {}
+
+        result.append({
+            "id": report.id,
+            "report_id": report.report_id,
+
+            # Report information
+            "title": report.title,
+            "status": report.status,
+            "model_used": report.model_used,
+            "created_at": (
+                report.created_at.isoformat()
+                if report.created_at
+                else None
+            ),
+
+            # AI-generated summary
+            "summary": structured_data.get(
+                "executive_summary",
+                ""
+            ),
+
+            # Case information
+            "investigation_id": investigation.investigation_id,
+            "case_title": investigation.title,
+            "case_type": investigation.case_type,
+            "case_status": investigation.status,
+            "priority": investigation.priority,
+            "unit": investigation.unit,
+            "description": investigation.description,
+
+            # Officers
+            "lead_investigator": lead_investigator,
+            "assigned_officers": assigned_officers,
+
+            # Evidence
+            "evidence_count": len(
+                report.evidence_references or {}
+            ),
+        })
+
+    return {
+        "total": len(result),
+        "reports": result,
+    }
 
 @app.get("/api/network/synthetic")
 def get_synthetic_network_data(current_user: User = Depends(get_current_user)):

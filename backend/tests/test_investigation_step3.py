@@ -441,3 +441,132 @@ def test_co_occurrence_edge_label(db):
         assert link["relationship"] == "CO_OCCURRENCE", (
             f"All edges must be labeled CO_OCCURRENCE; got {link['relationship']}"
         )
+
+
+# ── (g) Re-authentication scoping tests ─────────────────────────────────────
+
+def test_detach_source_requires_reauth(db):
+    """
+    Detach source (DELETE /api/investigations/{id}/sources/{source_id}) requires reauth.
+    Without reauth token -> 403 REAUTH_REQUIRED.
+    With reauth token -> 200 SUCCESS.
+    """
+    from security import create_access_token, create_reauth_token
+    from models import Source, InvestigationSource
+
+    dgp = _make_user(db, RoleEnum.SUPER_ADMIN)
+    inv = _make_investigation(db, dgp)
+
+    # Create a source and attach it
+    source = Source(
+        name="Test Detach Source",
+        source_type="TELEGRAM",
+        config={"target_url": "https://t.me/test_detach"},
+        created_by=dgp.id,
+    )
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+
+    attachment = InvestigationSource(
+        investigation_id=inv.id,
+        source_id=str(source.id),
+        added_by_id=dgp.id,
+    )
+    db.add(attachment)
+    db.commit()
+
+    access_token = create_access_token({"sub": str(dgp.id)})
+    cookies = {"access_token": access_token}
+
+    # 1. Attempt detach WITHOUT reauth token -> 403 REAUTH_REQUIRED
+    res_no_reauth = client.delete(
+        f"/api/investigations/{inv.investigation_id}/sources/{source.id}",
+        cookies=cookies,
+    )
+    assert res_no_reauth.status_code == 403
+    assert res_no_reauth.json().get("detail") == "REAUTH_REQUIRED"
+
+    # 2. Attempt detach WITH reauth token -> 200 SUCCESS
+    reauth_token = create_reauth_token(dgp.id)
+    cookies_with_reauth = {**cookies, "reauth_token": reauth_token}
+
+    res_with_reauth = client.delete(
+        f"/api/investigations/{inv.investigation_id}/sources/{source.id}",
+        cookies=cookies_with_reauth,
+    )
+    assert res_with_reauth.status_code == 200
+    assert res_with_reauth.json().get("detached") is True
+
+
+def test_non_restricted_investigation_actions_do_not_require_reauth(db):
+    """
+    Assert that attach source, trigger crawl, review intelligence (mark relevant),
+    and promote to evidence succeed with normal session auth alone (NO re-auth token).
+    """
+    from security import create_access_token
+    from models import Source, RawRecord, InvestigationFindingStatus
+
+    dgp = _make_user(db, RoleEnum.SUPER_ADMIN)
+    inv = _make_investigation(db, dgp)
+
+    access_token = create_access_token({"sub": str(dgp.id)})
+    cookies = {"access_token": access_token}  # Explicitly NO reauth_token cookie!
+
+    # 1. Attach Source (POST /api/investigations/{id}/sources)
+    source = Source(
+        name="Test Non-Restricted Source",
+        source_type="DARKNET",
+        config={"target_url": "http://testdarknet.onion"},
+        created_by=dgp.id,
+    )
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+
+    res_attach = client.post(
+        f"/api/investigations/{inv.investigation_id}/sources",
+        json={"source_id": str(source.id)},
+        cookies=cookies,
+    )
+    assert res_attach.status_code == 200, f"Attach source failed: {res_attach.text}"
+    assert res_attach.json().get("attached") is True
+
+    # 2. Trigger Crawl (POST /api/investigations/{id}/sources/{source_id}/trigger)
+    res_trigger = client.post(
+        f"/api/investigations/{inv.investigation_id}/sources/{source.id}/trigger",
+        cookies=cookies,
+    )
+    assert res_trigger.status_code == 200, f"Trigger crawl failed: {res_trigger.text}"
+    assert res_trigger.json().get("status") == "QUEUED"
+
+    # 3. Review Intelligence / Mark Relevant (POST /api/investigations/{id}/intelligence/{raw_record_id}/review)
+    rr_id = str(uuid.uuid4())
+    raw_rec = RawRecord(
+        id=uuid.UUID(rr_id),
+        url="http://testdarknet.onion/post/1",
+        fetched_at=datetime.now(timezone.utc),
+        content_hash=uuid.uuid4().hex,
+        case_id=inv.investigation_id,
+        source_id=source.id,
+    )
+    db.add(raw_rec)
+    db.commit()
+
+    res_review = client.post(
+        f"/api/investigations/{inv.investigation_id}/intelligence/{rr_id}/review",
+        json={"review_status": InvestigationFindingStatus.RELEVANT, "review_notes": "Verified threat"},
+        cookies=cookies,
+    )
+    assert res_review.status_code == 200, f"Review intelligence failed: {res_review.text}"
+    finding_id = res_review.json().get("finding_id")
+    assert finding_id is not None
+
+    # 4. Promote to Evidence (POST /api/investigations/{id}/evidence/promote/{finding_id})
+    res_promote = client.post(
+        f"/api/investigations/{inv.investigation_id}/evidence/promote/{finding_id}",
+        cookies=cookies,
+    )
+    assert res_promote.status_code == 201, f"Promote to evidence failed: {res_promote.text}"
+    assert res_promote.json().get("finding_id") == finding_id
+
